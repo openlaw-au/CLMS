@@ -1,0 +1,1210 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLMS - Chambers Library Management System</title>
+
+    <!-- Fonts: Playfair Display for Serif (Authority), Inter for Sans (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&amp;family=Playfair+Display:wght@400;500;600&amp;display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify (Solar Linear Icons) -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+    <style>
+        :root {
+            /* Brand */
+            --color-primary: #EA580C;
+            --color-primary-hover: #C2410C;
+
+            /* Text */
+            --color-text: #0B1220;
+            --color-text-secondary: #475569;
+            --color-text-tertiary: #64748b;
+            --color-text-muted: #94a3b8;
+            --color-text-inverse: #ffffff;
+
+            /* Backgrounds */
+            --color-bg: #F8F9FB;
+            --color-bg-alt: #F1F5F9;
+            --color-bg-dark: #0B1220;
+
+            /* Surfaces */
+            --color-surface: #ffffff;
+            --color-surface-subtle: #F4F5F7;
+            --color-surface-muted: #F8FAFC;
+
+            /* Borders */
+            --color-border: #e2e8f0;
+            --color-border-light: #f1f5f9;
+            --color-border-strong: #cbd5e1;
+
+            /* Semantic accents */
+            --color-success: #10b981;
+            --color-info: #2563eb;
+
+            /* Selection */
+            --color-selection-bg: var(--color-primary);
+            --color-selection-text: #ffffff;
+        }
+
+        /* Custom Font Utility Classes */
+        .font-sans { font-family: 'Inter', sans-serif !important; }
+        .font-serif { font-family: 'Playfair Display', serif !important; }
+
+        /* Hide scrollbar for clean UI */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Animated gradient background for Hero - subtle warm glow */
+        .bg-hero-gradient {
+            position: relative;
+            overflow: hidden;
+        }
+        .bg-hero-gradient::before,
+        .bg-hero-gradient::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            will-change: transform;
+            opacity: 0.6;
+        }
+        .bg-hero-gradient::before {
+            background: rgba(234,88,12,0.12);
+            width: 40%;
+            height: 45%;
+            top: 10%;
+            left: 5%;
+            animation: blobA 22s ease-in-out infinite;
+        }
+        .bg-hero-gradient::after {
+            background: rgba(234,88,12,0.09);
+            width: 35%;
+            height: 40%;
+            top: 30%;
+            right: 5%;
+            animation: blobB 26s ease-in-out infinite;
+        }
+        .bg-hero-gradient-extra {
+            position: absolute;
+            width: 28%;
+            height: 32%;
+            border-radius: 50%;
+            background: rgba(234,88,12,0.07);
+            filter: blur(100px);
+            bottom: 5%;
+            left: 40%;
+            animation: blobC 20s ease-in-out infinite;
+            will-change: transform;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        @keyframes blobA {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(8%, 12%) scale(1.05); }
+            50% { transform: translate(15%, -5%) scale(0.95); }
+            75% { transform: translate(-5%, 8%) scale(1.08); }
+        }
+        @keyframes blobB {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(-10%, 8%) scale(1.08); }
+            50% { transform: translate(-5%, -12%) scale(0.96); }
+            75% { transform: translate(8%, -5%) scale(1.04); }
+        }
+        @keyframes blobC {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(12%, -8%) scale(1.06); }
+            50% { transform: translate(-8%, 10%) scale(0.94); }
+            75% { transform: translate(5%, 5%) scale(1.1); }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 1s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 1s ease-out forwards; }
+
+        /* Scroll-linked active nav indicator */
+        .nav-link {
+            position: relative;
+            padding-bottom: 4px;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--color-primary);
+            transform: scaleX(0);
+            transition: transform 0.25s ease;
+        }
+        .nav-link.active::after {
+            transform: scaleX(1);
+        }
+        .nav-link.active {
+            color: var(--color-text);
+        }
+
+        /* Persona toggle switch */
+        .persona-toggle {
+            display: inline-flex;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            padding: 4px;
+            gap: 2px;
+        }
+        .hero-tab {
+            cursor: pointer;
+            padding: 10px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 9999px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .hero-tab.active {
+            color: var(--color-text);
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .hero-tab:not(.active):hover {
+            color: #334155;
+        }
+
+        /* Nav persona toggle (compact) */
+        #nav-toggle {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        #nav-toggle.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #nav-toggle .persona-toggle {
+            padding: 3px;
+        }
+        #nav-toggle .hero-tab {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+        #nav-toggle .hero-tab iconify-icon {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Card Component */
+        .card {
+            background: var(--color-surface-subtle);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #EBEDF0;
+        }
+        .card-icon {
+            width: 3rem;
+            height: 3rem;
+            background: white;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--color-border);
+        }
+        .card-icon iconify-icon {
+            color: var(--color-primary);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-text);
+            font-family: 'Playfair Display', serif;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
+        }
+        .card-desc {
+            font-size: 0.875rem;
+            color: #475569;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.625;
+        }
+        .card-checks {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 1rem;
+        }
+        .card-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Feature groups */
+        .features-subheader {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            line-height: 1;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            margin-bottom: 16px;
+        }
+        .features-subheader iconify-icon {
+            position: relative;
+            top: -1px;
+        }
+        .features-group {
+            transition: opacity 0.3s ease;
+        }
+        .features-group.swapping {
+            opacity: 0;
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+        }
+        .tab-content.active {
+            display: block;
+            animation: mockupFadeIn 0.35s ease-out forwards;
+        }
+
+        /* Mockup animations */
+        @keyframes mockupSlideUp {
+            0% { opacity: 0; transform: translateY(16px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes mockupFadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes typingCursor {
+            0%, 100% { border-right-color: transparent; }
+            50% { border-right-color: #94a3b8; }
+        }
+        @keyframes typeText {
+            0% { max-width: 0; }
+            100% { max-width: 100%; }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.3); }
+            50% { box-shadow: 0 0 8px 2px rgba(34,197,94,0.15); }
+        }
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.6); opacity: 0.6; }
+        }
+        @keyframes countUp {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scanLine {
+            0% { top: 0; opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Search mockup: typing effect */
+        .mockup-search-query {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            width: fit-content;
+            max-width: 0;
+            border-right: 2px solid #94a3b8;
+            color: var(--color-text);
+            animation: typeText 1.2s steps(20) 0.3s both, typingCursor 0.8s step-end infinite;
+        }
+
+        /* Staggered result cards */
+        .mockup-result {
+            opacity: 0;
+        }
+        .tab-mockup.animate .mockup-result {
+            animation: mockupSlideUp 0.5s ease-out forwards;
+        }
+        .tab-mockup.animate .mockup-result:nth-child(1) { animation-delay: 1.4s; }
+        .tab-mockup.animate .mockup-result:nth-child(2) { animation-delay: 1.7s; }
+        .tab-mockup.animate .mockup-result:nth-child(3) { animation-delay: 2.0s; }
+
+        /* Result count text */
+        .mockup-result-count {
+            opacity: 0;
+        }
+        .tab-mockup.animate .mockup-result-count {
+            animation: mockupFadeIn 0.4s ease-out 1.3s forwards;
+        }
+
+        /* Search bar animation */
+        .mockup-search-bar {
+            opacity: 0;
+        }
+        .tab-mockup.animate .mockup-search-bar {
+            animation: mockupFadeIn 0.3s ease-out 0.1s forwards;
+        }
+
+        /* Available badge pulse */
+        .tab-mockup.animate .badge-pulse {
+            animation: pulseGlow 2s ease-in-out 2.5s infinite;
+        }
+
+        /* Dashboard: stat cards */
+        .mockup-stat {
+            opacity: 0;
+        }
+        .tab-mockup.animate .mockup-stat {
+            animation: countUp 0.5s ease-out forwards;
+        }
+        .tab-mockup.animate .mockup-stat:nth-child(1) { animation-delay: 0.3s; }
+        .tab-mockup.animate .mockup-stat:nth-child(2) { animation-delay: 0.5s; }
+        .tab-mockup.animate .mockup-stat:nth-child(3) { animation-delay: 0.7s; }
+
+        /* Dashboard: activity rows */
+        .mockup-activity {
+            opacity: 0;
+        }
+        .tab-mockup.animate .mockup-activity {
+            animation: mockupSlideUp 0.4s ease-out forwards;
+        }
+        .tab-mockup.animate .mockup-activity:nth-child(1) { animation-delay: 1.0s; }
+        .tab-mockup.animate .mockup-activity:nth-child(2) { animation-delay: 1.2s; }
+        .tab-mockup.animate .mockup-activity:nth-child(3) { animation-delay: 1.4s; }
+        .tab-mockup.animate .mockup-activity:nth-child(4) { animation-delay: 1.6s; }
+
+        /* Dashboard: activity dot pulse */
+        .tab-mockup.animate .dot-pulse {
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+        .tab-mockup.animate .dot-pulse:nth-child(1) { animation-delay: 2.0s; }
+
+        /* Dashboard header */
+        .mockup-dash-header {
+            opacity: 0;
+        }
+        .tab-mockup.animate .mockup-dash-header {
+            animation: mockupFadeIn 0.3s ease-out 0.1s forwards;
+        }
+
+        /* Activity section header */
+        .mockup-activity-header {
+            opacity: 0;
+        }
+        .tab-mockup.animate .mockup-activity-header {
+            animation: mockupFadeIn 0.3s ease-out 0.9s forwards;
+        }
+
+        /* Scan line overlay for search mockup */
+        .mockup-scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .tab-mockup.animate .mockup-scan-line {
+            animation: scanLine 1.5s ease-in-out 0.2s forwards;
+        }
+
+        /* Tab switch crossfade */
+        .tab-mockup {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Floating review cards */
+        .review-card {
+            position: absolute;
+            width: 200px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 12px 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+            z-index: 20;
+            opacity: 0;
+        }
+        .review-card-left {
+            left: -100px;
+            bottom: -20px;
+        }
+        .review-card-right {
+            right: -90px;
+            top: -20px;
+        }
+        .tab-mockup.animate .review-card-left {
+            animation: reviewSlideLeft 0.5s ease-out 2.4s forwards;
+        }
+        .tab-mockup.animate .review-card-right {
+            animation: reviewSlideRight 0.5s ease-out 2.7s forwards;
+        }
+        @keyframes reviewSlideLeft {
+            0% { opacity: 0; transform: translateX(-16px) translateY(8px); }
+            100% { opacity: 1; transform: translateX(0) translateY(0); }
+        }
+        @keyframes reviewSlideRight {
+            0% { opacity: 0; transform: translateX(16px) translateY(-8px); }
+            100% { opacity: 1; transform: translateX(0) translateY(0); }
+        }
+        @media (max-width: 1023px) {
+            .review-card { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen overflow-x-hidden selection:bg-[var(--color-selection-bg)] selection:text-white text-[var(--color-text)] font-sans bg-[var(--color-bg)] relative">
+
+    <!-- 1. Header / Nav -->
+    <header class="sticky top-0 left-0 right-0 w-full z-50">
+    <nav class="bg-[var(--color-bg)]/90 backdrop-blur-md border-b border-slate-200 animate-fade-in">
+      <div class="max-w-7xl mx-auto px-6 py-4 md:px-12 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+            <a href="#" class="flex items-center"><svg height="32" viewBox="0 0 959 357" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M435 6V7H437L438 8H441L442 9H444L445 10H446L447 11H448L449 12H450L452 14H453L459 20V21L461 23V24L462 25V27L463 28V30L464 31V38L465 39V53L464 54V72L463 73V94L462 95V110L461 111V113L462 114L461 115V129L460 130V146L459 147V166L458 167V184L457 185V196L456 197V210L455 211V220L454 221V228L453 229V232L452 233V236L451 237V240L450 241V242L449 243V244L448 245V246L446 248V249L439 256H438L437 257H436L435 258H434L433 259H431L430 260H429V261H500L501 262H508L507 261H504L503 260H502L501 259H499L498 258H497L496 257H495L494 256H493L491 254H490L484 248V247L482 245V244L481 243V242L480 241V240L479 239V237L478 236V233L477 232V228L476 227V221L475 220V206L474 205V183L473 182V111L474 110V79L475 78V57L476 56V49L477 48L479 50V52L481 54V55L482 56V57L483 58V59L484 60V61L485 62V63L486 64V65L488 67V69L490 71V72L491 73V74L492 75V76L493 77V78L494 79V80L495 81V82L496 83V84L497 85V86L498 87V88L499 89V90L500 91V92L502 94V96L504 98V99L505 100V101L506 102V103L507 104V105L508 106V107L509 108V109L510 110V111L511 112V113L512 114V115L513 116V117L514 118V119L515 120V121L516 122V123L517 124V125L518 126V127L519 128V129L520 130V131L521 132V133L523 135V137L525 139V141L526 142V143L528 145V146L529 147V148L530 149V150L531 151V152L532 153V154L533 155V156L534 157V158L535 159V160L536 161V162L537 163V164L538 165V166L539 167V168L540 169V170L541 171V172L542 173V174L543 175V176L544 177V178L545 179V180L546 181V182L547 183V184L548 185V186L550 188V190L551 191V192L553 194V196L555 198V199L556 200V201L557 202V203L558 204V205L559 206V207L560 208V209L561 210V211L562 212V213L563 214V215L564 216V217L565 218V219L566 220V221L567 222V223L568 224V225L569 226V227L570 228V229L571 230V231L572 232V233L573 234V233L574 232V231L575 230V228L576 227V226L577 225V224L578 223V222L579 221V220L580 219V218L581 217V216L582 215V213L583 212V211L584 210V209L585 208V207L586 206V205L587 204V202L588 201V200L589 199V198L590 197V196L591 195V194L592 193V192L593 191V189L594 188V187L595 186V185L596 184V183L597 182V181L598 180V179L599 178V176L600 175V174L601 173V172L602 171V170L603 169V168L604 167V166L605 165V163L606 162V161L607 160V159L608 158V157L609 156V155L610 154V152L611 151V150L612 149V148L613 147V146L614 145V144L615 143V142L616 141V139L617 138V137L618 136V135L619 134V133L620 132V131L621 130V129L622 128V126L623 125V124L624 123V122L625 121V120L626 119V118L627 117V115L628 114V113L629 112V111L630 110V109L631 108V106L632 105V104L633 103V102L634 101V100L635 99V98L636 97V96L637 95V93L638 92V91L639 90V89L640 88V87L641 86V85L642 84V83L643 82V81L644 80V78L645 77V76L646 75V74L647 73V72L648 71V70L649 69V68L650 67V66L651 65V64L652 63V62L653 61V60L654 59V58L655 57V56L656 55V54L657 53V52L658 51V49L659 48V47L660 46V45L661 44H662L663 45V49L664 50V63L665 64V73L666 74V83L667 84V94L668 95V106L669 107V118L670 119V129L671 130V141L672 142V155L673 156V168L674 169V178L675 179V192L676 193V206L677 207V236L676 237V241L675 242V244L674 245V247L672 249V250L665 257H664L663 258H662L661 259H660L659 260H657L656 261H653L652 262H649L650 263H662L663 262H673L674 263H679L680 262H702L703 263H705L706 262H753L754 263H761V262H759L758 261H756L755 260H753L752 259H751L750 258H749L748 257H747L744 254H743L739 250V249L737 247V246L736 245V244L735 243V241L734 240V238L733 237V234L732 233V229L731 228V223L730 222V215L729 214V205L728 204V195L727 194V185L726 184V173L725 172V160L724 159V149L723 148V135L722 134V123L721 122V109L720 108V97L719 96V83L718 82V68L717 67V33L718 32V27L719 26V25L720 24V22L722 20V19L729 12H730L731 11H732L733 10H734L735 9H737L738 8H741L742 7H743H665L664 8V10L663 11V12L662 13V14L661 15V16L660 17V18L659 19V21L658 22V23L657 24V25L656 26V27L655 28V29L654 30V32L653 33V34L652 35V36L651 37V38L650 39V40L649 41V42L648 43V45L647 46V47L646 48V49L645 50V51L644 52V53L643 54V56L642 57V58L641 59V60L640 61V62L639 63V64L638 65V66L637 67V68L636 69V71L635 72V73L634 74V75L633 76V77L632 78V79L631 80V81L630 82V83L629 84V86L628 87V88L627 89V90L626 91V92L625 93V94L624 95V96L623 97V98L622 99V101L621 102V103L620 104V105L619 106V107L618 108V109L617 110V112L616 113V114L615 115V116L614 117V118L613 119V120L612 121V122L611 123V124L610 125V127L609 128V129L608 130V131L607 132V133L606 134V135L605 136V137L604 138V139L603 140V141L602 142V143L601 144V146L600 147V148L599 149V150L598 151V152L597 153V154L596 155V156L595 157H594L593 156V155L592 154V153L591 152V151L589 149V148L588 147V146L587 145V144L586 143V142L585 141V140L584 139V138L583 137V136L582 135V134L581 133V132L580 131V130L579 129V128L578 127V126L577 125V124L576 123V122L575 121V120L574 119V118L573 117V116L572 115V114L571 113V112L570 111V110L569 109V108L568 107V106L567 105V104L566 103V102L565 101V100L564 99V98L562 96V94L561 93V92L559 90V89L558 88V87L557 86V85L556 84V83L555 82V81L554 80V79L553 78V77L552 76V75L551 74V73L550 72V71L549 70V69L548 68V67L547 66V65L546 64V63L545 62V61L544 60V59L543 58V57L542 56V55L541 54V53L540 52V51L539 50V49L538 48V47L537 46V45L536 44V43L535 42V41L534 40V39L533 38V37L532 36V35L531 34V33L530 32V31L529 30V29L528 28V27L526 25V24L525 23V22L524 21V20L523 19V18L522 17V16L521 15V14L520 13V12L519 11V10L518 9V8L517 7H438L437 6H435ZM835 0L834 1H825L824 2H819L818 3H814L813 4H810L809 5H806L805 6H803L802 7H800L799 8H798L797 9H795L794 10H793L792 11H791L790 12H789L788 13H787L786 14H785L783 16H782L780 18H779L776 21H775L768 28V29L764 33V34L763 35V36L761 38V39L760 40V41L759 42V43L758 44V46L757 47V49L756 50V52L755 53V57L754 58V67L753 68V73L754 74V81L755 82V86L756 87V89L757 90V92L758 93V95L759 96V97L760 98V99L761 100V101L762 102V103L763 104V105L765 107V108L767 110V111L771 115V116L784 129H785L789 133H790L793 136H794L797 139H798L800 141H801L803 143H804L806 145H807L808 146H809L811 148H812L814 150H815L816 151H817L818 152H819L821 154H822L823 155H824L826 157H827L828 158H829L830 159H831L832 160H833L835 162H836L837 163H838L840 165H841L842 166H843L845 168H846L847 169H848L850 171H851L852 172H853L855 174H856L858 176H859L861 178H862L864 180H865L868 183H869L872 186H873L887 200V201L890 204V205L892 207V208L893 209V210L894 211V212L895 213V214L896 215V217L897 218V220L898 221V223L899 224V229L900 230V248L899 249V253L898 254V258L897 259V261L896 262V263L895 264V265L894 266V268L893 269V270L892 271V272L891 273V274L890 275V276L888 278V279L886 281V282L884 284V285L869 300H868L864 304H863L861 306H860L858 308H857L856 309H855L853 311H852L851 312H850L849 313H848L847 314H845L844 315H843L842 316H841L840 317H838L837 318H835L834 319H833L832 320H830L829 321H827L826 322H823L822 323H819L818 324H815L814 325H810L809 326H804L803 327H796L795 328H786L785 329H748L747 328H736L735 327H727L726 326H721L720 325H715L714 324H709L708 323H703L702 322H698L697 321H693L692 320H688L687 319H683L682 318H679L678 317H674L673 316H670L669 315H666L665 314H662L661 313H658L657 312H653L652 311H649L648 310H645L644 309H641L640 308H638L637 307H634L633 306H630L629 305H626L625 304H623L622 303H619L618 302H615L614 301H612L611 300H608L607 299H605L604 298H601L600 297H597L596 296H594L593 295H590L589 294H586L585 293H582L581 292H579L578 291H575L574 290H571L570 289H567L566 288H563L562 287H559L558 286H555L554 285H551L550 284H547L546 283H543L542 282H539L538 281H534L533 280H530L529 279H525L524 278H521L520 277H516L515 276H511L510 275H506L505 274H501L500 273H495L494 272H489L488 271H483L482 270H476L475 269H469L468 268H462L461 267H453L452 266H440L439 265H424L423 264H420L419 263V262L420 261V260L421 259V257L422 256V255L423 254V252L424 251V250L425 249V247L426 246V245L427 244V242L428 241V239L429 238V237L430 236V234L431 233V232L432 231V229L433 228V226L434 225V223L435 222V220L436 219V217L437 216V215L438 214V213L439 212V210L440 209V208L441 207V203L442 202H441L439 204V205L437 207V208L436 209V210L434 212V213L430 217V218L426 222V223L415 234H414L410 238H409L407 240H406L404 242H403L402 243H401L400 244H399L398 245H397L396 246H395L394 247H392L391 248H390L389 249H386L385 250H382L381 251H376L375 252H353L352 251H349L348 250H346L345 249H344L342 247V246L341 245V244L340 243V238L339 237V226L338 225V42L339 41V33L340 32V28L341 27V25L342 24V23L343 22V21L345 19V18L350 13H351L354 10H355L356 9H358L359 8H362L363 7H365V6H362L361 7H261L260 6H258V7H261L262 8H264L265 9H267L268 10H269L270 11H271L273 13H274L279 18V19L280 20V21L282 23V25L283 26V28L284 29V32L285 33V40L286 41V227L285 228V235L284 236V239L283 240V242L282 243V245L281 246V247L279 249V250L273 256H272L270 258H269L268 259H267L266 260H265L264 261H262L261 262H258L257 263H280L281 262H355L356 263H370L371 264H381L382 265H391L392 266H399L400 267H405L406 268H412L413 269H417L418 270H422L423 271H426L427 272H431L432 273H436L437 274H440L441 275H444L445 276H448L449 277H452L453 278H456L457 279H459L460 280H463L464 281H466L467 282H470L471 283H473L474 284H477L478 285H480L481 286H483L484 287H486L487 288H489L490 289H493L494 290H497L498 291H499L500 292H502L503 293H505L506 294H508L509 295H511L512 296H514L515 297H517L518 298H520L521 299H523L524 300H525L526 301H528L529 302H531L532 303H534L535 304H537L538 305H539L540 306H542L543 307H545L546 308H548L549 309H551L552 310H554L555 311H556L557 312H559L560 313H562L563 314H565L566 315H567L568 316H570L571 317H573L574 318H575L576 319H578L579 320H581L582 321H584L585 322H587L588 323H589L590 324H592L593 325H595L596 326H598L599 327H602L603 328H605L606 329H607L608 330H610L611 331H613L614 332H616L617 333H619L620 334H622L623 335H625L626 336H629L630 337H632L633 338H635L636 339H638L639 340H641L642 341H645L646 342H649L650 343H652L653 344H656L657 345H660L661 346H664L665 347H668L669 348H671L672 349H676L677 350H680L681 351H686L687 352H691L692 353H697L698 354H704L705 355H711L712 356H723L724 357H770L771 356H782L783 355H788L789 354H796L797 353H801L802 352H806L807 351H811L812 350H815L816 349H819L820 348H822L823 347H826L827 346H829L830 345H832L833 344H835L836 343H838L839 342H842L843 341H844L845 340H847L848 339H850L851 338H852L853 337H855L856 336H857L858 335H860L861 334H862L863 333H864L865 332H866L867 331H868L869 330H870L871 329H872L873 328H874L875 327H876L877 326H878L879 325H880L881 324H882L884 322H885L886 321H887L888 320H889L891 318H892L893 317H894L896 315H897L899 313H900L902 311H903L905 309H906L909 306H910L914 302H915L921 296H922L933 285V284L939 278V277L941 275V274L943 272V271L945 269V268L946 267V266L947 265V264L949 262V261L950 260V259L951 258V256L952 255V254L953 253V251L954 250V248L955 247V245L956 244V241L957 240V235L958 234V227L959 226V215L958 214V207L957 206V202L956 201V198L955 197V194L954 193V192L953 191V189L952 188V187L951 186V185L950 184V183L949 182V181L948 180V179L946 177V176L944 174V173L940 169V168L921 149H920L917 146H916L913 143H912L909 140H908L906 138H905L903 136H902L900 134H899L897 132H896L895 131H894L892 129H891L890 128H889L887 126H886L885 125H884L882 123H881L880 122H879L878 121H877L876 120H875L873 118H872L871 117H870L869 116H868L867 115H866L865 114H864L863 113H862L861 112H860L859 111H858L856 109H855L854 108H853L852 107H851L850 106H849L848 105H847L845 103H844L843 102H842L840 100H839L838 99H837L835 97H834L833 96H832L830 94H829L827 92H826L824 90H823L820 87H819L814 82H813L806 75V74L802 70V69L800 67V66L799 65V64L798 63V62L797 61V60L796 59V57L795 56V52L794 51V40L795 39V36L796 35V33L797 32V31L798 30V29L800 27V26L807 19H808L810 17H811L813 15H814L815 14H817L818 13H819L820 12H822L823 11H826L827 10H831L832 9H839L840 8H848L849 9H857L858 10H863L864 11H866L867 12H869L870 13H872L873 14H875L876 15H877L878 16H879L880 17H881L882 18H883L884 19H885L887 21H888L892 25H893L907 39V40L910 43V44L912 46V47L914 49V50L916 52V53L917 54V55L918 56V57L919 58V59L920 60V61L921 62V64L922 65V66L923 67V68L924 69V71L925 72V73L926 74V76L927 77V79L928 80V71L927 70V58L926 57V46L925 45V35L924 34V24L923 23V15L922 14H921L920 13H918L917 12H914L913 11H911L910 10H908L907 9H904L903 8H900L899 7H896L895 6H892L891 5H887L886 4H882L881 3H875L874 2H867L866 1H857L856 0H835ZM145 0L144 1H134L133 2H126L125 3H119L118 4H114L113 5H110L109 6H106L105 7H102L101 8H99L98 9H96L95 10H93L92 11H90L89 12H87L86 13H84L83 14H82L81 15H80L79 16H78L77 17H76L75 18H74L73 19H72L71 20H70L69 21H68L67 22H66L64 24H63L62 25H61L59 27H58L56 29H55L52 32H51L48 35H47L40 42H39L36 45V46L28 54V55L24 59V60L22 62V63L20 65V66L19 67V68L17 70V71L16 72V73L15 74V75L14 76V77L13 78V79L12 80V81L11 82V83L10 84V86L9 87V88L8 89V91L7 92V94L6 95V97L5 98V101L4 102V105L3 106V111L2 112V116L1 117V126L0 127V148L1 149V158L2 159V164L3 165V169L4 170V174L5 175V177L6 178V181L7 182V183L8 184V186L9 187V189L10 190V191L11 192V193L12 194V196L13 197V198L14 199V200L15 201V202L17 204V205L18 206V207L20 209V210L22 212V213L24 215V216L27 219V220L30 223V224L42 236H43L47 240H48L51 243H52L55 246H56L58 248H59L60 249H61L63 251H64L65 252H66L67 253H68L69 254H70L71 255H72L73 256H74L75 257H76L77 258H79L80 259H82L83 260H84L85 261H87L88 262H90L91 263H94L95 264H97L98 265H102L103 266H106L107 267H112L113 268H120L121 269H133L134 270H150L151 269H163L164 268H170L171 267H175L176 266H180L181 265H185L186 264H188L189 263H192L193 262H195L196 261H198L199 260H201L202 259H203L204 258H205L206 257H208L209 256H210L212 254H213L214 253H215L216 252H217L218 251H219L220 250H221L223 248H224L226 246H227L229 244H230L234 240H235L248 227V226L252 222V221L253 220V219L256 216V215L258 213V212L259 211V210L260 209H259L257 207V206L255 208V209L251 213V214L248 217H247L237 227H236L232 231H231L229 233H228L226 235H225L223 237H222L221 238H220L218 240H217L216 241H215L214 242H213L212 243H211L210 244H208L207 245H206L205 246H203L202 247H200L199 248H198L197 249H194L193 250H190L189 251H185L184 252H179L178 253H155L154 252H147L146 251H142L141 250H138L137 249H135L134 248H133L132 247H130L129 246H127L126 245H125L124 244H123L122 243H121L120 242H119L117 240H116L115 239H114L112 237H111L109 235H108L104 231H103L89 217V216L85 212V211L83 209V208L81 206V205L79 203V202L78 201V200L77 199V198L76 197V196L75 195V194L74 193V192L73 191V190L72 189V188L71 187V185L70 184V183L69 182V180L68 179V177L67 176V173L66 172V170L65 169V166L64 165V161L63 160V155L62 154V147L61 146V112L62 111V105L63 104V98L64 97V94L65 93V90L66 89V86L67 85V83L68 82V80L69 79V77L70 76V75L71 74V72L72 71V70L73 69V68L74 67V66L75 65V64L76 63V62L77 61V60L78 59V58L79 57V56L81 54V53L83 51V50L86 47V46L90 42V41L99 32H100L106 26H107L109 24H110L112 22H113L114 21H115L117 19H118L119 18H120L121 17H122L123 16H125L126 15H127L128 14H130L131 13H133L134 12H137L138 11H141L142 10H147L148 9H172L173 10H179L180 11H183L184 12H186L187 13H189L190 14H192L193 15H194L195 16H196L197 17H198L199 18H200L201 19H202L203 20H204L206 22H207L211 26H212L223 37V38L227 42V43L229 45V46L231 48V49L233 51V52L234 53V54L235 55V56L236 57V58L237 59V60L238 61V62L239 63V64L240 65V66L241 67V69L242 70V71L243 72V74L244 75V77L245 78V80H246V60L245 59V38L244 37V15L243 14V12L242 11H240L239 10H236L235 9H232L231 8H228L227 7H224L223 6H219L218 5H215L214 4H209L208 3H204L203 2H195L194 1H185L184 0H145Z" fill="#0B1220"/>
+            </svg></a>
+            <div id="nav-toggle" class="hidden md:block">
+            <div class="persona-toggle">
+                <button class="hero-tab active" data-tab="barristers">
+                    <iconify-icon icon="solar:square-academic-cap-linear" width="14" height="14"></iconify-icon>
+                    Barrister
+                </button>
+                <button class="hero-tab" data-tab="clerks">
+                    <iconify-icon icon="solar:clipboard-list-linear" width="14" height="14"></iconify-icon>
+                    Clerk
+                </button>
+            </div>
+            </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 absolute left-1/2 -translate-x-1/2">
+            <a href="#features" class="nav-link hover:text-[var(--color-text)] transition-colors" data-section="features">Features</a>
+            <a href="#why-clms" class="nav-link hover:text-[var(--color-text)] transition-colors" data-section="why-clms">Why CLMS</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="#" class="text-sm font-medium bg-white border border-slate-300 text-[var(--color-text)] px-5 py-2 rounded-full hover:bg-slate-50 transition-all shadow-sm">Login</a>
+            <a href="#" class="text-sm font-medium bg-[var(--color-primary)] text-white px-5 py-2 rounded-full hover:bg-[var(--color-primary-hover)] transition-all shadow-sm">Sign Up</a>
+        </div>
+      </div>
+    </nav>
+    </header>
+
+    <main>
+    <!-- 2. Hero Section — Persona Tabs at Top -->
+    <section class="w-full relative">
+        <div class="absolute inset-0 z-0 pointer-events-none bg-hero-gradient">
+            <div class="bg-hero-gradient-extra"></div>
+        </div>
+    <div class="flex-grow flex flex-col items-center px-4 md:px-6 w-full max-w-[1440px] mx-auto relative z-10 py-20 md:py-32">
+
+        <!-- Hero: Two Column Layout -->
+        <div class="w-full flex flex-col lg:flex-row items-center gap-12 lg:gap-20 animate-slide-up relative z-10" style="animation-delay: 0.1s;">
+            <!-- Left: Text + CTAs (50%) -->
+            <div class="w-full lg:w-[50%]">
+
+                <!-- Eyebrow: persona toggle -->
+                <div class="flex items-center gap-3 mb-10">
+                    <span class="text-base font-medium text-[var(--color-text)] font-serif">I am a</span>
+                    <div class="persona-toggle">
+                        <button class="hero-tab active" data-tab="barristers">
+                            <iconify-icon icon="solar:square-academic-cap-linear" width="18" height="18"></iconify-icon>
+                            Barrister
+                        </button>
+                        <button class="hero-tab" data-tab="clerks">
+                            <iconify-icon icon="solar:clipboard-list-linear" width="18" height="18"></iconify-icon>
+                            Clerk
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab A: Barristers -->
+                <div class="tab-content active" id="tab-barristers">
+                    <h1 class="text-5xl md:text-7xl font-medium text-[var(--color-text)] tracking-tight font-serif mb-8 leading-[1.1]">
+                        Find it. Cite it.<br><span class="text-[var(--color-primary)]">Track it.</span>
+                    </h1>
+                    <p class="text-lg text-slate-600 font-sans max-w-xl mb-12 leading-relaxed">
+                        <span class="font-semibold">The Chambers Library Management System</span> connects your books and JADE case law in one search. Build authority lists as you research and export court-ready citations in AGLC format.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-start gap-4">
+                        <button class="bg-[var(--color-primary)] text-white text-lg font-medium px-10 py-4 rounded-full hover:bg-[var(--color-primary-hover)] transition-all shadow-sm flex items-center justify-center gap-2">
+                            Get Started
+                        </button>
+                        <button class="bg-white border border-slate-300 text-[var(--color-text)] text-lg font-medium px-10 py-4 rounded-full hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2">
+                            <iconify-icon icon="solar:play-circle-linear" width="18" height="18"></iconify-icon>
+                            Watch How It Works
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab B: Clerks -->
+                <div class="tab-content" id="tab-clerks">
+                    <h1 class="text-5xl md:text-7xl font-medium text-[var(--color-text)] tracking-tight font-serif mb-8 leading-[1.1]">
+                        Scan it. Track it.<br><span class="text-[var(--color-primary)]">Manage it.</span>
+                    </h1>
+                    <p class="text-lg text-slate-600 font-sans max-w-xl mb-12 leading-relaxed">
+                        <span class="font-semibold">The Chambers Library Management System</span> gives you real-time inventory across every location, automated overdue reminders, and ISBN scan to catalogue in seconds, not hours.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-start gap-4">
+                        <button class="bg-[var(--color-primary)] text-white text-lg font-medium px-10 py-4 rounded-full hover:bg-[var(--color-primary-hover)] transition-all shadow-sm flex items-center justify-center gap-2">
+                            Get Started
+                        </button>
+                        <button class="bg-white border border-slate-300 text-[var(--color-text)] text-lg font-medium px-10 py-4 rounded-full hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2">
+                            <iconify-icon icon="solar:calendar-linear" width="18" height="18"></iconify-icon>
+                            Book a Walkthrough
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Animated Screenshot Placeholder (50%) -->
+            <div class="w-full lg:w-[50%]">
+                <!-- Tab A Mockup: Search Results -->
+                <div class="tab-mockup active animate relative" id="mockup-barristers">
+                    <!-- Review Card Left -->
+                    <div class="review-card review-card-left">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center text-xs font-bold text-[var(--color-primary)]">JC</div>
+                            <div>
+                                <div class="text-[11px] font-semibold text-[var(--color-text)]">James Chen</div>
+                                <div class="text-[9px] text-slate-400">Barrister, Owen Dixon West</div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-relaxed">"One search found the textbook <span class="font-semibold">and</span> the JADE authority. Used to take me half a day."</p>
+                    </div>
+                    <!-- Review Card Right -->
+                    <div class="review-card review-card-right">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 rounded-full bg-blue-500/10 flex items-center justify-center text-xs font-bold text-blue-600">SP</div>
+                            <div>
+                                <div class="text-[11px] font-semibold text-[var(--color-text)]">Sarah Park</div>
+                                <div class="text-[9px] text-slate-400">Barrister, Owen Dixon East</div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-relaxed">"Exported my AGLC authority list in two clicks. Night-before panic is officially over."</p>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden relative z-10">
+                        <!-- Window Chrome -->
+                        <div class="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 border-b border-slate-200">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-green-400"></span>
+                            <span class="ml-3 text-[10px] text-slate-400 font-medium">clms.app/search</span>
+                        </div>
+                        <!-- Search Results View -->
+                        <div class="p-4 bg-white relative" style="min-height: 380px;">
+                            <div class="mockup-scan-line"></div>
+                            <div class="mockup-search-bar flex items-center gap-2 mb-4">
+                                <div class="flex-1 flex items-center gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-500">
+                                    <iconify-icon icon="solar:magnifer-linear" width="14" height="14" class="text-slate-400"></iconify-icon>
+                                    <span class="mockup-search-query">Cross on Evidence</span>
+                                </div>
+                                <div class="px-2.5 py-2 bg-[var(--color-primary)] rounded-lg">
+                                    <iconify-icon icon="solar:magnifer-linear" width="14" height="14" class="text-white"></iconify-icon>
+                                </div>
+                            </div>
+                            <div class="mockup-result-count text-[10px] text-slate-400 mb-3">3 results across books and case law</div>
+                            <div class="space-y-2.5">
+                                <div class="mockup-result p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div class="flex items-start justify-between mb-1">
+                                        <div class="text-[11px] font-semibold text-[var(--color-text)]">Cross on Evidence</div>
+                                        <span class="badge-pulse px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 text-[9px] font-medium">Available</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">J.D. Heydon &middot; Owen Dixon East &middot; 12th Edition</div>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="px-1.5 py-0.5 rounded bg-orange-50 text-[var(--color-primary)] text-[9px] font-medium">Book</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-medium">Evidence</span>
+                                    </div>
+                                </div>
+                                <div class="mockup-result p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div class="flex items-start justify-between mb-1">
+                                        <div class="text-[11px] font-semibold text-[var(--color-text)]">Evidence Act 1995 (Cth)</div>
+                                        <span class="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[9px] font-medium">JADE</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">Federal legislation &middot; Current version</div>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 text-[9px] font-medium">Legislation</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-medium">Evidence</span>
+                                    </div>
+                                </div>
+                                <div class="mockup-result p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <div class="flex items-start justify-between mb-1">
+                                        <div class="text-[11px] font-semibold text-[var(--color-text)]">Dasreef v Hawchar [2011] HCA 21</div>
+                                        <span class="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[9px] font-medium">JADE</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">High Court of Australia &middot; Expert evidence</div>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="px-1.5 py-0.5 rounded bg-green-50 text-green-600 text-[9px] font-medium">Case Law</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-medium">Evidence</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab B Mockup: Dashboard View -->
+                <div class="tab-mockup relative" id="mockup-clerks" style="display: none;">
+                    <!-- Review Card Left -->
+                    <div class="review-card review-card-left">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center text-xs font-bold text-green-600">MT</div>
+                            <div>
+                                <div class="text-[11px] font-semibold text-[var(--color-text)]">Margaret Thompson</div>
+                                <div class="text-[9px] text-slate-400">Senior Clerk, Owen Dixon Chambers</div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-relaxed">"Scanned 50 donated books in under an hour. The old way would've taken me a full week."</p>
+                    </div>
+                    <!-- Review Card Right -->
+                    <div class="review-card review-card-right">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 rounded-full bg-purple-500/10 flex items-center justify-center text-xs font-bold text-purple-600">DL</div>
+                            <div>
+                                <div class="text-[11px] font-semibold text-[var(--color-text)]">David Liu</div>
+                                <div class="text-[9px] text-slate-400">Librarian, Commercial Bar</div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-600 leading-relaxed">"Overdue reminders go out automatically now. I stopped chasing people. The system does it."</p>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden relative z-10">
+                        <!-- Window Chrome -->
+                        <div class="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 border-b border-slate-200">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-green-400"></span>
+                            <span class="ml-3 text-[10px] text-slate-400 font-medium">clms.app/dashboard</span>
+                        </div>
+                        <!-- Dashboard View -->
+                        <div class="flex" style="min-height: 380px;">
+                            <!-- Sidebar -->
+                            <div class="hidden sm:flex flex-col w-36 border-r border-slate-100 p-3 bg-slate-50 shrink-0">
+                                <nav class="space-y-0.5">
+                                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 shadow-sm text-[var(--color-primary)] text-[11px] font-medium">
+                                        <iconify-icon icon="solar:home-2-linear" width="14" height="14"></iconify-icon>
+                                        Dashboard
+                                    </div>
+                                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-500 text-[11px] font-medium">
+                                        <iconify-icon icon="solar:book-linear" width="14" height="14"></iconify-icon>
+                                        Library
+                                    </div>
+                                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-500 text-[11px] font-medium">
+                                        <iconify-icon icon="solar:transfer-horizontal-linear" width="14" height="14"></iconify-icon>
+                                        Lending
+                                    </div>
+                                    <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-500 text-[11px] font-medium">
+                                        <iconify-icon icon="solar:users-group-rounded-linear" width="14" height="14"></iconify-icon>
+                                        Members
+                                    </div>
+                                </nav>
+                            </div>
+                            <!-- Main Content -->
+                            <div class="flex-1 p-4 overflow-hidden bg-white">
+                                <div class="mockup-dash-header">
+                                    <div class="text-sm font-semibold text-[var(--color-text)] font-serif mb-1">Dashboard</div>
+                                    <div class="text-[10px] text-slate-400 mb-4">Overview across all locations</div>
+                                </div>
+                                <!-- Stats Row -->
+                                <div class="grid grid-cols-3 gap-2 mb-4">
+                                    <div class="mockup-stat bg-slate-50 rounded-xl p-2.5 border border-slate-100 text-center">
+                                        <div class="text-lg font-semibold text-[var(--color-text)] font-serif" data-count="1250">1,250</div>
+                                        <div class="text-[9px] text-slate-400">Total Books</div>
+                                    </div>
+                                    <div class="mockup-stat bg-slate-50 rounded-xl p-2.5 border border-slate-100 text-center">
+                                        <div class="text-lg font-semibold text-[var(--color-primary)] font-serif" data-count="23">23</div>
+                                        <div class="text-[9px] text-slate-400">On Loan</div>
+                                    </div>
+                                    <div class="mockup-stat bg-slate-50 rounded-xl p-2.5 border border-slate-100 text-center">
+                                        <div class="text-lg font-semibold text-red-500 font-serif" data-count="5">5</div>
+                                        <div class="text-[9px] text-slate-400">Overdue</div>
+                                    </div>
+                                </div>
+                                <!-- Recent Activity -->
+                                <div class="mockup-activity-header text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-2">Recent Activity</div>
+                                <div class="space-y-2">
+                                    <div class="mockup-activity flex items-center gap-2 text-[10px]">
+                                        <span class="dot-pulse w-1.5 h-1.5 rounded-full bg-green-400 shrink-0"></span>
+                                        <span class="text-slate-600"><span class="font-medium text-[var(--color-text)]">Cross on Evidence</span> returned</span>
+                                        <span class="text-slate-300 ml-auto">2h ago</span>
+                                    </div>
+                                    <div class="mockup-activity flex items-center gap-2 text-[10px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                                        <span class="text-slate-600"><span class="font-medium text-[var(--color-text)]">Heydon on Contract</span> borrowed</span>
+                                        <span class="text-slate-300 ml-auto">5h ago</span>
+                                    </div>
+                                    <div class="mockup-activity flex items-center gap-2 text-[10px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></span>
+                                        <span class="text-slate-600"><span class="font-medium text-[var(--color-text)]">Dal Pont on Lawyers</span> catalogued</span>
+                                        <span class="text-slate-300 ml-auto">1d ago</span>
+                                    </div>
+                                    <div class="mockup-activity flex items-center gap-2 text-[10px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></span>
+                                        <span class="text-slate-600"><span class="font-medium text-[var(--color-text)]">Overdue reminder</span> sent to 3 members</span>
+                                        <span class="text-slate-300 ml-auto">1d ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </section>
+
+    <!-- 3. Logo Cloud (Social Proof) -->
+    <section class="w-full border-t border-slate-200 bg-white py-10 relative z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <p class="text-center text-xs font-medium text-slate-400 uppercase tracking-widest mb-6">Integrated with</p>
+            <div class="flex flex-wrap justify-center items-center gap-12 md:gap-20">
+                <img src="Jade.png" alt="JADE" style="height:24px;">
+                <img src="OpenLaw.png" alt="Open Law" style="height:24px;">
+                <img src="VR.png" alt="Victorian Reports" style="height:20px;">
+                <img src="PPP.png" alt="Pinpoint Press" style="height:20px;">
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Features Grid -->
+    <section id="features" class="w-full max-w-7xl mx-auto px-4 md:px-6 py-24 relative z-10">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl md:text-4xl font-medium text-[var(--color-text)] tracking-tight font-serif mb-4">Built for Legal Professionals</h2>
+            <p class="text-base text-slate-600 font-sans">Six features designed around how barristers and clerks actually work, not how generic software thinks they should.</p>
+        </div>
+
+        <!-- Features Group: Primary (active role's cards) -->
+        <div id="features-group-primary" class="features-group mb-12">
+            <p class="features-subheader" id="features-subheader-primary"><iconify-icon icon="solar:square-academic-cap-linear" width="14" height="14" class="shrink-0" style="color: inherit"></iconify-icon>For Barristers</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Card: One Search, Every Resource -->
+                <article id="feature-search" data-role="barrister" class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:magnifer-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">One Search, Every Resource</h3>
+                    <p class="card-desc">Finding a book means checking three locations and sending a message hoping someone replies. CLMS connects your physical catalogue with JADE in one place.</p>
+                    <ul class="card-checks">
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Books, case law, and legislation in one place</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Filter by location and practice area</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>JADE integration</li>
+                    </ul>
+                </article>
+
+                <!-- Card: Court-Ready Citations -->
+                <article id="feature-citations" data-role="barrister" class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:document-text-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">Court-Ready Citations</h3>
+                    <p class="card-desc">Every court submission needs an authority list, but compiling one the night before is still the norm. Build yours as you research, not after.</p>
+                    <ul class="card-checks">
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Authority lists with drag reorder</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>AGLC format export</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>One-click PDF</li>
+                    </ul>
+                </article>
+
+                <!-- Card: Library in Your Pocket -->
+                <article id="feature-mobile" data-role="barrister" class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:smartphone-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">Library in Your Pocket</h3>
+                    <p class="card-desc">You're in court and need to check if a book is available before heading back to chambers. CLMS works from your phone. Search, borrow, and return, even offline.</p>
+                    <ul class="card-checks">
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Barcode scanning</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Mobile check-in/out</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Offline access</li>
+                    </ul>
+                </article>
+            </div>
+        </div>
+
+        <!-- Features Group: Secondary (other role's cards) -->
+        <div id="features-group-secondary" class="features-group">
+            <p class="features-subheader" id="features-subheader-secondary"><iconify-icon icon="solar:clipboard-list-linear" width="14" height="14" class="shrink-0" style="color: inherit"></iconify-icon>For Clerks & Librarians</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Card: Every Book Accounted For -->
+                <article id="feature-lending" data-role="clerk" class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:checklist-minimalistic-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">Every Book Accounted For</h3>
+                    <p class="card-desc">Chambers lending runs on the honour system. Someone takes a book and it vanishes for weeks. CLMS adds the tracking that the honour system is missing.</p>
+                    <ul class="card-checks">
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Request and approval workflow</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Automated overdue reminders</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>"Who has this book?" One click</li>
+                    </ul>
+                </article>
+
+                <!-- Card: Add Books in Seconds -->
+                <article id="feature-isbn" data-role="clerk" class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:scanner-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">Add Books in Seconds</h3>
+                    <p class="card-desc">A retiring barrister donates fifty books. Without CLMS, that's an afternoon of manual entry. With it, scan the ISBN and everything auto-fills.</p>
+                    <ul class="card-checks">
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>ISBN auto-cataloguing</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Multi-location assignment</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Practice area categorisation</li>
+                    </ul>
+                </article>
+
+                <!-- Card: Built for Chambers -->
+                <article id="feature-permissions" data-role="clerk" class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:shield-user-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">Built for Chambers</h3>
+                    <p class="card-desc">Not every member should have the same access. Barristers search and borrow. Clerks manage inventory. CLMS enforces this by role.</p>
+                    <ul class="card-checks">
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Role-based permissions</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Cross-chambers sharing</li>
+                        <li class="card-check"><iconify-icon icon="solar:check-circle-linear" class="text-emerald-500 shrink-0" width="16" height="16"></iconify-icon>Multi-location structure</li>
+                    </ul>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Trust Section -->
+    <section id="why-clms" class="w-full bg-white border-y border-slate-200 py-24 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl md:text-4xl font-medium text-[var(--color-text)] tracking-tight font-serif mb-4">Why Chambers Trust CLMS</h2>
+                <p class="text-base text-slate-600 font-sans">Built from the ground up for how Australian chambers actually operate, across locations, roles, and professional standards.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Multi-Location Management -->
+                <article class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:buildings-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">Multi-Location Management</h3>
+                    <p class="card-desc mb-4">One catalogue across every location. Know what's where before walking across the building or ordering a duplicate.</p>
+                    <div class="mt-auto bg-white border border-slate-200 p-4 rounded-2xl flex flex-col items-center">
+                        <div class="flex items-center gap-2 mb-1">
+                            <iconify-icon icon="solar:map-point-linear" class="text-[var(--color-text)] shrink-0" width="20" height="20"></iconify-icon>
+                            <span class="text-2xl font-semibold text-[var(--color-text)] font-serif" style="line-height:1;position:relative;top:-2px">8</span>
+                        </div>
+                        <div class="text-xs text-slate-500 font-medium">Locations</div>
+                    </div>
+                </article>
+
+                <!-- Cross-Chambers Collaboration -->
+                <article class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:users-group-rounded-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">Cross-Chambers Collaboration</h3>
+                    <p class="card-desc mb-4">Barristers move between chambers. Books follow them. CLMS tracks inter-chamber loans so nothing falls through the cracks when resources cross boundaries.</p>
+                    <div class="mt-auto bg-white border border-slate-200 p-4 rounded-2xl flex flex-col items-center">
+                        <div class="flex items-center gap-2 mb-1">
+                            <iconify-icon icon="solar:book-2-linear" class="text-[var(--color-text)] shrink-0" width="20" height="20"></iconify-icon>
+                            <span class="text-2xl font-semibold text-[var(--color-text)] font-serif" style="line-height:1;position:relative;top:-2px">2,847</span>
+                        </div>
+                        <div class="text-xs text-slate-500 font-medium">Books Cataloged</div>
+                    </div>
+                </article>
+
+                <!-- Legal Compliance -->
+                <article class="card">
+                    <div class="card-icon">
+                        <iconify-icon icon="solar:shield-check-linear" width="24" height="24"></iconify-icon>
+                    </div>
+                    <h3 class="card-title">Legal Compliance</h3>
+                    <p class="card-desc mb-4">Full audit trail on every loan, return, and catalogue change. Citation tracking meets professional standards. When compliance asks, you have the answer.</p>
+                    <div class="mt-auto bg-white border border-slate-200 p-4 rounded-2xl flex flex-col items-center">
+                        <div class="flex items-center gap-2 mb-1">
+                            <iconify-icon icon="solar:transfer-horizontal-linear" class="text-[var(--color-text)] shrink-0" width="20" height="20"></iconify-icon>
+                            <span class="text-2xl font-semibold text-[var(--color-text)] font-serif" style="line-height:1;position:relative;top:-2px">23</span>
+                        </div>
+                        <div class="text-xs text-slate-500 font-medium">Active Loans Tracked</div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. CTA Section -->
+    <section id="get-started" class="w-full bg-slate-50 py-24 border-b border-slate-200 relative z-10">
+        <div class="max-w-3xl mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-medium text-[var(--color-text)] tracking-tight font-serif mb-4">Ready to modernise your chambers library?</h2>
+            <p class="text-base text-slate-600 font-sans mb-10 max-w-xl mx-auto">
+                Join Australian legal professionals who've replaced spreadsheets and guesswork with a system built for how they actually work.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button class="bg-[var(--color-primary)] text-white text-base font-medium px-8 py-3 rounded-full hover:bg-[var(--color-primary-hover)] transition-all shadow-sm inline-flex items-center gap-2">
+                    Get Started
+                </button>
+                <button class="bg-white border border-slate-300 text-[var(--color-text)] text-base font-medium px-8 py-3 rounded-full hover:bg-slate-50 transition-all shadow-sm inline-flex items-center gap-2">
+                    <iconify-icon icon="solar:calendar-linear" width="18" height="18"></iconify-icon>
+                    Book a Walkthrough
+                </button>
+            </div>
+        </div>
+    </section>
+
+    </main>
+
+    <!-- 7. Footer -->
+    <footer id="support" class="w-full bg-[var(--color-bg-dark)] text-slate-400 py-16 relative z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+
+                <!-- Brand Info -->
+                <div class="md:col-span-2">
+                    <h4 class="text-base font-semibold text-white mb-3 font-serif">Chambers Library Management System</h4>
+                    <p class="text-sm leading-relaxed max-w-sm mb-4">
+                        Search and cite from anywhere. Catalogue and track every book. One system for barristers and clerks.
+                    </p>
+                    <a href="#" class="inline-flex items-center gap-2 text-sm text-slate-300 border border-slate-700 px-4 py-2 rounded-full hover:border-slate-500 hover:text-white transition-all">
+                        <iconify-icon icon="solar:calendar-linear" width="14" height="14"></iconify-icon>
+                        Book a Walkthrough
+                    </a>
+                </div>
+
+                <!-- Links Column 1 -->
+                <div>
+                    <h4 class="text-xs font-medium tracking-widest text-white uppercase mb-4">Product</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#features" class="text-sm hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#why-clms" class="text-sm hover:text-white transition-colors">Why CLMS</a></li>
+                    </ul>
+                </div>
+
+                <!-- Links Column 2 -->
+                <div>
+                    <h4 class="text-xs font-medium tracking-widest text-white uppercase mb-4">Support</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-sm hover:text-white transition-colors">Documentation</a></li>
+                        <li><a href="#" class="text-sm hover:text-white transition-colors">Technical Support</a></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="pt-8 border-t border-slate-800 text-center text-xs">
+                <div class="mb-4 flex justify-center">
+                    <svg height="20" viewBox="0 0 959 357" fill="none" xmlns="http://www.w3.org/2000/svg" class="opacity-30">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M435 6V7H437L438 8H441L442 9H444L445 10H446L447 11H448L449 12H450L452 14H453L459 20V21L461 23V24L462 25V27L463 28V30L464 31V38L465 39V53L464 54V72L463 73V94L462 95V110L461 111V113L462 114L461 115V129L460 130V146L459 147V166L458 167V184L457 185V196L456 197V210L455 211V220L454 221V228L453 229V232L452 233V236L451 237V240L450 241V242L449 243V244L448 245V246L446 248V249L439 256H438L437 257H436L435 258H434L433 259H431L430 260H429V261H500L501 262H508L507 261H504L503 260H502L501 259H499L498 258H497L496 257H495L494 256H493L491 254H490L484 248V247L482 245V244L481 243V242L480 241V240L479 239V237L478 236V233L477 232V228L476 227V221L475 220V206L474 205V183L473 182V111L474 110V79L475 78V57L476 56V49L477 48L479 50V52L481 54V55L482 56V57L483 58V59L484 60V61L485 62V63L486 64V65L488 67V69L490 71V72L491 73V74L492 75V76L493 77V78L494 79V80L495 81V82L496 83V84L497 85V86L498 87V88L499 89V90L500 91V92L502 94V96L504 98V99L505 100V101L506 102V103L507 104V105L508 106V107L509 108V109L510 110V111L511 112V113L512 114V115L513 116V117L514 118V119L515 120V121L516 122V123L517 124V125L518 126V127L519 128V129L520 130V131L521 132V133L523 135V137L525 139V141L526 142V143L528 145V146L529 147V148L530 149V150L531 151V152L532 153V154L533 155V156L534 157V158L535 159V160L536 161V162L537 163V164L538 165V166L539 167V168L540 169V170L541 171V172L542 173V174L543 175V176L544 177V178L545 179V180L546 181V182L547 183V184L548 185V186L550 188V190L551 191V192L553 194V196L555 198V199L556 200V201L557 202V203L558 204V205L559 206V207L560 208V209L561 210V211L562 212V213L563 214V215L564 216V217L565 218V219L566 220V221L567 222V223L568 224V225L569 226V227L570 228V229L571 230V231L572 232V233L573 234V233L574 232V231L575 230V228L576 227V226L577 225V224L578 223V222L579 221V220L580 219V218L581 217V216L582 215V213L583 212V211L584 210V209L585 208V207L586 206V205L587 204V202L588 201V200L589 199V198L590 197V196L591 195V194L592 193V192L593 191V189L594 188V187L595 186V185L596 184V183L597 182V181L598 180V179L599 178V176L600 175V174L601 173V172L602 171V170L603 169V168L604 167V166L605 165V163L606 162V161L607 160V159L608 158V157L609 156V155L610 154V152L611 151V150L612 149V148L613 147V146L614 145V144L615 143V142L616 141V139L617 138V137L618 136V135L619 134V133L620 132V131L621 130V129L622 128V126L623 125V124L624 123V122L625 121V120L626 119V118L627 117V115L628 114V113L629 112V111L630 110V109L631 108V106L632 105V104L633 103V102L634 101V100L635 99V98L636 97V96L637 95V93L638 92V91L639 90V89L640 88V87L641 86V85L642 84V83L643 82V81L644 80V78L645 77V76L646 75V74L647 73V72L648 71V70L649 69V68L650 67V66L651 65V64L652 63V62L653 61V60L654 59V58L655 57V56L656 55V54L657 53V52L658 51V49L659 48V47L660 46V45L661 44H662L663 45V49L664 50V63L665 64V73L666 74V83L667 84V94L668 95V106L669 107V118L670 119V129L671 130V141L672 142V155L673 156V168L674 169V178L675 179V192L676 193V206L677 207V236L676 237V241L675 242V244L674 245V247L672 249V250L665 257H664L663 258H662L661 259H660L659 260H657L656 261H653L652 262H649L650 263H662L663 262H673L674 263H679L680 262H702L703 263H705L706 262H753L754 263H761V262H759L758 261H756L755 260H753L752 259H751L750 258H749L748 257H747L744 254H743L739 250V249L737 247V246L736 245V244L735 243V241L734 240V238L733 237V234L732 233V229L731 228V223L730 222V215L729 214V205L728 204V195L727 194V185L726 184V173L725 172V160L724 159V149L723 148V135L722 134V123L721 122V109L720 108V97L719 96V83L718 82V68L717 67V33L718 32V27L719 26V25L720 24V22L722 20V19L729 12H730L731 11H732L733 10H734L735 9H737L738 8H741L742 7H743H665L664 8V10L663 11V12L662 13V14L661 15V16L660 17V18L659 19V21L658 22V23L657 24V25L656 26V27L655 28V29L654 30V32L653 33V34L652 35V36L651 37V38L650 39V40L649 41V42L648 43V45L647 46V47L646 48V49L645 50V51L644 52V53L643 54V56L642 57V58L641 59V60L640 61V62L639 63V64L638 65V66L637 67V68L636 69V71L635 72V73L634 74V75L633 76V77L632 78V79L631 80V81L630 82V83L629 84V86L628 87V88L627 89V90L626 91V92L625 93V94L624 95V96L623 97V98L622 99V101L621 102V103L620 104V105L619 106V107L618 108V109L617 110V112L616 113V114L615 115V116L614 117V118L613 119V120L612 121V122L611 123V124L610 125V127L609 128V129L608 130V131L607 132V133L606 134V135L605 136V137L604 138V139L603 140V141L602 142V143L601 144V146L600 147V148L599 149V150L598 151V152L597 153V154L596 155V156L595 157H594L593 156V155L592 154V153L591 152V151L589 149V148L588 147V146L587 145V144L586 143V142L585 141V140L584 139V138L583 137V136L582 135V134L581 133V132L580 131V130L579 129V128L578 127V126L577 125V124L576 123V122L575 121V120L574 119V118L573 117V116L572 115V114L571 113V112L570 111V110L569 109V108L568 107V106L567 105V104L566 103V102L565 101V100L564 99V98L562 96V94L561 93V92L559 90V89L558 88V87L557 86V85L556 84V83L555 82V81L554 80V79L553 78V77L552 76V75L551 74V73L550 72V71L549 70V69L548 68V67L547 66V65L546 64V63L545 62V61L544 60V59L543 58V57L542 56V55L541 54V53L540 52V51L539 50V49L538 48V47L537 46V45L536 44V43L535 42V41L534 40V39L533 38V37L532 36V35L531 34V33L530 32V31L529 30V29L528 28V27L526 25V24L525 23V22L524 21V20L523 19V18L522 17V16L521 15V14L520 13V12L519 11V10L518 9V8L517 7H438L437 6H435ZM835 0L834 1H825L824 2H819L818 3H814L813 4H810L809 5H806L805 6H803L802 7H800L799 8H798L797 9H795L794 10H793L792 11H791L790 12H789L788 13H787L786 14H785L783 16H782L780 18H779L776 21H775L768 28V29L764 33V34L763 35V36L761 38V39L760 40V41L759 42V43L758 44V46L757 47V49L756 50V52L755 53V57L754 58V67L753 68V73L754 74V81L755 82V86L756 87V89L757 90V92L758 93V95L759 96V97L760 98V99L761 100V101L762 102V103L763 104V105L765 107V108L767 110V111L771 115V116L784 129H785L789 133H790L793 136H794L797 139H798L800 141H801L803 143H804L806 145H807L808 146H809L811 148H812L814 150H815L816 151H817L818 152H819L821 154H822L823 155H824L826 157H827L828 158H829L830 159H831L832 160H833L835 162H836L837 163H838L840 165H841L842 166H843L845 168H846L847 169H848L850 171H851L852 172H853L855 174H856L858 176H859L861 178H862L864 180H865L868 183H869L872 186H873L887 200V201L890 204V205L892 207V208L893 209V210L894 211V212L895 213V214L896 215V217L897 218V220L898 221V223L899 224V229L900 230V248L899 249V253L898 254V258L897 259V261L896 262V263L895 264V265L894 266V268L893 269V270L892 271V272L891 273V274L890 275V276L888 278V279L886 281V282L884 284V285L869 300H868L864 304H863L861 306H860L858 308H857L856 309H855L853 311H852L851 312H850L849 313H848L847 314H845L844 315H843L842 316H841L840 317H838L837 318H835L834 319H833L832 320H830L829 321H827L826 322H823L822 323H819L818 324H815L814 325H810L809 326H804L803 327H796L795 328H786L785 329H748L747 328H736L735 327H727L726 326H721L720 325H715L714 324H709L708 323H703L702 322H698L697 321H693L692 320H688L687 319H683L682 318H679L678 317H674L673 316H670L669 315H666L665 314H662L661 313H658L657 312H653L652 311H649L648 310H645L644 309H641L640 308H638L637 307H634L633 306H630L629 305H626L625 304H623L622 303H619L618 302H615L614 301H612L611 300H608L607 299H605L604 298H601L600 297H597L596 296H594L593 295H590L589 294H586L585 293H582L581 292H579L578 291H575L574 290H571L570 289H567L566 288H563L562 287H559L558 286H555L554 285H551L550 284H547L546 283H543L542 282H539L538 281H534L533 280H530L529 279H525L524 278H521L520 277H516L515 276H511L510 275H506L505 274H501L500 273H495L494 272H489L488 271H483L482 270H476L475 269H469L468 268H462L461 267H453L452 266H440L439 265H424L423 264H420L419 263V262L420 261V260L421 259V257L422 256V255L423 254V252L424 251V250L425 249V247L426 246V245L427 244V242L428 241V239L429 238V237L430 236V234L431 233V232L432 231V229L433 228V226L434 225V223L435 222V220L436 219V217L437 216V215L438 214V213L439 212V210L440 209V208L441 207V203L442 202H441L439 204V205L437 207V208L436 209V210L434 212V213L430 217V218L426 222V223L415 234H414L410 238H409L407 240H406L404 242H403L402 243H401L400 244H399L398 245H397L396 246H395L394 247H392L391 248H390L389 249H386L385 250H382L381 251H376L375 252H353L352 251H349L348 250H346L345 249H344L342 247V246L341 245V244L340 243V238L339 237V226L338 225V42L339 41V33L340 32V28L341 27V25L342 24V23L343 22V21L345 19V18L350 13H351L354 10H355L356 9H358L359 8H362L363 7H365V6H362L361 7H261L260 6H258V7H261L262 8H264L265 9H267L268 10H269L270 11H271L273 13H274L279 18V19L280 20V21L282 23V25L283 26V28L284 29V32L285 33V40L286 41V227L285 228V235L284 236V239L283 240V242L282 243V245L281 246V247L279 249V250L273 256H272L270 258H269L268 259H267L266 260H265L264 261H262L261 262H258L257 263H280L281 262H355L356 263H370L371 264H381L382 265H391L392 266H399L400 267H405L406 268H412L413 269H417L418 270H422L423 271H426L427 272H431L432 273H436L437 274H440L441 275H444L445 276H448L449 277H452L453 278H456L457 279H459L460 280H463L464 281H466L467 282H470L471 283H473L474 284H477L478 285H480L481 286H483L484 287H486L487 288H489L490 289H493L494 290H497L498 291H499L500 292H502L503 293H505L506 294H508L509 295H511L512 296H514L515 297H517L518 298H520L521 299H523L524 300H525L526 301H528L529 302H531L532 303H534L535 304H537L538 305H539L540 306H542L543 307H545L546 308H548L549 309H551L552 310H554L555 311H556L557 312H559L560 313H562L563 314H565L566 315H567L568 316H570L571 317H573L574 318H575L576 319H578L579 320H581L582 321H584L585 322H587L588 323H589L590 324H592L593 325H595L596 326H598L599 327H602L603 328H605L606 329H607L608 330H610L611 331H613L614 332H616L617 333H619L620 334H622L623 335H625L626 336H629L630 337H632L633 338H635L636 339H638L639 340H641L642 341H645L646 342H649L650 343H652L653 344H656L657 345H660L661 346H664L665 347H668L669 348H671L672 349H676L677 350H680L681 351H686L687 352H691L692 353H697L698 354H704L705 355H711L712 356H723L724 357H770L771 356H782L783 355H788L789 354H796L797 353H801L802 352H806L807 351H811L812 350H815L816 349H819L820 348H822L823 347H826L827 346H829L830 345H832L833 344H835L836 343H838L839 342H842L843 341H844L845 340H847L848 339H850L851 338H852L853 337H855L856 336H857L858 335H860L861 334H862L863 333H864L865 332H866L867 331H868L869 330H870L871 329H872L873 328H874L875 327H876L877 326H878L879 325H880L881 324H882L884 322H885L886 321H887L888 320H889L891 318H892L893 317H894L896 315H897L899 313H900L902 311H903L905 309H906L909 306H910L914 302H915L921 296H922L933 285V284L939 278V277L941 275V274L943 272V271L945 269V268L946 267V266L947 265V264L949 262V261L950 260V259L951 258V256L952 255V254L953 253V251L954 250V248L955 247V245L956 244V241L957 240V235L958 234V227L959 226V215L958 214V207L957 206V202L956 201V198L955 197V194L954 193V192L953 191V189L952 188V187L951 186V185L950 184V183L949 182V181L948 180V179L946 177V176L944 174V173L940 169V168L921 149H920L917 146H916L913 143H912L909 140H908L906 138H905L903 136H902L900 134H899L897 132H896L895 131H894L892 129H891L890 128H889L887 126H886L885 125H884L882 123H881L880 122H879L878 121H877L876 120H875L873 118H872L871 117H870L869 116H868L867 115H866L865 114H864L863 113H862L861 112H860L859 111H858L856 109H855L854 108H853L852 107H851L850 106H849L848 105H847L845 103H844L843 102H842L840 100H839L838 99H837L835 97H834L833 96H832L830 94H829L827 92H826L824 90H823L820 87H819L814 82H813L806 75V74L802 70V69L800 67V66L799 65V64L798 63V62L797 61V60L796 59V57L795 56V52L794 51V40L795 39V36L796 35V33L797 32V31L798 30V29L800 27V26L807 19H808L810 17H811L813 15H814L815 14H817L818 13H819L820 12H822L823 11H826L827 10H831L832 9H839L840 8H848L849 9H857L858 10H863L864 11H866L867 12H869L870 13H872L873 14H875L876 15H877L878 16H879L880 17H881L882 18H883L884 19H885L887 21H888L892 25H893L907 39V40L910 43V44L912 46V47L914 49V50L916 52V53L917 54V55L918 56V57L919 58V59L920 60V61L921 62V64L922 65V66L923 67V68L924 69V71L925 72V73L926 74V76L927 77V79L928 80V71L927 70V58L926 57V46L925 45V35L924 34V24L923 23V15L922 14H921L920 13H918L917 12H914L913 11H911L910 10H908L907 9H904L903 8H900L899 7H896L895 6H892L891 5H887L886 4H882L881 3H875L874 2H867L866 1H857L856 0H835ZM145 0L144 1H134L133 2H126L125 3H119L118 4H114L113 5H110L109 6H106L105 7H102L101 8H99L98 9H96L95 10H93L92 11H90L89 12H87L86 13H84L83 14H82L81 15H80L79 16H78L77 17H76L75 18H74L73 19H72L71 20H70L69 21H68L67 22H66L64 24H63L62 25H61L59 27H58L56 29H55L52 32H51L48 35H47L40 42H39L36 45V46L28 54V55L24 59V60L22 62V63L20 65V66L19 67V68L17 70V71L16 72V73L15 74V75L14 76V77L13 78V79L12 80V81L11 82V83L10 84V86L9 87V88L8 89V91L7 92V94L6 95V97L5 98V101L4 102V105L3 106V111L2 112V116L1 117V126L0 127V148L1 149V158L2 159V164L3 165V169L4 170V174L5 175V177L6 178V181L7 182V183L8 184V186L9 187V189L10 190V191L11 192V193L12 194V196L13 197V198L14 199V200L15 201V202L17 204V205L18 206V207L20 209V210L22 212V213L24 215V216L27 219V220L30 223V224L42 236H43L47 240H48L51 243H52L55 246H56L58 248H59L60 249H61L63 251H64L65 252H66L67 253H68L69 254H70L71 255H72L73 256H74L75 257H76L77 258H79L80 259H82L83 260H84L85 261H87L88 262H90L91 263H94L95 264H97L98 265H102L103 266H106L107 267H112L113 268H120L121 269H133L134 270H150L151 269H163L164 268H170L171 267H175L176 266H180L181 265H185L186 264H188L189 263H192L193 262H195L196 261H198L199 260H201L202 259H203L204 258H205L206 257H208L209 256H210L212 254H213L214 253H215L216 252H217L218 251H219L220 250H221L223 248H224L226 246H227L229 244H230L234 240H235L248 227V226L252 222V221L253 220V219L256 216V215L258 213V212L259 211V210L260 209H259L257 207V206L255 208V209L251 213V214L248 217H247L237 227H236L232 231H231L229 233H228L226 235H225L223 237H222L221 238H220L218 240H217L216 241H215L214 242H213L212 243H211L210 244H208L207 245H206L205 246H203L202 247H200L199 248H198L197 249H194L193 250H190L189 251H185L184 252H179L178 253H155L154 252H147L146 251H142L141 250H138L137 249H135L134 248H133L132 247H130L129 246H127L126 245H125L124 244H123L122 243H121L120 242H119L117 240H116L115 239H114L112 237H111L109 235H108L104 231H103L89 217V216L85 212V211L83 209V208L81 206V205L79 203V202L78 201V200L77 199V198L76 197V196L75 195V194L74 193V192L73 191V190L72 189V188L71 187V185L70 184V183L69 182V180L68 179V177L67 176V173L66 172V170L65 169V166L64 165V161L63 160V155L62 154V147L61 146V112L62 111V105L63 104V98L64 97V94L65 93V90L66 89V86L67 85V83L68 82V80L69 79V77L70 76V75L71 74V72L72 71V70L73 69V68L74 67V66L75 65V64L76 63V62L77 61V60L78 59V58L79 57V56L81 54V53L83 51V50L86 47V46L90 42V41L99 32H100L106 26H107L109 24H110L112 22H113L114 21H115L117 19H118L119 18H120L121 17H122L123 16H125L126 15H127L128 14H130L131 13H133L134 12H137L138 11H141L142 10H147L148 9H172L173 10H179L180 11H183L184 12H186L187 13H189L190 14H192L193 15H194L195 16H196L197 17H198L199 18H200L201 19H202L203 20H204L206 22H207L211 26H212L223 37V38L227 42V43L229 45V46L231 48V49L233 51V52L234 53V54L235 55V56L236 57V58L237 59V60L238 61V62L239 63V64L240 65V66L241 67V69L242 70V71L243 72V74L244 75V77L245 78V80H246V60L245 59V38L244 37V15L243 14V12L242 11H240L239 10H236L235 9H232L231 8H228L227 7H224L223 6H219L218 5H215L214 4H209L208 3H204L203 2H195L194 1H185L184 0H145Z" fill="white"/>
+                    </svg>
+                </div>
+                <div>&copy; 2026 Chambers Library Management System. Built for Australian legal professionals.</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 8. JavaScript: Tab Switching + Scroll Observer -->
+    <script>
+        // Replay animations by removing and re-adding the animate class
+        function replayAnimations(mockupEl) {
+            mockupEl.classList.remove('animate');
+            // Force reflow so the browser registers the class removal
+            void mockupEl.offsetWidth;
+            mockupEl.classList.add('animate');
+
+            // If this is the dashboard mockup, run count-up on stat numbers
+            if (mockupEl.id === 'mockup-clerks') {
+                runCountUp(mockupEl);
+            }
+        }
+
+        // Animated count-up for dashboard stat numbers
+        function runCountUp(container) {
+            var counters = container.querySelectorAll('[data-count]');
+            counters.forEach(function(el, i) {
+                var target = parseInt(el.getAttribute('data-count'), 10);
+                var startDelay = (i + 1) * 200 + 300; // match CSS stagger
+                var duration = 800;
+                var startTime = null;
+                el.textContent = '0';
+
+                setTimeout(function() {
+                    function step(timestamp) {
+                        if (!startTime) startTime = timestamp;
+                        var progress = Math.min((timestamp - startTime) / duration, 1);
+                        // Ease-out cubic
+                        var eased = 1 - Math.pow(1 - progress, 3);
+                        var current = Math.round(eased * target);
+                        el.textContent = current.toLocaleString();
+                        if (progress < 1) {
+                            requestAnimationFrame(step);
+                        }
+                    }
+                    requestAnimationFrame(step);
+                }, startDelay);
+            });
+        }
+
+        // Feature card references by role
+        var barristerCards = ['feature-search', 'feature-citations', 'feature-mobile'];
+        var clerkCards = ['feature-lending', 'feature-isbn', 'feature-permissions'];
+
+        var primaryGrid = document.querySelector('#features-group-primary .grid');
+        var secondaryGrid = document.querySelector('#features-group-secondary .grid');
+        var primarySubheader = document.getElementById('features-subheader-primary');
+        var secondarySubheader = document.getElementById('features-subheader-secondary');
+
+        function reorderFeatures(tabId) {
+            var primaryIds = tabId === 'barristers' ? barristerCards : clerkCards;
+            var secondaryIds = tabId === 'barristers' ? clerkCards : barristerCards;
+
+            // Update subheader copy + icon
+            var barristerIcon = '<iconify-icon icon="solar:square-academic-cap-linear" width="14" height="14" class="shrink-0" style="color: inherit"></iconify-icon>';
+            var clerkIcon = '<iconify-icon icon="solar:clipboard-list-linear" width="14" height="14" class="shrink-0" style="color: inherit"></iconify-icon>';
+            primarySubheader.innerHTML = tabId === 'barristers'
+                ? barristerIcon + 'For Barristers'
+                : clerkIcon + 'For Clerks & Librarians';
+            secondarySubheader.innerHTML = tabId === 'barristers'
+                ? clerkIcon + 'For Clerks & Librarians'
+                : barristerIcon + 'For Barristers';
+
+            // Fade out both groups
+            var primaryGroup = document.getElementById('features-group-primary');
+            var secondaryGroup = document.getElementById('features-group-secondary');
+            primaryGroup.classList.add('swapping');
+            secondaryGroup.classList.add('swapping');
+
+            setTimeout(function() {
+                // Move cards into correct grids
+                primaryIds.forEach(function(id) {
+                    primaryGrid.appendChild(document.getElementById(id));
+                });
+                secondaryIds.forEach(function(id) {
+                    secondaryGrid.appendChild(document.getElementById(id));
+                });
+
+                // Fade back in
+                primaryGroup.classList.remove('swapping');
+                secondaryGroup.classList.remove('swapping');
+            }, 300);
+        }
+
+        // Shared tab switch function
+        function switchTab(tabId) {
+            // Sync ALL hero-tab buttons (hero + nav)
+            document.querySelectorAll('.hero-tab').forEach(function(t) {
+                if (t.getAttribute('data-tab') === tabId) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+
+            // Swap hero tab content
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            // Swap right-side mockup with animation replay
+            document.querySelectorAll('.tab-mockup').forEach(function(m) { m.style.display = 'none'; m.classList.remove('active'); m.classList.remove('animate'); });
+            var mockup = document.getElementById('mockup-' + tabId);
+            mockup.style.display = 'block';
+            mockup.classList.add('active');
+            replayAnimations(mockup);
+
+            // Reorder feature cards
+            reorderFeatures(tabId);
+        }
+
+        // Attach click to all hero-tab buttons (hero + nav)
+        document.querySelectorAll('.hero-tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                switchTab(this.getAttribute('data-tab'));
+            });
+        });
+
+        // Nav toggle visibility — IntersectionObserver on hero eyebrow toggle
+        var heroToggle = document.querySelector('main .persona-toggle');
+        var navToggle = document.getElementById('nav-toggle');
+
+        var toggleObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    navToggle.classList.remove('visible');
+                } else {
+                    navToggle.classList.add('visible');
+                }
+            });
+        }, { threshold: 0 });
+
+        if (heroToggle) {
+            toggleObserver.observe(heroToggle);
+        }
+
+        // Smooth scroll with sticky header offset
+        document.querySelectorAll('.nav-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                var targetId = this.getAttribute('href').substring(1);
+                var target = document.getElementById(targetId);
+                if (target) {
+                    var navHeight = document.querySelector('nav').offsetHeight;
+                    var top = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                    window.scrollTo({ top: top, behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Scroll-linked Nav Indicator
+        var sections = document.querySelectorAll('#features, #why-clms');
+        var navLinks = document.querySelectorAll('.nav-link');
+
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var id = entry.target.getAttribute('id');
+                    navLinks.forEach(function(link) {
+                        if (link.getAttribute('data-section') === id) {
+                            link.classList.add('active');
+                        } else {
+                            link.classList.remove('active');
+                        }
+                    });
+                }
+            });
+        }, { threshold: 0.3 });
+
+        sections.forEach(function(section) {
+            observer.observe(section);
+        });
+    </script>
+
+</body></html>
