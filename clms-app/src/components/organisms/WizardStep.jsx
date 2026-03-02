@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Button from '../atoms/Button';
 import ProgressBar from '../atoms/ProgressBar';
 
@@ -11,6 +12,15 @@ export default function WizardStep({
   nextLabel = 'Continue',
   disableNext = false,
 }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleNext = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onNext();
+    }, 400);
+  };
   return (
     <section className="mx-auto w-full max-w-2xl rounded-3xl border border-border bg-white p-6 shadow-soft sm:p-8">
       <ProgressBar current={step} total={total} />
@@ -20,7 +30,7 @@ export default function WizardStep({
         <Button variant="ghost" onClick={onBack} className="rounded-xl">
           Back
         </Button>
-        <Button onClick={onNext} disabled={disableNext} className={disableNext ? 'opacity-40' : ''}>
+        <Button onClick={handleNext} disabled={disableNext} loading={loading} className={disableNext ? 'opacity-40' : ''}>
           {nextLabel}
         </Button>
       </div>

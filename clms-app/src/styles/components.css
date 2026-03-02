@@ -187,6 +187,15 @@
   gap: 2px;
 }
 
+.persona-toggle.w-full {
+  display: flex;
+}
+
+.persona-toggle.w-full .hero-tab {
+  flex: 1;
+  justify-content: center;
+}
+
 .persona-toggle.compact {
   padding: 3px;
 }
@@ -221,6 +230,16 @@
 .hero-tab.compact {
   padding: 6px 14px;
   font-size: 13px;
+}
+
+.persona-toggle.mockup-compact {
+  padding: 2px;
+}
+
+.hero-tab.mockup-compact {
+  padding: 3px 8px;
+  font-size: 9px;
+  gap: 3px;
 }
 
 .card {
@@ -402,6 +421,39 @@
   }
 }
 
+/* ──────────────────────────────────────────
+   Shared Mockup Utilities
+   ────────────────────────────────────────── */
+
+.tab-mockup {
+  transition: opacity 0.3s ease;
+}
+
+@keyframes mockup-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ══════════════════════════════════════════
+   BARRISTER MOCKUP
+   Search (0s) → Results (1.5s) → Cite: Authority List (3.5s) → Track: Request (5.2s)
+   Two cursors: cite (2.8s) + track (4.8s)
+   ══════════════════════════════════════════ */
+
+/* -- Search bar (immediate) -- */
+
+.mockup-search-bar {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-search-bar {
+  animation: mockup-fade-in 0.3s ease-out 0.1s forwards;
+}
+
 .mockup-search-query {
   display: inline-block;
   overflow: hidden;
@@ -410,7 +462,18 @@
   max-width: 0;
   border-right: 2px solid var(--color-text-muted);
   color: var(--color-text);
+  line-height: 1.4;
   animation: type-text 1.2s steps(20) 0.3s both, typing-cursor 0.8s step-end infinite;
+}
+
+/* -- Results (1.5s) — the aha: Book + JADE in one list -- */
+
+.mockup-result-count {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-result-count {
+  animation: mockup-fade-in 0.3s ease-out 1.5s forwards;
 }
 
 .mockup-result {
@@ -422,154 +485,244 @@
 }
 
 .tab-mockup.animate .mockup-result:nth-child(1) {
-  animation-delay: 1.4s;
+  animation-delay: 1.8s;
 }
 
 .tab-mockup.animate .mockup-result:nth-child(2) {
-  animation-delay: 1.7s;
+  animation-delay: 2.3s;
 }
 
-.tab-mockup.animate .mockup-result:nth-child(3) {
-  animation-delay: 2s;
+
+
+/* -- Click ring — brand circle that appears on buttons, presses, ripples out -- */
+
+@keyframes click-ring {
+  0% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+  14% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  56% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  68% {
+    opacity: 1;
+    transform: scale(0.82);
+  }
+  84% {
+    opacity: 0.65;
+    transform: scale(1.36);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
 }
 
-.mockup-result-count {
+.mockup-cursor-cite,
+.mockup-cursor-track,
+.mockup-cursor-approve,
+.mockup-cursor-nav-cat,
+.mockup-cursor-pa {
+  opacity: 0;
+  border: 3px solid #2563eb;
+  background: rgb(37 99 235 / 0.1);
+  box-shadow: 0 0 0 2px white, 0 0 18px 4px rgb(37 99 235 / 0.3);
+}
+
+/* Ring 1: targets "⊕ Authority List" — appear 2.8s, press ~3.4s */
+
+.tab-mockup.animate .mockup-cursor-cite {
+  animation: click-ring 1.35s ease-out 2.8s forwards;
+}
+
+/* Ring 2: targets "Request" — appear 4.5s, press ~5.1s */
+
+.tab-mockup.animate .mockup-cursor-track {
+  animation: click-ring 1.35s ease-out 4.5s forwards;
+}
+
+.tab-mockup.animate .mockup-cursor-nav-cat {
+  animation: click-ring 1.2s ease-out 0.2s forwards;
+}
+
+/* -- Authority List button — highlight pulse synced with ring press (3.4s) -- */
+
+@keyframes btn-highlight-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: scale(1.06);
+    filter: brightness(1.15);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.tab-mockup.animate .mockup-add-list-btn {
+  animation: mockup-fade-out 0.2s ease-out 3.4s forwards;
+}
+
+/* -- "Added to List ✓" overlay — appears after Authority List click -- */
+
+.mockup-added-list-btn {
   opacity: 0;
 }
 
-.tab-mockup.animate .mockup-result-count {
-  animation: mockup-fade-in 0.4s ease-out 1.3s forwards;
+.tab-mockup.animate .mockup-added-list-btn {
+  animation: mockup-fade-in 0.3s ease-out 3.4s forwards;
 }
 
-.mockup-search-bar {
+/* -- Request button — fades out when "Requested ✓" appears -- */
+
+.tab-mockup.animate .mockup-request-btn {
+  animation: mockup-fade-out 0.2s ease-out 5.15s forwards;
+}
+
+/* -- "Requested ✓" overlay — anchored right, grows left -- */
+
+.mockup-requested-btn {
   opacity: 0;
 }
 
-.tab-mockup.animate .mockup-search-bar {
-  animation: mockup-fade-in 0.3s ease-out 0.1s forwards;
+.tab-mockup.animate .mockup-requested-btn {
+  animation: mockup-fade-in 0.3s ease-out 5.15s forwards;
 }
 
-.tab-mockup.animate .badge-pulse {
-  animation: pulse-glow 2s ease-in-out 2.5s infinite;
+/* -- Available → Requested badge swap (synced with Request btn at 5.15s) -- */
+
+.tab-mockup.animate .mockup-available-badge {
+  animation: pulse-glow 2s ease-in-out 2.5s 2, mockup-fade-out 0.2s ease-out 5.15s forwards;
 }
 
-.mockup-stat {
+.mockup-status-requested {
   opacity: 0;
 }
 
-.tab-mockup.animate .mockup-stat {
-  animation: count-up 0.5s ease-out forwards;
+.tab-mockup.animate .mockup-status-requested {
+  animation: mockup-fade-in 0.3s ease-out 5.15s forwards;
 }
 
-.tab-mockup.animate .mockup-stat:nth-child(1) {
-  animation-delay: 0.3s;
+/* -- Success toast — slide down (5.4s) → hold 2s → slide up (7.3s) → gone before fade -- */
+
+@keyframes toast-lifecycle {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  16% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  84% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
 }
 
-.tab-mockup.animate .mockup-stat:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.tab-mockup.animate .mockup-stat:nth-child(3) {
-  animation-delay: 0.7s;
-}
-
-.mockup-activity {
+.mockup-track-toast {
   opacity: 0;
 }
 
-.tab-mockup.animate .mockup-activity {
-  animation: mockup-slide-up 0.4s ease-out forwards;
+.tab-mockup.animate .mockup-track-toast {
+  animation: toast-lifecycle 2.25s ease 5.4s forwards;
 }
 
-.tab-mockup.animate .mockup-activity:nth-child(1) {
-  animation-delay: 1s;
+@keyframes panel-slide-down {
+  0% {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    max-height: 200px;
+    transform: translateY(0);
+  }
 }
 
-.tab-mockup.animate .mockup-activity:nth-child(2) {
-  animation-delay: 1.2s;
+.mockup-authority-panel {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
 }
 
-.tab-mockup.animate .mockup-activity:nth-child(3) {
-  animation-delay: 1.4s;
+.tab-mockup.animate .mockup-authority-panel {
+  animation: panel-slide-down 0.5s ease-out 3.8s forwards;
 }
 
-.tab-mockup.animate .mockup-activity:nth-child(4) {
-  animation-delay: 1.6s;
+@keyframes list-item-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.tab-mockup.animate .dot-pulse {
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-
-.tab-mockup.animate .dot-pulse:nth-child(1) {
-  animation-delay: 2s;
-}
-
-.mockup-dash-header {
+.mockup-list-item {
   opacity: 0;
 }
 
-.tab-mockup.animate .mockup-dash-header {
-  animation: mockup-fade-in 0.3s ease-out 0.1s forwards;
+.tab-mockup.animate .mockup-list-item:nth-child(1) {
+  animation: list-item-in 0.3s ease-out 4.1s forwards;
 }
 
-.mockup-activity-header {
+.tab-mockup.animate .mockup-list-item:nth-child(2) {
+  animation: list-item-in 0.3s ease-out 4.3s forwards;
+}
+
+.mockup-export-btn {
   opacity: 0;
 }
 
-.tab-mockup.animate .mockup-activity-header {
-  animation: mockup-fade-in 0.3s ease-out 0.9s forwards;
+.tab-mockup.animate .mockup-export-btn {
+  animation: mockup-fade-in 0.3s ease-out 4.5s forwards;
 }
 
-.mockup-scan-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.tab-mockup.animate .mockup-scan-line {
-  animation: scan-line 1.5s ease-in-out 0.2s forwards;
-}
-
-.tab-mockup {
-  transition: opacity 0.3s ease;
-}
+/* -- Review cards — floating overlays after toast -- */
 
 .review-card {
-  position: absolute;
-  width: 200px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: white;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 12px 14px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.08), 0 2px 8px rgb(0 0 0 / 0.04);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.mockup-review-left,
+.mockup-review-right {
+  position: absolute;
+  width: 200px;
   z-index: 20;
   opacity: 0;
 }
 
-.review-card-left {
-  left: -100px;
-  bottom: -20px;
+.mockup-review-left {
+  left: 25%;
+  bottom: -32px;
 }
 
-.review-card-right {
+.mockup-review-right {
   right: -90px;
   top: -20px;
 }
 
-.tab-mockup.animate .review-card-left {
-  animation: review-slide-left 0.5s ease-out 2.4s forwards;
-}
-
-.tab-mockup.animate .review-card-right {
-  animation: review-slide-right 0.5s ease-out 2.7s forwards;
-}
-
-@keyframes review-slide-left {
+@keyframes reviewSlideLeft {
   0% {
     opacity: 0;
     transform: translateX(-16px) translateY(8px);
@@ -580,7 +733,7 @@
   }
 }
 
-@keyframes review-slide-right {
+@keyframes reviewSlideRight {
   0% {
     opacity: 0;
     transform: translateX(16px) translateY(-8px);
@@ -590,6 +743,607 @@
     transform: translateX(0) translateY(0);
   }
 }
+
+.tab-mockup.animate .mockup-review-left {
+  animation: reviewSlideLeft 0.5s ease-out 6.2s forwards;
+}
+
+.tab-mockup.animate .mockup-review-right {
+  animation: reviewSlideRight 0.5s ease-out 7.0s forwards;
+}
+
+@media (max-width: 1023px) {
+  .mockup-review-left,
+  .mockup-review-right {
+    display: none;
+  }
+}
+
+
+/* ══════════════════════════════════════════
+   CLERK MOCKUP
+   Catalogue (0-6.5s) → Dashboard (6.7-11.0s)
+   ══════════════════════════════════════════ */
+
+/* -- New keyframes for RDA enrichment -- */
+
+@keyframes dropdown-open {
+  0% {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    max-height: 100px;
+    transform: translateY(0);
+  }
+}
+
+@keyframes field-appear {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes catalogue-toast-in-out {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.99);
+  }
+}
+
+/* -- Loading state after Catalogue click -- */
+
+.mockup-cat-loading {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-cat-loading {
+  animation: mockup-fade-in 0.25s ease-out 1.0s forwards, mockup-fade-out 0.3s ease-out 1.8s forwards;
+}
+
+/* -- Phase 1-2: Catalogue — ISBN scan + RDA enrichment -- */
+
+.mockup-cat-phase {
+  pointer-events: none;
+}
+
+.tab-mockup.animate .mockup-cat-phase {
+  animation: mockup-fade-out 0.3s ease-in 11.5s forwards;
+}
+
+.mockup-catalogue-toast {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-catalogue-toast {
+  animation: catalogue-toast-in-out 2.5s ease 9.0s forwards;
+}
+
+.mockup-dash-header {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-dash-header {
+  animation: mockup-fade-in 0.3s ease-out 2.0s forwards;
+}
+
+.mockup-isbn-scan {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-isbn-scan {
+  animation: mockup-fade-in 0.3s ease-out 2.2s forwards;
+}
+
+@keyframes barcode-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
+}
+
+.mockup-isbn-typing {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 0;
+  line-height: 1.4;
+  border-right: 2px solid var(--color-text-muted);
+  animation: type-text 1.35s steps(18) 2.35s both, typing-cursor 0.9s step-end infinite;
+}
+
+.mockup-isbn-status {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-isbn-status {
+  animation: mockup-fade-in 0.35s ease-out 3.3s forwards, mockup-fade-out 0.28s ease-out 4.7s forwards;
+}
+
+.mockup-spinner {
+  animation: spin 1.1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes card-pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mockup-book-card {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-book-card {
+  animation: card-pop-in 0.6s ease-out 4.85s forwards;
+}
+
+/* -- RDA enrichment: Subject dropdown interaction (single cursor flow) -- */
+
+@keyframes cursor-pa-flow {
+  /* Appear at dropdown button (right side, near arrow) */
+  0% {
+    opacity: 0;
+    left: calc(100% - 16px);
+    top: 8px;
+    transform: translate(-50%, -50%) scale(1.6);
+  }
+  /* Settle on button */
+  10% {
+    opacity: 1;
+    left: calc(100% - 16px);
+    top: 8px;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  /* Hold on button */
+  22% {
+    opacity: 1;
+    left: calc(100% - 16px);
+    top: 8px;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  /* Press button */
+  30% {
+    opacity: 1;
+    left: calc(100% - 16px);
+    top: 8px;
+    transform: translate(-50%, -50%) scale(0.82);
+  }
+  /* Release + start moving */
+  36% {
+    opacity: 1;
+    left: calc(100% - 16px);
+    top: 8px;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  /* Pass over Criminal option */
+  46% {
+    opacity: 1;
+    left: calc(100% - 16px);
+    top: 26px;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  /* Arrive at Evidence option */
+  58% {
+    opacity: 1;
+    left: calc(100% - 16px);
+    top: 43px;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  /* Hold at Evidence */
+  64% {
+    opacity: 1;
+    left: calc(100% - 16px);
+    top: 43px;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  /* Press Evidence */
+  70% {
+    opacity: 1;
+    left: calc(100% - 16px);
+    top: 43px;
+    transform: translate(-50%, -50%) scale(0.82);
+  }
+  /* Ripple out */
+  82% {
+    opacity: 0.6;
+    left: calc(100% - 16px);
+    top: 43px;
+    transform: translate(-50%, -50%) scale(1.36);
+  }
+  /* Fade out */
+  100% {
+    opacity: 0;
+    left: calc(100% - 16px);
+    top: 43px;
+    transform: translate(-50%, -50%) scale(1.6);
+  }
+}
+
+.tab-mockup.animate .mockup-cursor-pa {
+  animation: cursor-pa-flow 1.8s ease-out 5.5s forwards;
+}
+
+.mockup-pa-placeholder {
+  /* visible by default, fades out when selected */
+}
+
+.tab-mockup.animate .mockup-pa-placeholder {
+  animation: mockup-fade-out 0.35s ease-out 6.8s forwards;
+}
+
+.mockup-pa-dropdown {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.tab-mockup.animate .mockup-pa-dropdown {
+  animation: dropdown-open 0.55s ease-out 6.0s forwards, mockup-fade-out 0.35s ease-out 6.8s forwards;
+}
+
+.mockup-pa-option {
+  color: #64748b;
+  background: transparent;
+  font-weight: 400;
+  border-radius: 0.3rem;
+}
+
+@keyframes pa-hover-criminal {
+  0% {
+    color: #64748b;
+    background: transparent;
+    font-weight: 400;
+  }
+  24% {
+    color: var(--color-primary);
+    background: rgb(var(--color-primary-rgb) / 0.08);
+    font-weight: 500;
+  }
+  58% {
+    color: var(--color-primary);
+    background: rgb(var(--color-primary-rgb) / 0.08);
+    font-weight: 500;
+  }
+  100% {
+    color: #64748b;
+    background: transparent;
+    font-weight: 400;
+  }
+}
+
+@keyframes pa-hover-evidence {
+  0% {
+    color: #64748b;
+    background: transparent;
+    font-weight: 400;
+  }
+  56% {
+    color: #64748b;
+    background: transparent;
+    font-weight: 400;
+  }
+  100% {
+    color: var(--color-primary);
+    background: rgb(var(--color-primary-rgb) / 0.08);
+    font-weight: 500;
+  }
+}
+
+.tab-mockup.animate .mockup-pa-option-criminal {
+  animation: pa-hover-criminal 0.7s ease-out 6.15s forwards;
+}
+
+.tab-mockup.animate .mockup-pa-option-evidence {
+  animation: pa-hover-evidence 0.7s ease-out 6.15s forwards;
+}
+
+.mockup-pa-selected {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-pa-selected {
+  animation: mockup-fade-in 0.35s ease-out 6.8s forwards;
+}
+
+/* -- RDA enrichment: Jurisdiction field (empty → filled) -- */
+
+.mockup-jurisdiction {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-jurisdiction {
+  animation: field-appear 0.45s ease-out 7.2s forwards;
+}
+
+.mockup-jurisdiction-selected {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-jurisdiction-placeholder {
+  animation: mockup-fade-out 0.25s ease-out 7.8s forwards;
+}
+
+.tab-mockup.animate .mockup-jurisdiction-selected {
+  animation: mockup-fade-in 0.3s ease-out 7.8s forwards;
+}
+
+/* -- RDA enrichment: Tags field (empty → filled) -- */
+
+.mockup-subject {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-subject {
+  animation: field-appear 0.45s ease-out 8.0s forwards;
+}
+
+.mockup-tags-filled {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-tags-placeholder {
+  animation: mockup-fade-out 0.25s ease-out 8.6s forwards;
+}
+
+.tab-mockup.animate .mockup-tags-filled {
+  animation: mockup-fade-in 0.3s ease-out 8.6s forwards;
+}
+
+/* -- ISBN Only → Enriched badge swap -- */
+
+.tab-mockup.animate .mockup-isbn-badge {
+  animation: mockup-fade-out 0.2s ease-out 9.0s forwards;
+}
+
+@keyframes badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mockup-enriched-badge {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-enriched-badge {
+  animation: badge-pop 0.4s ease-out 9.0s forwards;
+}
+
+/* -- Sidebar nav transition -- */
+
+@keyframes nav-activate {
+  to {
+    border: 1px solid #e2e8f0;
+    background: white;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    color: var(--color-primary);
+  }
+}
+
+@keyframes nav-deactivate {
+  to {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: #64748b;
+  }
+}
+
+.tab-mockup.animate .mockup-nav-cat {
+  animation: nav-activate 0.25s ease-out 0.3s forwards, nav-deactivate 0.3s ease-out 11.5s forwards;
+}
+
+.tab-mockup.animate .mockup-nav-dash {
+  animation: nav-deactivate 0.25s ease-out 0.3s forwards, nav-activate 0.3s ease-out 11.7s forwards;
+}
+
+/* URL bar swap */
+
+.mockup-url-dash {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-url-cat {
+  animation: mockup-fade-out 0.2s ease-in 11.5s forwards;
+}
+
+.tab-mockup.animate .mockup-url-dash {
+  animation: mockup-fade-in 0.2s ease-out 11.7s forwards;
+}
+
+/* -- Phase 3-4: Dashboard — Control Tower -- */
+
+.mockup-dash-phase {
+  pointer-events: none;
+}
+
+.mockup-dash-title {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-dash-title {
+  animation: mockup-fade-in 0.3s ease-out 11.7s forwards;
+}
+
+.mockup-dash-stats {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-dash-stats {
+  animation: mockup-fade-in 0.3s ease-out 11.9s forwards;
+}
+
+.mockup-stat {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-dash-stats .mockup-stat {
+  animation: count-up 0.5s ease-out forwards;
+}
+
+.tab-mockup.animate .mockup-dash-stats .mockup-stat:nth-child(1) {
+  animation-delay: 12.0s;
+}
+
+.tab-mockup.animate .mockup-dash-stats .mockup-stat:nth-child(2) {
+  animation-delay: 12.2s;
+}
+
+.tab-mockup.animate .mockup-dash-stats .mockup-stat:nth-child(3) {
+  animation-delay: 12.4s;
+}
+
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mockup-notification {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-notification {
+  animation: slide-in-right 0.45s ease-out 12.8s forwards;
+}
+
+.tab-mockup.animate .mockup-request-dot {
+  animation: pulse-dot 1.1s ease-in-out 12.95s 2;
+}
+
+/* Approve → Approved swap */
+
+@keyframes approve-lifecycle {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.tab-mockup.animate .mockup-approve-btn {
+  animation: mockup-fade-in 0.3s ease-out 14.1s forwards, mockup-fade-out 0.2s ease-out 14.9s forwards;
+}
+
+.mockup-approved-state {
+  opacity: 0;
+}
+
+/* Ring: targets "Approve" — appear after Overdue card */
+
+.tab-mockup.animate .mockup-cursor-approve {
+  animation: click-ring 1.35s ease-out 14.3s forwards;
+}
+
+.tab-mockup.animate .mockup-approved-state {
+  animation: mockup-fade-in 0.3s ease-out 14.9s forwards;
+}
+
+/* -- Overdue card — slides in before Approve interaction -- */
+
+.mockup-overdue-card {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-overdue-card {
+  animation: slide-in-right 0.45s ease-out 13.4s forwards;
+}
+
+/* -- Clerk review cards — floating overlays after Overdue -- */
+
+.mockup-clerk-review-left,
+.mockup-clerk-review-right {
+  position: absolute;
+  width: 200px;
+  z-index: 20;
+  opacity: 0;
+}
+
+.mockup-clerk-review-left {
+  left: 10%;
+  bottom: -32px;
+}
+
+.mockup-clerk-review-right {
+  right: -90px;
+  top: -30px;
+}
+
+.tab-mockup.animate .mockup-clerk-review-left {
+  animation: reviewSlideLeft 0.5s ease-out 15.4s forwards;
+}
+
+.tab-mockup.animate .mockup-clerk-review-right {
+  animation: reviewSlideRight 0.5s ease-out 16.2s forwards;
+}
+
+@media (max-width: 1023px) {
+  .mockup-clerk-review-left,
+  .mockup-clerk-review-right {
+    display: none;
+  }
+}
+
+/* ──────────────────────────────────────────
+   Motion Utilities
+   ────────────────────────────────────────── */
 
 .motion-slide {
   animation: motion-slide-in 0.3s ease-out;
@@ -616,11 +1370,5 @@
   }
   100% {
     opacity: 1;
-  }
-}
-
-@media (max-width: 1023px) {
-  .review-card {
-    display: none;
   }
 }

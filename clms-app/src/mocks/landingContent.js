@@ -152,7 +152,7 @@ export const reviewCards = {
     {
       name: 'David Liu',
       chamber: 'Librarian, Commercial Bar',
-      quote: 'Overdue reminders go out automatically now. I stopped chasing people. The system does it.',
+      quote: 'Overdue reminders go out automatically. I stopped chasing people.',
       initials: 'DL',
       tone: 'violet',
     },

@@ -52,8 +52,8 @@ export default function ChambersLookup() {
             key={result.id}
             chamber={result}
             onSelect={() => {
-              updateOnboarding({ mode: 'joined', chambersName: result.name });
-              navigate('/app/search?role=barrister&mode=joined');
+              updateOnboarding({ chambersFound: true, chambersName: result.name, mode: 'joined' });
+              navigate('/onboarding/barrister/setup');
             }}
           />
         ))}
@@ -63,7 +63,10 @@ export default function ChambersLookup() {
       </div>
       <button
         type="button"
-        onClick={() => navigate('/onboarding/barrister/fork')}
+        onClick={() => {
+          updateOnboarding({ chambersFound: false });
+          navigate('/onboarding/barrister/fork');
+        }}
         className="mt-4 text-sm font-medium text-brand hover:text-brand-hover"
       >
         Can't find yours? Skip this step

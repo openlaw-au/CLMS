@@ -6,7 +6,7 @@ export default function Input({ icon, className = '', ...props }) {
   return (
     <label className="relative block">
       {icon ? (
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-text-secondary">
           {isIconName ? <Icon name={icon} size={16} /> : icon}
         </span>
       ) : null}

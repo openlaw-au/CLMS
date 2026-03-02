@@ -66,7 +66,7 @@ export default function WizardPage() {
 
   if (currentStep === 1) {
     return (
-      <div className="app-shell-bg motion-slide min-h-screen px-5 py-12">
+      <div className="app-shell-bg motion-slide flex min-h-screen items-center justify-center px-5 py-12">
         <WizardStep
           step={1}
           total={3}
@@ -100,7 +100,7 @@ export default function WizardPage() {
 
   if (currentStep === 2) {
     return (
-      <div className="app-shell-bg motion-slide min-h-screen px-5 py-12">
+      <div className="app-shell-bg motion-slide flex min-h-screen items-center justify-center px-5 py-12">
         <WizardStep
           step={2}
           total={3}
@@ -133,7 +133,7 @@ export default function WizardPage() {
   }
 
   return (
-    <div className="app-shell-bg motion-slide min-h-screen px-5 py-12">
+    <div className="app-shell-bg motion-slide flex min-h-screen items-center justify-center px-5 py-12">
       <WizardStep
         step={3}
         total={3}

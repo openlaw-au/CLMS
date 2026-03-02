@@ -26,7 +26,10 @@ export function AppProvider({ children }) {
       chambersAddress: '',
       locations: [{ name: '', floor: '' }],
       invites: [{ email: '', role: 'barrister' }],
+      chambersFound: null,
       mode: 'joined',
+      firstVisit: true,
+      celebrationShown: false,
     }),
   );
 
@@ -46,12 +49,22 @@ export function AppProvider({ children }) {
     setOnboarding((prev) => ({ ...prev, ...patch }));
   };
 
+  const clearFirstVisit = () => {
+    setOnboarding((prev) => ({ ...prev, firstVisit: false }));
+  };
+
+  const markCelebrationShown = () => {
+    setOnboarding((prev) => ({ ...prev, celebrationShown: true }));
+  };
+
   const value = useMemo(
     () => ({
       role,
       setRole,
       onboarding,
       updateOnboarding,
+      clearFirstVisit,
+      markCelebrationShown,
     }),
     [onboarding, role],
   );

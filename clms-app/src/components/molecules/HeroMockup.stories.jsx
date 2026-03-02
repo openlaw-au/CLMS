@@ -1,5 +1,4 @@
 import HeroMockup from './HeroMockup';
-import { reviewCards } from '../../mocks/landingContent';
 
 export default {
   title: 'Molecules/HeroMockup',
@@ -12,13 +11,11 @@ export default {
 export const Barrister = {
   args: {
     role: 'barrister',
-    reviews: reviewCards.barrister,
   },
 };
 
 export const Clerk = {
   args: {
     role: 'clerk',
-    reviews: reviewCards.clerk,
   },
 };

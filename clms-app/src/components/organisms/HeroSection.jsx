@@ -3,7 +3,7 @@ import Button from '../atoms/Button';
 import Icon from '../atoms/Icon';
 import PersonaToggle from '../atoms/PersonaToggle';
 import HeroMockup from '../molecules/HeroMockup';
-import { heroContent, reviewCards } from '../../mocks/landingContent';
+import { heroContent } from '../../mocks/landingContent';
 
 export default function HeroSection({ role, onRoleChange, heroToggleRef }) {
   const navigate = useNavigate();
@@ -70,7 +70,7 @@ export default function HeroSection({ role, onRoleChange, heroToggleRef }) {
           </div>
 
           <div className="w-full lg:w-1/2">
-            <HeroMockup role={role} reviews={reviewCards[role]} />
+            <HeroMockup role={role} />
           </div>
         </div>
       </div>

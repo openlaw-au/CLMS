@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import Badge from '../atoms/Badge';
 import Icon from '../atoms/Icon';
+import { useAppContext } from '../../context/AppContext';
 
 const navByRole = {
   barrister: [
@@ -22,18 +23,33 @@ const navByRole = {
 };
 
 export default function AppShell({ role, children }) {
+  const { onboarding } = useAppContext();
+  const isJoined = onboarding.mode === 'joined' && onboarding.chambersName;
+
+  const navItems = navByRole[role];
+  const mainNav = navItems.filter((item) => item.slug !== 'settings');
+  const settingsNav = navItems.find((item) => item.slug === 'settings');
+
   return (
-    <div className="min-h-screen bg-slate-100">
-      <div className="mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 gap-4 p-4 md:grid-cols-[220px_1fr]">
-        <aside className="rounded-2xl border border-border bg-white p-4">
-          <p className="font-serif text-xl text-text">CLMS</p>
-          <Badge variant="role">{role}</Badge>
+    <div className="min-h-screen bg-white">
+      <aside className="fixed left-0 top-0 z-10 hidden h-screen w-64 flex-col border-r border-border bg-slate-50 p-5 md:flex">
+        <div>
+          <div className="pt-1">
+            <p className="font-serif text-xl text-text">CLMS</p>
+            <Badge variant="role">{role}</Badge>
+            {isJoined && (
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                <Icon name="solar:buildings-linear" size={12} />
+                {onboarding.chambersName}
+              </div>
+            )}
+          </div>
           <nav className="mt-4 space-y-1">
-            {navByRole[role].map((item) => (
+            {mainNav.map((item) => (
               <Link
                 key={item.label}
                 to={`/app/${item.slug}`}
-                className="block rounded-xl px-3 py-2 text-sm text-text-secondary hover:bg-slate-100 hover:text-text"
+                className="block rounded-xl px-3 py-2.5 text-sm text-text-secondary hover:bg-slate-200 hover:text-text"
               >
                 <span className="inline-flex items-center gap-2">
                   <Icon name={item.icon} size={16} />
@@ -42,9 +58,26 @@ export default function AppShell({ role, children }) {
               </Link>
             ))}
           </nav>
-        </aside>
-        <main className="rounded-2xl border border-border bg-white p-6">{children}</main>
-      </div>
+        </div>
+        {settingsNav && (
+          <div className="mt-auto border-t border-border pt-3">
+            <Link
+              to={`/app/${settingsNav.slug}`}
+              className="block rounded-xl px-3 py-2.5 text-sm text-text-secondary hover:bg-slate-200 hover:text-text"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Icon name={settingsNav.icon} size={16} />
+                <span>{settingsNav.label}</span>
+              </span>
+            </Link>
+          </div>
+        )}
+      </aside>
+      <main className="min-h-screen bg-white md:ml-64">
+        <div className="mx-auto max-w-5xl px-6 py-8 lg:px-10">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

@@ -8,6 +8,7 @@ const newInvite = () => ({ email: '', role: 'barrister' });
 export default function InviteForm() {
   const navigate = useNavigate();
   const [rows, setRows] = useState([newInvite()]);
+  const [sending, setSending] = useState(false);
 
   const updateRow = (index, value) => {
     setRows((prev) => prev.map((row, rowIndex) => (rowIndex === index ? value : row)));
@@ -42,8 +43,11 @@ export default function InviteForm() {
         <Button variant="secondary" onClick={() => navigate('/app/dashboard?role=clerk')}>
           Skip
         </Button>
-        <Button variant="clerk" onClick={() => navigate('/app/dashboard?role=clerk')}>
-          Send Invites
+        <Button variant="clerk" loading={sending} onClick={() => {
+          setSending(true);
+          setTimeout(() => navigate('/app/dashboard?role=clerk'), 600);
+        }}>
+          {sending ? 'Sending...' : 'Send Invites'}
         </Button>
       </div>
     </section>
