@@ -466,14 +466,38 @@
   animation: type-text 1.2s steps(20) 0.3s both, typing-cursor 0.8s step-end infinite;
 }
 
-/* -- Results (1.5s) — the aha: Book + JADE in one list -- */
+/* -- Search button: icon → spinner → icon (1.5s-2.5s) -- */
 
-.mockup-result-count {
+.mockup-search-spinner {
   opacity: 0;
 }
 
-.tab-mockup.animate .mockup-result-count {
-  animation: mockup-fade-in 0.3s ease-out 1.5s forwards;
+.tab-mockup.animate .mockup-search-icon {
+  animation: mockup-fade-out 0.15s ease-out 1.5s forwards, mockup-fade-in 0.15s ease-out 2.5s forwards;
+}
+
+.tab-mockup.animate .mockup-search-spinner {
+  animation: mockup-fade-in 0.15s ease-out 1.5s forwards, spin 1s linear 1.5s infinite, mockup-fade-out 0.15s ease-out 2.5s forwards;
+}
+
+/* -- Skeleton cards (0.4s → fade out at 2.5s when results arrive) -- */
+
+.mockup-skeleton {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-skeleton {
+  animation: mockup-fade-in 0.3s ease-out 0.4s forwards, mockup-fade-out 0.3s ease-out 2.5s forwards;
+}
+
+/* -- Results container — hidden until skeleton fades out -- */
+
+.mockup-results {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-results {
+  animation: mockup-fade-in 0.3s ease-out 2.5s forwards;
 }
 
 .mockup-result {
@@ -485,11 +509,11 @@
 }
 
 .tab-mockup.animate .mockup-result:nth-child(1) {
-  animation-delay: 1.8s;
+  animation-delay: 2.8s;
 }
 
 .tab-mockup.animate .mockup-result:nth-child(2) {
-  animation-delay: 2.3s;
+  animation-delay: 3.3s;
 }
 
 
@@ -534,20 +558,20 @@
   box-shadow: 0 0 0 2px white, 0 0 18px 4px rgb(37 99 235 / 0.3);
 }
 
-/* Ring 1: targets "⊕ Authority List" — appear 2.8s, press ~3.4s */
+/* Ring 1: targets "⊕ Authority List" — appear 3.8s, press ~4.4s */
 
 .tab-mockup.animate .mockup-cursor-cite {
-  animation: click-ring 1.35s ease-out 2.8s forwards;
+  animation: click-ring 1.35s ease-out 3.8s forwards;
 }
 
-/* Ring 2: targets "Request" — appear 4.5s, press ~5.1s */
+/* Ring 2: targets "Request" — appear 5.5s, press ~6.1s */
 
 .tab-mockup.animate .mockup-cursor-track {
-  animation: click-ring 1.35s ease-out 4.5s forwards;
+  animation: click-ring 1.35s ease-out 5.5s forwards;
 }
 
 .tab-mockup.animate .mockup-cursor-nav-cat {
-  animation: click-ring 1.2s ease-out 0.2s forwards;
+  animation: click-ring 1.2s ease-out 1.3s forwards;
 }
 
 /* -- Authority List button — highlight pulse synced with ring press (3.4s) -- */
@@ -568,7 +592,7 @@
 }
 
 .tab-mockup.animate .mockup-add-list-btn {
-  animation: mockup-fade-out 0.2s ease-out 3.4s forwards;
+  animation: mockup-fade-out 0.2s ease-out 4.4s forwards;
 }
 
 /* -- "Added to List ✓" overlay — appears after Authority List click -- */
@@ -578,13 +602,13 @@
 }
 
 .tab-mockup.animate .mockup-added-list-btn {
-  animation: mockup-fade-in 0.3s ease-out 3.4s forwards;
+  animation: mockup-fade-in 0.3s ease-out 4.4s forwards;
 }
 
 /* -- Request button — fades out when "Requested ✓" appears -- */
 
 .tab-mockup.animate .mockup-request-btn {
-  animation: mockup-fade-out 0.2s ease-out 5.15s forwards;
+  animation: mockup-fade-out 0.2s ease-out 6.15s forwards;
 }
 
 /* -- "Requested ✓" overlay — anchored right, grows left -- */
@@ -594,13 +618,13 @@
 }
 
 .tab-mockup.animate .mockup-requested-btn {
-  animation: mockup-fade-in 0.3s ease-out 5.15s forwards;
+  animation: mockup-fade-in 0.3s ease-out 6.15s forwards;
 }
 
-/* -- Available → Requested badge swap (synced with Request btn at 5.15s) -- */
+/* -- Available → Requested badge swap (synced with Request btn at 6.15s) -- */
 
 .tab-mockup.animate .mockup-available-badge {
-  animation: pulse-glow 2s ease-in-out 2.5s 2, mockup-fade-out 0.2s ease-out 5.15s forwards;
+  animation: pulse-glow 2s ease-in-out 3.5s 2, mockup-fade-out 0.2s ease-out 6.15s forwards;
 }
 
 .mockup-status-requested {
@@ -608,10 +632,10 @@
 }
 
 .tab-mockup.animate .mockup-status-requested {
-  animation: mockup-fade-in 0.3s ease-out 5.15s forwards;
+  animation: mockup-fade-in 0.3s ease-out 6.15s forwards;
 }
 
-/* -- Success toast — slide down (5.4s) → hold 2s → slide up (7.3s) → gone before fade -- */
+/* -- Success toast — slide down (6.4s) → hold 2s → slide up → gone before fade -- */
 
 @keyframes toast-lifecycle {
   0% {
@@ -637,7 +661,7 @@
 }
 
 .tab-mockup.animate .mockup-track-toast {
-  animation: toast-lifecycle 2.25s ease 5.4s forwards;
+  animation: toast-lifecycle 2.25s ease 6.4s forwards;
 }
 
 @keyframes panel-slide-down {
@@ -660,7 +684,7 @@
 }
 
 .tab-mockup.animate .mockup-authority-panel {
-  animation: panel-slide-down 0.5s ease-out 3.8s forwards;
+  animation: panel-slide-down 0.5s ease-out 4.8s forwards;
 }
 
 @keyframes list-item-in {
@@ -679,11 +703,11 @@
 }
 
 .tab-mockup.animate .mockup-list-item:nth-child(1) {
-  animation: list-item-in 0.3s ease-out 4.1s forwards;
+  animation: list-item-in 0.3s ease-out 5.1s forwards;
 }
 
 .tab-mockup.animate .mockup-list-item:nth-child(2) {
-  animation: list-item-in 0.3s ease-out 4.3s forwards;
+  animation: list-item-in 0.3s ease-out 5.3s forwards;
 }
 
 .mockup-export-btn {
@@ -691,7 +715,7 @@
 }
 
 .tab-mockup.animate .mockup-export-btn {
-  animation: mockup-fade-in 0.3s ease-out 4.5s forwards;
+  animation: mockup-fade-in 0.3s ease-out 5.5s forwards;
 }
 
 /* -- Review cards — floating overlays after toast -- */
@@ -745,11 +769,11 @@
 }
 
 .tab-mockup.animate .mockup-review-left {
-  animation: reviewSlideLeft 0.5s ease-out 6.2s forwards;
+  animation: reviewSlideLeft 0.5s ease-out 7.2s forwards;
 }
 
 .tab-mockup.animate .mockup-review-right {
-  animation: reviewSlideRight 0.5s ease-out 7.0s forwards;
+  animation: reviewSlideRight 0.5s ease-out 8.0s forwards;
 }
 
 @media (max-width: 1023px) {
@@ -810,14 +834,24 @@
   }
 }
 
-/* -- Loading state after Catalogue click -- */
+/* -- Dashboard welcome — visible immediately, fades out on nav click -- */
+
+.mockup-dash-welcome {
+  opacity: 0;
+}
+
+.tab-mockup.animate .mockup-dash-welcome {
+  animation: mockup-fade-in 0.3s ease-out 0.2s forwards, mockup-fade-out 0.3s ease-out 1.5s forwards;
+}
+
+/* -- Loading skeleton after Catalogue click (1.5s → 2.8s) -- */
 
 .mockup-cat-loading {
   opacity: 0;
 }
 
 .tab-mockup.animate .mockup-cat-loading {
-  animation: mockup-fade-in 0.25s ease-out 1.0s forwards, mockup-fade-out 0.3s ease-out 1.8s forwards;
+  animation: mockup-fade-in 0.25s ease-out 1.7s forwards, mockup-fade-out 0.3s ease-out 2.8s forwards;
 }
 
 /* -- Phase 1-2: Catalogue — ISBN scan + RDA enrichment -- */
@@ -827,7 +861,7 @@
 }
 
 .tab-mockup.animate .mockup-cat-phase {
-  animation: mockup-fade-out 0.3s ease-in 11.5s forwards;
+  animation: mockup-fade-out 0.3s ease-in 12.5s forwards;
 }
 
 .mockup-catalogue-toast {
@@ -835,7 +869,7 @@
 }
 
 .tab-mockup.animate .mockup-catalogue-toast {
-  animation: catalogue-toast-in-out 2.5s ease 9.0s forwards;
+  animation: catalogue-toast-in-out 2.5s ease 10.0s forwards;
 }
 
 .mockup-dash-header {
@@ -843,7 +877,7 @@
 }
 
 .tab-mockup.animate .mockup-dash-header {
-  animation: mockup-fade-in 0.3s ease-out 2.0s forwards;
+  animation: mockup-fade-in 0.3s ease-out 3.0s forwards;
 }
 
 .mockup-isbn-scan {
@@ -851,7 +885,7 @@
 }
 
 .tab-mockup.animate .mockup-isbn-scan {
-  animation: mockup-fade-in 0.3s ease-out 2.2s forwards;
+  animation: mockup-fade-in 0.3s ease-out 3.2s forwards;
 }
 
 @keyframes barcode-pulse {
@@ -873,7 +907,7 @@
   max-width: 0;
   line-height: 1.4;
   border-right: 2px solid var(--color-text-muted);
-  animation: type-text 1.35s steps(18) 2.35s both, typing-cursor 0.9s step-end infinite;
+  animation: type-text 1.35s steps(18) 3.35s both, typing-cursor 0.9s step-end infinite;
 }
 
 .mockup-isbn-status {
@@ -881,7 +915,7 @@
 }
 
 .tab-mockup.animate .mockup-isbn-status {
-  animation: mockup-fade-in 0.35s ease-out 3.3s forwards, mockup-fade-out 0.28s ease-out 4.7s forwards;
+  animation: mockup-fade-in 0.35s ease-out 4.3s forwards, mockup-fade-out 0.28s ease-out 5.7s forwards;
 }
 
 .mockup-spinner {
@@ -910,7 +944,7 @@
 }
 
 .tab-mockup.animate .mockup-book-card {
-  animation: card-pop-in 0.6s ease-out 4.85s forwards;
+  animation: card-pop-in 0.6s ease-out 5.85s forwards;
 }
 
 /* -- RDA enrichment: Subject dropdown interaction (single cursor flow) -- */
@@ -996,7 +1030,7 @@
 }
 
 .tab-mockup.animate .mockup-cursor-pa {
-  animation: cursor-pa-flow 1.8s ease-out 5.5s forwards;
+  animation: cursor-pa-flow 1.8s ease-out 6.5s forwards;
 }
 
 .mockup-pa-placeholder {
@@ -1004,7 +1038,7 @@
 }
 
 .tab-mockup.animate .mockup-pa-placeholder {
-  animation: mockup-fade-out 0.35s ease-out 6.8s forwards;
+  animation: mockup-fade-out 0.35s ease-out 7.8s forwards;
 }
 
 .mockup-pa-dropdown {
@@ -1014,7 +1048,7 @@
 }
 
 .tab-mockup.animate .mockup-pa-dropdown {
-  animation: dropdown-open 0.55s ease-out 6.0s forwards, mockup-fade-out 0.35s ease-out 6.8s forwards;
+  animation: dropdown-open 0.55s ease-out 7.0s forwards, mockup-fade-out 0.35s ease-out 7.8s forwards;
 }
 
 .mockup-pa-option {
@@ -1066,11 +1100,11 @@
 }
 
 .tab-mockup.animate .mockup-pa-option-criminal {
-  animation: pa-hover-criminal 0.7s ease-out 6.15s forwards;
+  animation: pa-hover-criminal 0.7s ease-out 7.15s forwards;
 }
 
 .tab-mockup.animate .mockup-pa-option-evidence {
-  animation: pa-hover-evidence 0.7s ease-out 6.15s forwards;
+  animation: pa-hover-evidence 0.7s ease-out 7.15s forwards;
 }
 
 .mockup-pa-selected {
@@ -1078,7 +1112,7 @@
 }
 
 .tab-mockup.animate .mockup-pa-selected {
-  animation: mockup-fade-in 0.35s ease-out 6.8s forwards;
+  animation: mockup-fade-in 0.35s ease-out 7.8s forwards;
 }
 
 /* -- RDA enrichment: Jurisdiction field (empty → filled) -- */
@@ -1088,7 +1122,7 @@
 }
 
 .tab-mockup.animate .mockup-jurisdiction {
-  animation: field-appear 0.45s ease-out 7.2s forwards;
+  animation: field-appear 0.45s ease-out 8.2s forwards;
 }
 
 .mockup-jurisdiction-selected {
@@ -1096,11 +1130,11 @@
 }
 
 .tab-mockup.animate .mockup-jurisdiction-placeholder {
-  animation: mockup-fade-out 0.25s ease-out 7.8s forwards;
+  animation: mockup-fade-out 0.25s ease-out 8.8s forwards;
 }
 
 .tab-mockup.animate .mockup-jurisdiction-selected {
-  animation: mockup-fade-in 0.3s ease-out 7.8s forwards;
+  animation: mockup-fade-in 0.3s ease-out 8.8s forwards;
 }
 
 /* -- RDA enrichment: Tags field (empty → filled) -- */
@@ -1110,7 +1144,7 @@
 }
 
 .tab-mockup.animate .mockup-subject {
-  animation: field-appear 0.45s ease-out 8.0s forwards;
+  animation: field-appear 0.45s ease-out 9.0s forwards;
 }
 
 .mockup-tags-filled {
@@ -1118,17 +1152,17 @@
 }
 
 .tab-mockup.animate .mockup-tags-placeholder {
-  animation: mockup-fade-out 0.25s ease-out 8.6s forwards;
+  animation: mockup-fade-out 0.25s ease-out 9.6s forwards;
 }
 
 .tab-mockup.animate .mockup-tags-filled {
-  animation: mockup-fade-in 0.3s ease-out 8.6s forwards;
+  animation: mockup-fade-in 0.3s ease-out 9.6s forwards;
 }
 
 /* -- ISBN Only → Enriched badge swap -- */
 
 .tab-mockup.animate .mockup-isbn-badge {
-  animation: mockup-fade-out 0.2s ease-out 9.0s forwards;
+  animation: mockup-fade-out 0.2s ease-out 10.0s forwards;
 }
 
 @keyframes badge-pop {
@@ -1151,7 +1185,7 @@
 }
 
 .tab-mockup.animate .mockup-enriched-badge {
-  animation: badge-pop 0.4s ease-out 9.0s forwards;
+  animation: badge-pop 0.4s ease-out 10.0s forwards;
 }
 
 /* -- Sidebar nav transition -- */
@@ -1175,11 +1209,11 @@
 }
 
 .tab-mockup.animate .mockup-nav-cat {
-  animation: nav-activate 0.25s ease-out 0.3s forwards, nav-deactivate 0.3s ease-out 11.5s forwards;
+  animation: nav-activate 0.25s ease-out 1.5s forwards, nav-deactivate 0.3s ease-out 12.5s forwards;
 }
 
 .tab-mockup.animate .mockup-nav-dash {
-  animation: nav-deactivate 0.25s ease-out 0.3s forwards, nav-activate 0.3s ease-out 11.7s forwards;
+  animation: nav-deactivate 0.25s ease-out 1.5s forwards, nav-activate 0.3s ease-out 12.7s forwards;
 }
 
 /* URL bar swap */
@@ -1189,11 +1223,11 @@
 }
 
 .tab-mockup.animate .mockup-url-cat {
-  animation: mockup-fade-out 0.2s ease-in 11.5s forwards;
+  animation: mockup-fade-out 0.2s ease-in 12.5s forwards;
 }
 
 .tab-mockup.animate .mockup-url-dash {
-  animation: mockup-fade-in 0.2s ease-out 11.7s forwards;
+  animation: mockup-fade-in 0.2s ease-out 12.7s forwards;
 }
 
 /* -- Phase 3-4: Dashboard — Control Tower -- */
@@ -1207,7 +1241,7 @@
 }
 
 .tab-mockup.animate .mockup-dash-title {
-  animation: mockup-fade-in 0.3s ease-out 11.7s forwards;
+  animation: mockup-fade-in 0.3s ease-out 12.7s forwards;
 }
 
 .mockup-dash-stats {
@@ -1215,7 +1249,7 @@
 }
 
 .tab-mockup.animate .mockup-dash-stats {
-  animation: mockup-fade-in 0.3s ease-out 11.9s forwards;
+  animation: mockup-fade-in 0.3s ease-out 12.9s forwards;
 }
 
 .mockup-stat {
@@ -1227,15 +1261,15 @@
 }
 
 .tab-mockup.animate .mockup-dash-stats .mockup-stat:nth-child(1) {
-  animation-delay: 12.0s;
+  animation-delay: 13.0s;
 }
 
 .tab-mockup.animate .mockup-dash-stats .mockup-stat:nth-child(2) {
-  animation-delay: 12.2s;
+  animation-delay: 13.2s;
 }
 
 .tab-mockup.animate .mockup-dash-stats .mockup-stat:nth-child(3) {
-  animation-delay: 12.4s;
+  animation-delay: 13.4s;
 }
 
 @keyframes slide-in-right {
@@ -1254,11 +1288,11 @@
 }
 
 .tab-mockup.animate .mockup-notification {
-  animation: slide-in-right 0.45s ease-out 12.8s forwards;
+  animation: slide-in-right 0.45s ease-out 13.8s forwards;
 }
 
 .tab-mockup.animate .mockup-request-dot {
-  animation: pulse-dot 1.1s ease-in-out 12.95s 2;
+  animation: pulse-dot 1.1s ease-in-out 13.95s 2;
 }
 
 /* Approve → Approved swap */
@@ -1279,7 +1313,7 @@
 }
 
 .tab-mockup.animate .mockup-approve-btn {
-  animation: mockup-fade-in 0.3s ease-out 14.1s forwards, mockup-fade-out 0.2s ease-out 14.9s forwards;
+  animation: mockup-fade-in 0.3s ease-out 15.1s forwards, mockup-fade-out 0.2s ease-out 15.9s forwards;
 }
 
 .mockup-approved-state {
@@ -1289,11 +1323,11 @@
 /* Ring: targets "Approve" — appear after Overdue card */
 
 .tab-mockup.animate .mockup-cursor-approve {
-  animation: click-ring 1.35s ease-out 14.3s forwards;
+  animation: click-ring 1.35s ease-out 15.3s forwards;
 }
 
 .tab-mockup.animate .mockup-approved-state {
-  animation: mockup-fade-in 0.3s ease-out 14.9s forwards;
+  animation: mockup-fade-in 0.3s ease-out 15.9s forwards;
 }
 
 /* -- Overdue card — slides in before Approve interaction -- */
@@ -1303,7 +1337,7 @@
 }
 
 .tab-mockup.animate .mockup-overdue-card {
-  animation: slide-in-right 0.45s ease-out 13.4s forwards;
+  animation: slide-in-right 0.45s ease-out 14.4s forwards;
 }
 
 /* -- Clerk review cards — floating overlays after Overdue -- */
@@ -1327,11 +1361,11 @@
 }
 
 .tab-mockup.animate .mockup-clerk-review-left {
-  animation: reviewSlideLeft 0.5s ease-out 15.4s forwards;
+  animation: reviewSlideLeft 0.5s ease-out 16.4s forwards;
 }
 
 .tab-mockup.animate .mockup-clerk-review-right {
-  animation: reviewSlideRight 0.5s ease-out 16.2s forwards;
+  animation: reviewSlideRight 0.5s ease-out 17.2s forwards;
 }
 
 @media (max-width: 1023px) {
@@ -1370,5 +1404,11 @@
   }
   100% {
     opacity: 1;
+  }
+}
+
+@keyframes progress-fill {
+  0% {
+    width: 0%;
   }
 }

@@ -27,8 +27,8 @@ export default function WizardStep({
       <h1 className="mt-4 font-serif text-3xl text-text">{title}</h1>
       <div className="mt-5">{children}</div>
       <div className="mt-6 flex items-center justify-between">
-        <Button variant="ghost" onClick={onBack} className="rounded-xl">
-          Back
+        <Button variant="ghost" size="sm" onClick={onBack} className="rounded-xl">
+          &larr; Back
         </Button>
         <Button onClick={handleNext} disabled={disableNext} loading={loading} className={disableNext ? 'opacity-40' : ''}>
           {nextLabel}

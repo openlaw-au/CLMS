@@ -1,5 +1,7 @@
 import Input from '../atoms/Input';
+import Select from '../atoms/Select';
 import Button from '../atoms/Button';
+import Icon from '../atoms/Icon';
 
 export default function InviteRow({ value, onChange, onRemove, canRemove }) {
   return (
@@ -10,22 +12,19 @@ export default function InviteRow({ value, onChange, onRemove, canRemove }) {
         value={value.email}
         onChange={(event) => onChange({ ...value, email: event.target.value })}
       />
-      <select
+      <Select
         value={value.role}
         onChange={(event) => onChange({ ...value, role: event.target.value })}
-        className="h-11 rounded-xl border border-border bg-white px-3 text-sm"
       >
         <option value="barrister">Barrister</option>
         <option value="clerk">Clerk</option>
-      </select>
-      <Button
-        variant="ghost"
-        className="rounded-xl"
-        disabled={!canRemove}
-        onClick={onRemove}
-      >
-        Delete
-      </Button>
+      </Select>
+      {canRemove ? (
+        <Button variant="ghost" size="sm" className="rounded-xl" onClick={onRemove}>
+          <Icon name="solar:trash-bin-minimalistic-linear" size={14} />
+          Delete
+        </Button>
+      ) : <span />}
     </div>
   );
 }
