@@ -7,12 +7,13 @@ export const booksMock = [
     publisher: 'LexisNexis Butterworths',
     isbn: '9780409343953',
     location: 'Owen Dixon East',
-    floor: '3',
+    floor: '5',
     status: 'available',
     practiceArea: 'Evidence',
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    enrichment: { subject: 'Evidence', jurisdiction: ['Federal'], resourceType: 'Monograph', tags: ['hearsay', 'expert evidence'], notes: '' },
   },
   {
     id: 'b2',
@@ -28,6 +29,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: 'm2',
     dueDate: '2026-03-01',
+    enrichment: null,
   },
   {
     id: 'b3',
@@ -43,6 +45,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    enrichment: null,
   },
   {
     id: 'b4',
@@ -58,6 +61,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    enrichment: { subject: 'Equity', jurisdiction: ['Federal'], resourceType: 'Monograph', tags: ['trusts', 'fiduciary duties'], notes: '' },
   },
   {
     id: 'b5',
@@ -73,6 +77,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: 'm4',
     dueDate: '2026-02-20',
+    enrichment: null,
   },
   {
     id: 'b6',
@@ -88,6 +93,7 @@ export const booksMock = [
     jurisdiction: 'NSW',
     borrower: null,
     dueDate: null,
+    enrichment: null,
   },
   {
     id: 'b7',
@@ -103,6 +109,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    enrichment: null,
   },
   {
     id: 'b8',
@@ -118,6 +125,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: 'm1',
     dueDate: '2026-03-05',
+    enrichment: null,
   },
   {
     id: 'b9',
@@ -133,6 +141,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    enrichment: null,
   },
   {
     id: 'b10',
@@ -148,6 +157,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    enrichment: null,
   },
   {
     id: 'b11',
@@ -163,6 +173,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    enrichment: null,
   },
   {
     id: 'b12',
@@ -178,6 +189,7 @@ export const booksMock = [
     jurisdiction: 'VIC',
     borrower: null,
     dueDate: null,
+    enrichment: null,
   },
   {
     id: 'b13',
@@ -193,5 +205,6 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    enrichment: null,
   },
 ];

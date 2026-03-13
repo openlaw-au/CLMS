@@ -35,8 +35,30 @@ export async function addBook(data) {
     status: 'available',
     borrower: null,
     dueDate: null,
+    enrichment: null,
     ...data,
   };
   booksMock.push(newBook);
   return newBook;
+}
+
+// TODO(api): Replace with PATCH /api/books/:id/enrichment — update RDA enrichment fields
+export async function enrichBook(id, enrichment) {
+  await delay(200);
+  const book = booksMock.find((b) => b.id === id);
+  if (book) {
+    book.enrichment = { ...enrichment };
+  }
+  return book;
+}
+
+// TODO(api): Replace with DELETE /api/books/:id — remove book from catalogue
+export async function deleteBook(id) {
+  await delay(200);
+  const idx = booksMock.findIndex((b) => b.id === id);
+  if (idx !== -1) {
+    booksMock.splice(idx, 1);
+    return true;
+  }
+  return false;
 }

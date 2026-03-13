@@ -1,27 +1,34 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
-import Logo from '../atoms/Logo';
 import SignUpForm from '../organisms/SignUpForm';
+import AuthSplitLayout from '../templates/AuthSplitLayout';
 
 export default function SignUpPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { role, setRole, updateOnboarding } = useAppContext();
 
   const queryRole = searchParams.get('role');
-  const activeRole = queryRole === 'clerk' ? 'clerk' : queryRole === 'barrister' ? 'barrister' : role;
+  const initialRole = queryRole === 'clerk' ? 'clerk' : queryRole === 'barrister' ? 'barrister' : role;
+  const [selectedRole, setSelectedRole] = useState(initialRole);
 
   useEffect(() => {
-    if (queryRole === 'barrister' || queryRole === 'clerk') {
-      setRole(queryRole);
-    }
-  }, [queryRole, setRole]);
+    setRole(selectedRole);
+  }, [selectedRole, setRole]);
+
+  const handleRoleChange = (nextRole) => {
+    setSelectedRole(nextRole);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('role', nextRole);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   return (
-    <div className="app-shell-bg motion-slide flex min-h-screen flex-col items-center justify-center px-5 py-12">
+    <AuthSplitLayout role={selectedRole} mode="signup">
       <SignUpForm
-        initialRole={activeRole}
+        role={selectedRole}
+        onRoleChange={handleRoleChange}
         onSubmit={(form) => {
           setRole(form.role);
           updateOnboarding({
@@ -37,9 +44,9 @@ export default function SignUpPage() {
             firstVisit: true,
             celebrationShown: false,
           });
-          navigate(form.role === 'clerk' ? '/onboarding/clerk/step-1' : '/onboarding/barrister/lookup');
+          navigate(form.role === 'clerk' ? '/onboarding/clerk/step/1' : '/onboarding/barrister/lookup');
         }}
       />
-    </div>
+    </AuthSplitLayout>
   );
 }

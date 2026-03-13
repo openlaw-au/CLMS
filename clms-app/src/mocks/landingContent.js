@@ -8,7 +8,7 @@ export const heroContent = {
     secondaryIcon: 'solar:play-circle-linear',
   },
   clerk: {
-    titleLines: ['Scan it. Track it.', 'Manage it.'],
+    titleLines: ['Scan it. Organise it.', 'Control it.'],
     summary:
       'gives you real-time inventory across every location, automated overdue reminders, and ISBN scan to catalogue in seconds, not hours.',
     cta: 'Get Started',
@@ -55,7 +55,7 @@ export const featureSets = {
         title: 'Library in Your Pocket',
         description:
           "You're in court and need to check if a book is available before heading back to chambers. CLMS works from your phone. Search, borrow, and return, even offline.",
-        checks: ['Barcode scanning', 'Mobile check-in/out', 'Offline access'],
+        checks: ['Barcode scanning', 'Mobile check-in/out', 'Mobile-friendly interface'],
       },
     ],
   },
@@ -85,7 +85,7 @@ export const featureSets = {
         title: 'Built for Chambers',
         description:
           'Not every member should have the same access. Barristers search and borrow. Clerks manage inventory. CLMS enforces this by role.',
-        checks: ['Role-based permissions', 'Cross-chambers sharing', 'Multi-location structure'],
+        checks: ['Role-based permissions', 'Share Authority Lists with colleagues', 'Multi-location structure'],
       },
     ],
   },

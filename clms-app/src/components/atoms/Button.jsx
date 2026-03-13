@@ -1,7 +1,8 @@
 const variantClasses = {
   primary: 'bg-brand text-white hover:bg-brand-hover shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',
-  clerk: 'bg-clerk text-white hover:bg-clerk-hover shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',
   secondary: 'border border-slate-300 bg-white text-text hover:bg-slate-50 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',
+  tertiary: 'bg-orange-50 text-brand hover:bg-brand hover:text-white',
+  outline: 'border border-brand text-brand hover:bg-orange-50',
   ghost: 'text-text-secondary hover:bg-slate-100',
   danger: 'bg-red-600 text-white hover:bg-red-700 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',
   success: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',

@@ -57,7 +57,7 @@ export default function Navbar({
           </div>
 
           <div className="flex items-center gap-3">
-            <Link to="/signup">
+            <Link to={`/login?role=${role}`}>
               <Button variant="secondary" size="sm">Login</Button>
             </Link>
             <Link to={`/signup?role=${role}`}>

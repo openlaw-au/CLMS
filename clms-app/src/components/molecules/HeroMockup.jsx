@@ -94,8 +94,8 @@ function BrowserChrome({ children }) {
    No fluff. Action and result only.
    ══════════════════════════════════════════ */
 function BarristerMockup() {
-  // Last animation: review cards at ~7.0s + 8s hold
-  const { cycle, fading } = useAnimationLoop(15000);
+  // Last animation: review cards at ~8.0s + 8s hold
+  const { cycle, fading } = useAnimationLoop(16000);
 
   return (
     <div className="tab-mockup active animate relative" id="mockup-barristers">
@@ -113,18 +113,42 @@ function BarristerMockup() {
                 <Icon name="solar:magnifer-linear" size={14} className="shrink-0 text-slate-400" />
                 <span className="mockup-search-query leading-none">Cross on Evidence</span>
               </div>
-              <div className="flex h-8 items-center rounded-lg bg-brand px-2.5">
-                <Icon name="solar:magnifer-linear" size={14} className="block text-white" />
+              <div className="relative flex h-8 items-center rounded-lg bg-brand px-2.5">
+                <Icon name="solar:magnifer-linear" size={14} className="mockup-search-icon block text-white" />
+                <span className="mockup-search-spinner absolute inset-0 m-auto h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white" />
               </div>
             </div>
 
-            {/* Result count */}
-            <div className="mockup-result-count mb-3 text-[10px] text-slate-400">
-              2 results across books and JADE
-            </div>
+            {/* Skeleton → Results swap (same position, no gap) */}
+            <div className="relative">
+              {/* Skeleton cards — appear immediately, fade out when results arrive */}
+              <div className="mockup-skeleton absolute inset-0 space-y-2.5">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="h-3 w-3/5 animate-pulse rounded bg-slate-200/70" />
+                  <div className="mt-2 h-2.5 w-2/5 animate-pulse rounded bg-slate-100" />
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex gap-1">
+                      <div className="h-4 w-10 animate-pulse rounded bg-slate-100" />
+                      <div className="h-4 w-14 animate-pulse rounded bg-slate-100" />
+                    </div>
+                    <div className="flex gap-1">
+                      <div className="h-5 w-14 animate-pulse rounded-md bg-slate-100" />
+                      <div className="h-5 w-20 animate-pulse rounded-md bg-slate-200/60" />
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="h-3 w-2/5 animate-pulse rounded bg-slate-200/70" />
+                  <div className="mt-2 h-2.5 w-3/5 animate-pulse rounded bg-slate-100" />
+                  <div className="mt-3 flex gap-1">
+                    <div className="h-4 w-16 animate-pulse rounded bg-slate-100" />
+                    <div className="h-4 w-12 animate-pulse rounded bg-slate-100" />
+                  </div>
+                </div>
+              </div>
 
-            {/* Results — the core value: Book + JADE in one list */}
-            <div className="space-y-2.5">
+              {/* Real results */}
+              <div className="mockup-results space-y-2.5">
 
               {/* Result 1: Physical book with location */}
               <div className="mockup-result relative rounded-xl border border-slate-100 bg-slate-50 p-3">
@@ -181,6 +205,7 @@ function BarristerMockup() {
                 </div>
               </div>
             </div>
+            </div>
 
             {/* Authority List panel — payoff: search result → court-ready list */}
             <div className="mockup-authority-panel mt-3 rounded-xl border border-blue-200 bg-blue-50/50 p-3">
@@ -235,8 +260,8 @@ function BarristerMockup() {
    Energy: Order + Control — chaos becomes managed
    ══════════════════════════════════════════ */
 function ClerkMockup() {
-  // Last animation: clerk review cards at ~16.7s + 8s hold
-  const { cycle, fading } = useAnimationLoop(24500);
+  // Last animation: clerk review cards at ~17.2s + 8s hold
+  const { cycle, fading } = useAnimationLoop(25500);
 
   return (
     <div className="tab-mockup active animate relative" id="mockup-clerks">
@@ -261,7 +286,7 @@ function ClerkMockup() {
                   </div>
                   <div className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-500">
                     <Icon name="solar:transfer-horizontal-linear" size={14} />
-                    <span>Lending</span>
+                    <span>Loans</span>
               </div>
               <div className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-500">
                 <Icon name="solar:users-group-rounded-linear" size={14} />
@@ -273,11 +298,57 @@ function ClerkMockup() {
           {/* Main content area */}
           <div className="relative flex-1 overflow-hidden bg-white">
 
-            {/* Loading state after Catalogue nav click */}
-            <div className="mockup-cat-loading pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-              <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-slate-200 border-t-brand animate-spin" />
-                Loading catalogue...
+            {/* ── Phase 0: Dashboard welcome — static skeleton ── */}
+            <div className="mockup-dash-welcome pointer-events-none absolute inset-0 z-15 p-4">
+              <div className="mb-1 font-serif text-sm font-semibold text-text">Hi, John</div>
+              <div className="mb-3 text-[10px] text-slate-400">Your library at a glance</div>
+              <div className="mb-3 grid grid-cols-3 gap-2">
+                <div className="flex flex-col items-center rounded-xl bg-slate-50 p-2">
+                  <div className="h-4 w-6 rounded bg-slate-200/70" />
+                  <div className="mt-1 h-2 w-10 rounded bg-slate-100" />
+                </div>
+                <div className="flex flex-col items-center rounded-xl bg-slate-50 p-2">
+                  <div className="h-4 w-6 rounded bg-slate-200/70" />
+                  <div className="mt-1 h-2 w-10 rounded bg-slate-100" />
+                </div>
+                <div className="flex flex-col items-center rounded-xl bg-slate-50 p-2">
+                  <div className="h-4 w-6 rounded bg-slate-200/70" />
+                  <div className="mt-1 h-2 w-10 rounded bg-slate-100" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
+                  <div className="h-2.5 w-3/5 rounded bg-slate-200/70" />
+                  <div className="mt-1.5 h-2 w-2/5 rounded bg-slate-100" />
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
+                  <div className="h-2.5 w-2/5 rounded bg-slate-200/70" />
+                  <div className="mt-1.5 h-2 w-3/5 rounded bg-slate-100" />
+                </div>
+              </div>
+            </div>
+
+            {/* Loading skeleton after Catalogue nav click */}
+            <div className="mockup-cat-loading pointer-events-none absolute inset-0 z-20 p-4">
+              <div className="mb-2 h-3.5 w-28 animate-pulse rounded bg-slate-200/70" />
+              <div className="mb-3 h-8 w-full animate-pulse rounded-lg bg-slate-100" />
+              <div className="space-y-2">
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="h-3 w-3/5 animate-pulse rounded bg-slate-200/70" />
+                  <div className="mt-2 h-2.5 w-2/5 animate-pulse rounded bg-slate-100" />
+                  <div className="mt-2 flex gap-1">
+                    <div className="h-4 w-14 animate-pulse rounded bg-slate-100" />
+                    <div className="h-4 w-12 animate-pulse rounded bg-slate-100" />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="h-3 w-2/5 animate-pulse rounded bg-slate-200/70" />
+                  <div className="mt-2 h-2.5 w-3/5 animate-pulse rounded bg-slate-100" />
+                  <div className="mt-2 flex gap-1">
+                    <div className="h-4 w-16 animate-pulse rounded bg-slate-100" />
+                    <div className="h-4 w-10 animate-pulse rounded bg-slate-100" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -421,7 +492,7 @@ function ClerkMockup() {
                 <div className="mockup-stat flex flex-col items-center rounded-xl bg-slate-50 p-2">
                   <div className="flex items-center justify-center gap-1">
                     <Icon name="solar:clock-circle-linear" size={14} className="shrink-0 text-red-400" />
-                    <div className="font-serif text-base font-semibold leading-none text-text"><AnimatedCount target={3} delay={0} secondTarget={2} secondDelay={13400} /></div>
+                    <div className="font-serif text-base font-semibold leading-none text-text"><AnimatedCount target={3} delay={0} secondTarget={2} secondDelay={14400} /></div>
                   </div>
                   <div className="mt-1 text-[8px] font-medium text-slate-500">Overdue</div>
                 </div>

@@ -56,6 +56,105 @@ select:disabled,
   color: var(--color-text-inverse);
 }
 
+/* html5-qrcode library overrides — kill ALL library UI, we draw our own */
+#barcode-reader {
+  border: none !important;
+  background: transparent !important;
+}
+
+#barcode-reader video {
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#barcode-reader__scan_region {
+  min-height: 100% !important;
+  position: relative !important;
+}
+
+/* Hide library's built-in qrbox border / shaded region */
+#barcode-reader__scan_region > img,
+#barcode-reader__scan_region > div:not(:first-child) {
+  display: none !important;
+}
+
+/* The qrbox shaded overlay divs use inline border — nuke them */
+#barcode-reader [style*="border-right"],
+#barcode-reader [style*="border-left"] {
+  border: none !important;
+}
+
+#barcode-reader__dashboard,
+#barcode-reader__dashboard_section,
+#barcode-reader__dashboard_section_swaplink {
+  display: none !important;
+}
+
+#barcode-reader__header_message {
+  display: none !important;
+}
+
+/* Toast slide-in animation */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 300ms ease-out;
+}
+
+/* Pulse animation for enrichment badge */
+@keyframes pulse-once {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.animate-pulse-once {
+  animation: pulse-once 600ms ease-in-out;
+}
+
+/* Slide-in panel animation */
+@keyframes slide-in-left {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-panel {
+  animation: slide-in-left 300ms ease-out;
+}
+
+/* Page entrance animation — Gemini-inspired fade-in */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-page-in {
+  animation: page-enter 400ms ease-out;
+}
+
+/* Content fade-in — no translate, for skeleton→content transitions */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 300ms ease-out;
+}
+
+/* Notification bell pulse */
+@keyframes bell-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.animate-bell-dot {
+  animation: bell-pulse 2s ease-in-out infinite;
+}
+
 .app-shell-bg {
   background:
     radial-gradient(circle at 15% 10%, rgb(var(--color-primary-rgb) / 0.16), transparent 35%),

@@ -1,10 +1,26 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 const AppContext = createContext(null);
 
 const ONBOARDING_KEY = 'clms-onboarding';
 const ROLE_KEY = 'clms-role';
+const createInitialOnboarding = () => ({
+  name: '',
+  email: '',
+  password: '',
+  chambersName: '',
+  chambersLogo: null,
+  chambersAddress: '',
+  locations: [{ name: '', floor: '' }],
+  importedCount: 0,
+  invites: [{ email: '', role: 'barrister' }],
+  chambersFound: null,
+  clerkInviteEmail: '',
+  mode: 'joined',
+  firstVisit: true,
+  celebrationShown: false,
+});
 
 const readJson = (key, fallback) => {
   try {
@@ -18,19 +34,7 @@ const readJson = (key, fallback) => {
 export function AppProvider({ children }) {
   const [role, setRoleState] = useState(() => localStorage.getItem(ROLE_KEY) || 'barrister');
   const [onboarding, setOnboarding] = useState(() =>
-    readJson(ONBOARDING_KEY, {
-      name: '',
-      email: '',
-      password: '',
-      chambersName: '',
-      chambersAddress: '',
-      locations: [{ name: '', floor: '' }],
-      invites: [{ email: '', role: 'barrister' }],
-      chambersFound: null,
-      mode: 'joined',
-      firstVisit: true,
-      celebrationShown: false,
-    }),
+    readJson(ONBOARDING_KEY, createInitialOnboarding()),
   );
 
   useEffect(() => {
@@ -41,21 +45,41 @@ export function AppProvider({ children }) {
     localStorage.setItem(ONBOARDING_KEY, JSON.stringify(onboarding));
   }, [onboarding]);
 
-  const setRole = (nextRole) => {
+  const setRole = useCallback((nextRole) => {
+    localStorage.setItem(ROLE_KEY, nextRole);
     setRoleState(nextRole);
-  };
+  }, []);
 
-  const updateOnboarding = (patch) => {
-    setOnboarding((prev) => ({ ...prev, ...patch }));
-  };
+  const updateOnboarding = useCallback((patch) => {
+    setOnboarding((prev) => {
+      const next = { ...prev, ...patch };
+      localStorage.setItem(ONBOARDING_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
-  const clearFirstVisit = () => {
-    setOnboarding((prev) => ({ ...prev, firstVisit: false }));
-  };
+  const clearFirstVisit = useCallback(() => {
+    setOnboarding((prev) => {
+      const next = { ...prev, firstVisit: false };
+      localStorage.setItem(ONBOARDING_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
-  const markCelebrationShown = () => {
-    setOnboarding((prev) => ({ ...prev, celebrationShown: true }));
-  };
+  const markCelebrationShown = useCallback(() => {
+    setOnboarding((prev) => {
+      const next = { ...prev, celebrationShown: true };
+      localStorage.setItem(ONBOARDING_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const resetSession = useCallback((nextRole = role) => {
+    localStorage.removeItem(ONBOARDING_KEY);
+    localStorage.setItem(ROLE_KEY, nextRole);
+    setRoleState(nextRole);
+    setOnboarding(createInitialOnboarding());
+  }, [role]);
 
   const value = useMemo(
     () => ({
@@ -65,8 +89,9 @@ export function AppProvider({ children }) {
       updateOnboarding,
       clearFirstVisit,
       markCelebrationShown,
+      resetSession,
     }),
-    [onboarding, role],
+    [clearFirstVisit, markCelebrationShown, onboarding, resetSession, role, setRole, updateOnboarding],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

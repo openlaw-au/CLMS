@@ -7,6 +7,7 @@ export default {
         brand: {
           DEFAULT: 'var(--color-primary)',
           hover: 'var(--color-primary-hover)',
+          soft: 'var(--color-primary-soft)',
         },
         clerk: {
           DEFAULT: 'var(--color-clerk)',
@@ -29,6 +30,10 @@ export default {
           light: 'var(--color-border-light)',
           strong: 'var(--color-border-strong)',
         },
+        success: 'var(--color-success)',
+        warning: 'var(--color-warning)',
+        info: 'var(--color-info)',
+        danger: 'var(--color-danger)',
       },
       fontFamily: {
         serif: ['Playfair Display', 'serif'],

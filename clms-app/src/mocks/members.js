@@ -1,3 +1,15 @@
+// Avatar color palette — unique per member for visual scanability
+const AVATAR_COLORS = [
+  { bg: 'bg-orange-50', text: 'text-orange-700', ring: 'ring-orange-200' },
+  { bg: 'bg-emerald-50', text: 'text-emerald-700', ring: 'ring-emerald-200' },
+  { bg: 'bg-blue-50', text: 'text-blue-700', ring: 'ring-blue-200' },
+  { bg: 'bg-purple-50', text: 'text-purple-700', ring: 'ring-purple-200' },
+  { bg: 'bg-rose-50', text: 'text-rose-700', ring: 'ring-rose-200' },
+  { bg: 'bg-amber-50', text: 'text-amber-700', ring: 'ring-amber-200' },
+  { bg: 'bg-cyan-50', text: 'text-cyan-700', ring: 'ring-cyan-200' },
+  { bg: 'bg-indigo-50', text: 'text-indigo-700', ring: 'ring-indigo-200' },
+];
+
 export const membersMock = [
   {
     id: 'm1',
@@ -6,6 +18,7 @@ export const membersMock = [
     role: 'barrister',
     initials: 'AK',
     chambers: 'Owen Dixon Chambers',
+    avatarColor: AVATAR_COLORS[0],
   },
   {
     id: 'm2',
@@ -14,6 +27,7 @@ export const membersMock = [
     role: 'barrister',
     initials: 'SC',
     chambers: 'Owen Dixon Chambers',
+    avatarColor: AVATAR_COLORS[1],
   },
   {
     id: 'm3',
@@ -22,6 +36,7 @@ export const membersMock = [
     role: 'clerk',
     initials: 'RT',
     chambers: 'Owen Dixon Chambers',
+    avatarColor: AVATAR_COLORS[2],
   },
   {
     id: 'm4',
@@ -30,6 +45,7 @@ export const membersMock = [
     role: 'barrister',
     initials: 'MW',
     chambers: 'Owen Dixon Chambers',
+    avatarColor: AVATAR_COLORS[3],
   },
   {
     id: 'm5',
@@ -38,6 +54,7 @@ export const membersMock = [
     role: 'barrister',
     initials: 'NP',
     chambers: 'Owen Dixon Chambers',
+    avatarColor: AVATAR_COLORS[4],
   },
   {
     id: 'm6',
@@ -46,6 +63,7 @@ export const membersMock = [
     role: 'barrister',
     initials: 'DL',
     chambers: 'Owen Dixon Chambers',
+    avatarColor: AVATAR_COLORS[5],
   },
   {
     id: 'm7',
@@ -54,6 +72,7 @@ export const membersMock = [
     role: 'clerk',
     initials: 'EH',
     chambers: 'Owen Dixon Chambers',
+    avatarColor: AVATAR_COLORS[6],
   },
   {
     id: 'm8',
@@ -62,5 +81,6 @@ export const membersMock = [
     role: 'barrister',
     initials: 'JM',
     chambers: 'Owen Dixon Chambers',
+    avatarColor: AVATAR_COLORS[7],
   },
 ];

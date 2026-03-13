@@ -129,7 +129,7 @@ export default function LandingPage() {
         <TrustSection cards={trustCards} />
         <CTASection role={role} />
       </main>
-      <FooterSection />
+      <FooterSection role={role} />
     </div>
   );
 }

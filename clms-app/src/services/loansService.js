@@ -1,10 +1,13 @@
 import { loansMock } from '../mocks/loans';
+import { booksMock } from '../mocks/books';
+import { isMockEmpty } from '../context/DevContext';
 
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // TODO(api): Replace with GET /api/loans?status={status}&borrower={borrower} — fetch loans with filters
 export async function getLoans(filters = {}) {
   await delay();
+  if (isMockEmpty()) return [];
   let results = [...loansMock];
 
   if (filters.status) {
@@ -18,13 +21,14 @@ export async function getLoans(filters = {}) {
 }
 
 // TODO(api): Replace with POST /api/loans — request a new loan
-export async function requestLoan(bookId) {
+export async function requestLoan(bookId, borrowerName = 'James Chen') {
   await delay(300);
+  const book = booksMock.find((b) => b.id === bookId);
   const newLoan = {
     id: `l${Date.now()}`,
     bookId,
-    bookTitle: '',
-    borrower: '',
+    bookTitle: book ? book.title : '',
+    borrower: borrowerName,
     borrowerRole: 'barrister',
     dateBorrowed: new Date().toISOString().slice(0, 10),
     dueDate: null,
@@ -32,6 +36,7 @@ export async function requestLoan(bookId) {
     status: 'pending',
   };
   loansMock.push(newLoan);
+  // Book stays 'available' until clerk approves the loan
   return newLoan;
 }
 
@@ -54,6 +59,57 @@ export async function approveLoan(id) {
     loan.status = 'active';
     const due = new Date();
     due.setDate(due.getDate() + 14);
+    loan.dueDate = due.toISOString().slice(0, 10);
+  }
+  return loan;
+}
+
+// TODO(api): Replace with PATCH /api/loans/:id/deny — clerk denies a pending loan
+export async function denyLoan(id, reason = '') {
+  await delay(200);
+  const loan = loansMock.find((l) => l.id === id);
+  if (loan) {
+    loan.status = 'denied';
+    loan.denyReason = reason;
+  }
+  return loan;
+}
+
+// TODO(api): Replace with POST /api/loans/:id/reminder — send overdue reminder
+export async function sendReminder(id) {
+  await delay(200);
+  const loan = loansMock.find((l) => l.id === id);
+  if (loan) {
+    loan.reminderSentAt = new Date().toISOString();
+  }
+  return loan;
+}
+
+// TODO(api): Replace with PATCH /api/loans/:id/return — mark book as returned via scan
+export async function returnBook(id) {
+  await delay(200);
+  const loan = loansMock.find((l) => l.id === id);
+  if (loan) {
+    loan.status = 'returned';
+    loan.returnedDate = new Date().toISOString().slice(0, 10);
+  }
+  return loan;
+}
+
+// TODO(api): Replace with POST /api/loans/:id/request-return — barrister requests clerk to recall a book
+export async function requestReturn(bookId, requesterName = 'James Chen') {
+  await delay(300);
+  // In production, this sends a notification to the clerk to recall the book
+  return { bookId, requesterName, status: 'recall_requested' };
+}
+
+// TODO(api): Replace with PATCH /api/loans/:id/renew — extend loan by 7 days
+export async function renewLoan(id) {
+  await delay(200);
+  const loan = loansMock.find((l) => l.id === id);
+  if (loan && loan.dueDate) {
+    const due = new Date(loan.dueDate);
+    due.setDate(due.getDate() + 7);
     loan.dueDate = due.toISOString().slice(0, 10);
   }
   return loan;
