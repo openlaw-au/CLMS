@@ -18,7 +18,7 @@ import SettingsPage from './app/SettingsPage';
 
 const BARRISTER_PAGES = {
   dashboard: BarristerDashboardPage,
-  search: BarristerListsPage,       // search is embedded within Authorities
+  search: BarristerSearchPage,
   authorities: BarristerListsPage,
   lists: BarristerListsPage,
   loans: BarristerLoansPage,

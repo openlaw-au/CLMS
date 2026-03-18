@@ -28,6 +28,7 @@ export async function addItem(listId, item) {
   const issue = item.issue !== undefined ? item.issue : null;
   const newItem = { id: `ali${Date.now()}`, ...item, usage, issue };
   list.items.push(newItem);
+  list.updatedAt = new Date().toISOString().slice(0, 10);
   persistAuthorityLists();
   return newItem;
 }
@@ -40,19 +41,30 @@ export async function updateItem(listId, itemId, updates) {
   const item = list.items.find((i) => i.id === itemId);
   if (!item) return null;
   Object.assign(item, updates);
+  list.updatedAt = new Date().toISOString().slice(0, 10);
   persistAuthorityLists();
   return item;
 }
 
 // TODO(api): Replace with POST /api/authority-lists — create new authority list
-export async function createList(name, caseRef, courtStructure = 'vic') {
+export async function createList(name, caseRef, courtStructure = 'vic', options = {}) {
   await delay(200);
   const newList = {
     id: `al${Date.now()}`,
     name,
     caseRef: caseRef || '',
     courtStructure,
+    registryCity: options.registryCity || '',
+    division: options.division || '',
+    filedOnBehalf: options.filedOnBehalf || '',
+    partyRole: options.partyRole || '',
+    otherPartyName: options.otherPartyName || '',
+    otherPartyRole: options.otherPartyRole || '',
+    preparedBy: options.preparedBy || '',
+    filingDate: options.filingDate || '',
+    signatoryCapacity: options.signatoryCapacity || '',
     createdAt: new Date().toISOString().slice(0, 10),
+    updatedAt: new Date().toISOString().slice(0, 10),
     issues: [],
     items: [],
   };
@@ -67,6 +79,7 @@ export async function updateList(listId, updates) {
   const list = authorityListsMock.find((l) => l.id === listId);
   if (!list) return null;
   Object.assign(list, updates);
+  list.updatedAt = new Date().toISOString().slice(0, 10);
   persistAuthorityLists();
   return list;
 }
@@ -82,7 +95,17 @@ export async function duplicateList(listId) {
     name: `${list.name} (Copy)`,
     caseRef: list.caseRef,
     courtStructure: list.courtStructure,
+    registryCity: list.registryCity || '',
+    division: list.division || '',
+    filedOnBehalf: list.filedOnBehalf || '',
+    partyRole: list.partyRole || '',
+    otherPartyName: list.otherPartyName || '',
+    otherPartyRole: list.otherPartyRole || '',
+    preparedBy: list.preparedBy || '',
+    filingDate: list.filingDate || '',
+    signatoryCapacity: list.signatoryCapacity || '',
     createdAt: new Date().toISOString().slice(0, 10),
+    updatedAt: new Date().toISOString().slice(0, 10),
     issues: [...(list.issues || [])],
     items: list.items.map((item) => ({
       ...item,
@@ -114,6 +137,7 @@ export async function removeItem(listId, itemId) {
   if (idx === -1) return false;
 
   list.items.splice(idx, 1);
+  list.updatedAt = new Date().toISOString().slice(0, 10);
   persistAuthorityLists();
   return true;
 }
@@ -131,6 +155,7 @@ export async function reorderItems(listId, itemIds) {
   const remaining = list.items.filter((i) => !itemIds.includes(i.id));
   list.items.length = 0;
   list.items.push(...reordered, ...remaining);
+  list.updatedAt = new Date().toISOString().slice(0, 10);
   persistAuthorityLists();
   return true;
 }
@@ -142,6 +167,7 @@ export async function addIssue(listId, issueName) {
   if (!list) return false;
   if (!list.issues) list.issues = [];
   list.issues.push(issueName);
+  list.updatedAt = new Date().toISOString().slice(0, 10);
   persistAuthorityLists();
   return true;
 }
@@ -158,6 +184,7 @@ export async function renameIssue(listId, oldName, newName) {
   list.items.forEach((item) => {
     if (item.issue === oldName) item.issue = newName;
   });
+  list.updatedAt = new Date().toISOString().slice(0, 10);
   persistAuthorityLists();
   return true;
 }
@@ -174,6 +201,7 @@ export async function removeIssue(listId, issueName) {
   list.items.forEach((item) => {
     if (item.issue === issueName) item.issue = null;
   });
+  list.updatedAt = new Date().toISOString().slice(0, 10);
   persistAuthorityLists();
   return true;
 }

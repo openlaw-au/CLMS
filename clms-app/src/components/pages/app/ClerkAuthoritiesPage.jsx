@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
+import PageHeader from '../../molecules/PageHeader';
 import { useToast } from '../../../context/ToastContext';
 import { getLists, addItem, updateItem } from '../../../services/authorityListsService';
 import { searchAll } from '../../../services/searchService';
@@ -101,28 +102,20 @@ export default function ClerkAuthoritiesPage() {
 
   return (
     <div className="animate-page-in">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-3xl text-text">Authorities</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Manage shared authority lists used in research and court submissions.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={() => navigate('/app/catalogue')}>
-            <Icon name="solar:book-2-linear" size={14} />
-            Open Catalogue
-          </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => addToast({ message: 'List creation flow is mocked for now', type: 'info' })}
-          >
-            <Icon name="solar:add-circle-linear" size={14} />
-            New List
-          </Button>
-        </div>
-      </div>
+      <PageHeader title="Authorities" subtitle="Manage shared authority lists used in research and court submissions.">
+        <Button size="sm" variant="secondary" onClick={() => navigate('/app/catalogue')}>
+          <Icon name="solar:book-2-linear" size={14} />
+          Open Catalogue
+        </Button>
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={() => addToast({ message: 'List creation flow is mocked for now', type: 'info' })}
+        >
+          <Icon name="solar:add-circle-linear" size={14} />
+          New List
+        </Button>
+      </PageHeader>
 
       {!listsLoaded ? (
         <div className="mt-5 space-y-4 animate-pulse">
@@ -185,7 +178,7 @@ export default function ClerkAuthoritiesPage() {
 
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 lg:col-span-1">
-          <h2 className="font-serif text-lg text-text">All Lists</h2>
+          <h2 className="font-serif text-card-title text-text">All Lists</h2>
           <div className="mt-3 space-y-2">
             {lists.map((list) => {
               const active = selected?.id === list.id;
@@ -219,7 +212,7 @@ export default function ClerkAuthoritiesPage() {
             <>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="font-serif text-xl text-text">{selected.name}</h2>
+                  <h2 className="font-serif text-section-title text-text">{selected.name}</h2>
                   <p className="mt-1 text-xs text-text-secondary">{selected.caseRef} · {selected.items.length} entries</p>
                 </div>
                 <div className="flex items-center gap-2">

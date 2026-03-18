@@ -13,6 +13,7 @@ import {
   Calendar,
   Camera,
   CameraOff,
+  Check,
   CheckSquare,
   ChevronDown,
   ChevronLeft,
@@ -49,6 +50,7 @@ import {
   LayoutGrid,
   Library,
   Link2,
+  List,
   ListChecks,
   LogOut,
   Mail,
@@ -77,6 +79,7 @@ import {
   Trash2,
   TrendingDown,
   Upload,
+  User,
   UserPlus,
   Users,
 } from 'lucide-react';
@@ -103,6 +106,7 @@ const iconMap = {
   'solar:camera-linear': Camera,
   'solar:card-linear': CreditCard,
   'solar:chart-2-linear': TrendingDown,
+  'solar:check-linear': Check,
   'solar:check-circle-bold': CircleCheck,
   'solar:check-circle-linear': CircleCheck,
   'solar:check-square-linear': CheckSquare,
@@ -168,9 +172,12 @@ const iconMap = {
   'solar:undo-left-linear': RotateCcw,
   'solar:upload-linear': Upload,
   'solar:user-circle-linear': CircleUserRound,
+  'solar:user-linear': User,
   'solar:user-plus-linear': UserPlus,
   'solar:users-group-rounded-linear': Users,
   'solar:widget-2-linear': LayoutGrid,
+  'solar:widget-5-linear': LayoutGrid,
+  'solar:list-linear': List,
 };
 
 const fallbackIcon = CircleAlert;

@@ -3,6 +3,7 @@ import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
 import Badge from '../../atoms/Badge';
 import LoanCard from '../../molecules/LoanCard';
+import PageHeader from '../../molecules/PageHeader';
 import LoanActionModal from '../../organisms/LoanActionModal';
 import { useToast } from '../../../context/ToastContext';
 import { getLoans, approveLoan, denyLoan, sendReminder } from '../../../services/loansService';
@@ -68,8 +69,7 @@ export default function ClerkLoansPage() {
 
   return (
     <div className="animate-page-in">
-      <h1 className="font-serif text-3xl text-text">Loan Management</h1>
-      <p className="mt-1 text-sm text-text-secondary">Approve requests, track overdue items, and manage loans.</p>
+      <PageHeader title="Loan Management" subtitle="Approve requests, track overdue items, and manage loans." />
 
       {/* Tabs */}
       <div className="mt-5 flex gap-1 rounded-xl bg-slate-100 p-1">

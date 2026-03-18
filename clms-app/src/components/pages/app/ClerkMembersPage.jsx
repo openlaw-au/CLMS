@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Icon from '../../atoms/Icon';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
+import PageHeader from '../../molecules/PageHeader';
 import Badge from '../../atoms/Badge';
 import { useToast } from '../../../context/ToastContext';
 import { getMembers, inviteMember } from '../../../services/membersService';
@@ -34,16 +35,12 @@ export default function ClerkMembersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-serif text-3xl text-text">Members</h1>
-          <p className="mt-1 text-sm text-text-secondary">Manage chambers members and send invitations.</p>
-        </div>
+      <PageHeader title="Members" subtitle="Manage chambers members and send invitations.">
         <Button size="sm" variant="primary" onClick={() => setShowInvite(!showInvite)}>
           <Icon name="solar:user-plus-linear" size={16} />
           Invite New Member
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Team summary bar */}
       <div className="mt-4 flex items-center gap-4 rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">

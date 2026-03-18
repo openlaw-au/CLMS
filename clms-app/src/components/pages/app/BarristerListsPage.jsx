@@ -4,11 +4,12 @@ import Icon from '../../atoms/Icon';
 import Input from '../../atoms/Input';
 import Select from '../../atoms/Select';
 import Button from '../../atoms/Button';
+import PageHeader from '../../molecules/PageHeader';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import {
   getLists, createList, updateItem, updateList, removeItem, addItem, reorderItems,
-  deleteList, addIssue, renameIssue, removeIssue,
+  deleteList, duplicateList, addIssue, renameIssue, removeIssue,
 } from '../../../services/authorityListsService';
 import { addQueueEntry, dismissQueueItemBySource } from '../../../services/uncataloguedQueueService';
 import { requestReturn, requestLoan } from '../../../services/loansService';
@@ -18,10 +19,15 @@ import SearchResultCard from '../../molecules/SearchResultCard';
 import FilterPillBar from '../../molecules/FilterPillBar';
 import { getCourtStructure, getCourtOptions, derivePart } from '../../../utils/courtStructures';
 import { lookupBookByTitle, getBorrowerName } from '../../../utils/bookLookup';
-import { formatCase, formatLegislation, formatBook, generateAGLCPlainText } from '../../../utils/aglcFormatter';
+import { formatLegislation, formatBook, generateAGLCPlainText } from '../../../utils/aglcFormatter';
 import { suggestedBarristerQueries } from '../../../mocks/barristerQueries';
 import { membersMock } from '../../../mocks/members';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+
+const hasPinpointData = (item) => {
+  if (item.type === 'legislation') return !!(item.pageRange || item.citation);
+  return !!item.pageRange;
+};
 
 const pinpointPlaceholder = (type) => {
   if (type === 'case') return '[45]-[48]';
@@ -62,6 +68,7 @@ function PinpointInput({ item, listId, onSaved }) {
       <Icon name="solar:pin-bold" size={13} className={hasPinpoint ? 'text-success' : 'text-warning'} />
       <input
         type="text"
+        data-pinpoint-item={item.id}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={save}
@@ -73,15 +80,55 @@ function PinpointInput({ item, listId, onSaved }) {
   );
 }
 
+/* ── Inline book citation metadata editor ── */
+function BookCitationEditor({ item, listId, onSaved }) {
+  const [author, setAuthor] = useState(item.author || '');
+  const [publisher, setPublisher] = useState(item.publisher || '');
+  const [edition, setEdition] = useState(item.edition || '');
+  const [year, setYear] = useState(item.year ? String(item.year) : '');
+  const prevRef = useRef({ author: item.author || '', publisher: item.publisher || '', edition: item.edition || '', year: item.year ? String(item.year) : '' });
+
+  const save = async () => {
+    const cur = { author: author.trim(), publisher: publisher.trim(), edition: edition.trim(), year: year.trim() };
+    const prev = prevRef.current;
+    if (cur.author === prev.author && cur.publisher === prev.publisher && cur.edition === prev.edition && cur.year === prev.year) return;
+    prevRef.current = cur;
+    await updateItem(listId, item.id, {
+      author: cur.author || null,
+      publisher: cur.publisher || null,
+      edition: cur.edition || null,
+      year: cur.year ? Number(cur.year) : null,
+    });
+    onSaved('Citation updated');
+  };
+
+  const onEnter = (e) => { if (e.key === 'Enter') e.target.blur(); };
+  const isComplete = author.trim() && publisher.trim() && year.trim();
+  const borderCls = isComplete
+    ? 'border-success/40 bg-success/5 focus:border-success focus:ring-success/20'
+    : 'border-warning/40 bg-warning/5 focus:border-warning focus:ring-warning/20';
+  const inputCls = `rounded-lg border px-2 py-0.5 text-xs text-text placeholder:text-text-muted/60 focus:outline-none focus:ring-2 transition-colors ${borderCls}`;
+
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      <Icon name="solar:book-2-linear" size={13} className={isComplete ? 'text-success' : 'text-warning'} />
+      <input type="text" data-bookcite-item={item.id} value={author} onChange={(e) => setAuthor(e.target.value)} onBlur={save} onKeyDown={onEnter} placeholder="Author" className={`w-40 ${inputCls}`} />
+      <input type="text" value={publisher} onChange={(e) => setPublisher(e.target.value)} onBlur={save} onKeyDown={onEnter} placeholder="Publisher" className={`w-32 ${inputCls}`} />
+      <input type="text" value={edition} onChange={(e) => setEdition(e.target.value)} onBlur={save} onKeyDown={onEnter} placeholder="Ed" className={`w-12 ${inputCls}`} />
+      <input type="text" value={year} onChange={(e) => setYear(e.target.value)} onBlur={save} onKeyDown={onEnter} placeholder="Year" className={`w-14 ${inputCls}`} />
+    </div>
+  );
+}
+
 /* ── Book availability indicator ── */
-function BookAvailability({ item, onRequestReturn }) {
+function BookAvailability({ item }) {
   if (item.uncatalogued) return null;
   const book = lookupBookByTitle(item.title);
   if (!book) return null;
 
   if (book.status === 'available') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-success">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
         Available
       </span>
@@ -90,31 +137,37 @@ function BookAvailability({ item, onRequestReturn }) {
 
   const borrower = getBorrowerName(book.borrower);
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-warning">
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
       <span className="inline-block h-1.5 w-1.5 rounded-full bg-warning" />
       On Loan{borrower ? ` \u00b7 ${borrower}` : ''}{book.dueDate ? `, due ${book.dueDate}` : ''}
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onRequestReturn(book); }}
-        className="ml-1 text-brand hover:text-brand-hover underline"
-      >
-        Request Return
-      </button>
     </span>
   );
 }
 
-/* ── Persistent preview pane — pure document output (1:1 with export) ── */
+/**
+ * Auto-bracket bare numeric pinpoints for AGLC4 paragraph references (JSX version).
+ */
+function bracketPinpointJsx(raw) {
+  if (!raw) return '';
+  const trimmed = raw.trim();
+  if (trimmed.includes('[')) return trimmed;
+  return trimmed.replace(/\b(\d+)\b/g, '[$1]');
+}
+
+/* ── Persistent preview pane — court filing document style ── */
 function AGLCPreviewInline({ list, onScrollToItem }) {
   const court = getCourtStructure(list.courtStructure || 'vic');
   const sortAlpha = (items) => [...items].sort((a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }));
-  const hasPinpointData = (item) => {
-    if (item.type === 'legislation') return !!(item.pageRange || item.citation);
-    return !!item.pageRange;
-  };
 
-  const fmtItem = (item) => {
-    if (item.type === 'case') return formatCase(item);
+  /** Check if a book item has incomplete citation metadata */
+  const isBookIncomplete = (item) => item.type === 'book' && (!item.author || !item.publisher || !item.year);
+
+  const fmtItemJsx = (item) => {
+    if (item.type === 'case') {
+      const citation = item.citation || '';
+      const pinpoint = item.pageRange ? ` at ${bracketPinpointJsx(item.pageRange)}` : '';
+      return <><em>{item.title}</em> {citation}{pinpoint}</>;
+    }
     if (item.type === 'legislation') return formatLegislation(item);
     return formatBook(item);
   };
@@ -122,22 +175,33 @@ function AGLCPreviewInline({ list, onScrollToItem }) {
   const getIssues = (item) => {
     const issues = [];
     if (item.usage === 'read' && !hasPinpointData(item)) issues.push('Pinpoint missing');
-    if (item.type === 'case' && !item.reporter) issues.push('Reporter missing');
+    if (isBookIncomplete(item)) issues.push('Incomplete citation');
     return issues;
   };
 
   // Collect all issues for summary bar
   const allIssues = [];
   const missingPinpoints = list.items.filter((item) => item.usage === 'read' && !hasPinpointData(item)).length;
-  const missingReporter = list.items.filter((item) => item.type === 'case' && !item.reporter).length;
   if (missingPinpoints > 0) allIssues.push(`${missingPinpoints} pinpoint missing`);
-  if (missingReporter > 0) allIssues.push(`${missingReporter} reporter missing`);
+  const incompleteBooks = list.items.filter((item) => isBookIncomplete(item)).length;
+  if (incompleteBooks > 0) allIssues.push(`${incompleteBooks} incomplete citation`);
   const firstProblemItem = list.items.find((item) => getIssues(item).length > 0);
 
+  // Continuous numbering support
+  const useContinuous = court.continuousNumbering;
+  let runningCount = 0;
+
+  // Filing metadata
+  const roleLabel = (list.partyRole || 'Applicant').toUpperCase();
+  const preparer = list.preparedBy || '';
+  const registry = list.registryCity || court.defaultRegistry || '';
+  const partyOneName = list.filedOnBehalf || '';
+  const partyTwoName = list.otherPartyName || '';
+
   return (
-    <aside className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm animate-page-in">
+    <aside className="flex flex-col overflow-hidden rounded-sm bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] animate-page-in font-serif">
       {allIssues.length > 0 && (
-        <div className="flex items-center justify-between gap-3 border-b border-red-200/60 bg-red-50 px-5 py-2.5">
+        <div className="flex items-center justify-between gap-3 border-b border-red-200/60 bg-red-50 px-5 py-2.5 font-sans">
           <p className="flex items-center gap-1.5 text-xs font-medium text-red-600">
             <Icon name="solar:danger-triangle-linear" size={13} />
             {allIssues.join(' · ')}
@@ -154,42 +218,100 @@ function AGLCPreviewInline({ list, onScrollToItem }) {
         </div>
       )}
 
-      <div className="px-6 py-5">
-        <div className="mb-5 text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-secondary">Table of Authorities</p>
-          <p className="mt-1.5 font-serif text-sm font-semibold text-text">{list.name}</p>
-          {list.caseRef && <p className="mt-0.5 text-xs text-text-muted">{list.caseRef}</p>}
-          <p className="mt-0.5 text-xs text-text-muted">{court.label}</p>
+      <div className="px-8 py-8 text-[13px] leading-[1.9]">
+        {/* Court header — centered */}
+        <div className="mb-5 text-center text-[13px]">
+          <p className="font-bold">IN THE {court.label.toUpperCase()}</p>
+          {registry && <p>AT {registry.toUpperCase()}</p>}
+          {list.division && <p>{list.division.toUpperCase()}</p>}
+          {list.caseRef && <p className="mt-1.5 text-text-muted">{list.caseRef}</p>}
         </div>
 
-        <div className="space-y-4">
+        {/* Parties block — always visible */}
+        <div className="my-5 text-[13px]">
+          <div className="flex items-baseline justify-between">
+            {partyOneName ? (
+              <span className="font-bold">{partyOneName.toUpperCase()}</span>
+            ) : (
+              <span className="italic text-text-muted">[Party name]</span>
+            )}
+            <span className="text-text-muted">{list.partyRole || 'Applicant'}</span>
+          </div>
+          <p className="my-1 text-center text-text-muted">and</p>
+          <div className="flex items-baseline justify-between">
+            {partyTwoName ? (
+              <span className="font-bold">{partyTwoName.toUpperCase()}</span>
+            ) : (
+              <span className="italic text-text-muted">[Other party name]</span>
+            )}
+            <span className="text-text-muted">{list.otherPartyRole || 'Respondent'}</span>
+          </div>
+        </div>
+
+        {/* Document title */}
+        <p className="my-5 text-center text-sm font-bold uppercase tracking-[0.1em]">
+          {roleLabel}&rsquo;S LIST OF AUTHORITIES
+        </p>
+
+        {/* Filing metadata — left-aligned */}
+        <div className="mb-6 border-b border-slate-200 pb-4 text-[12px] leading-relaxed text-text-muted">
+          <p>Date of document: {list.filingDate || <span className="italic">[date]</span>}</p>
+          <p>Filed on behalf of: {partyOneName || <span className="italic">[party name]</span>}{list.partyRole ? `, ${list.partyRole}` : ''}</p>
+          <p>Prepared by: {preparer || <span className="italic">[practitioner name]</span>}</p>
+        </div>
+
+        {/* Parts — left-aligned, serif, sentence case desc */}
+        <div className="space-y-6">
           {court.parts.map((part) => {
             const partItems = sortAlpha(list.items.filter((i) => derivePart(i.type, i.usage, list.courtStructure) === part.key));
-            if (partItems.length === 0) return null;
+            const isEmpty = partItems.length === 0;
+            const startNum = useContinuous ? runningCount + 1 : 1;
+            if (!isEmpty && useContinuous) runningCount += partItems.length;
+
+            // Skip empty parts unless court requires showing them
+            if (isEmpty && !court.showEmptyParts) return null;
+
             return (
               <div key={part.key}>
-                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">{part.label}: {part.desc}</p>
-                <ol className="mt-2 list-decimal pl-4 space-y-2">
-                  {partItems.map((item) => {
-                    const issues = getIssues(item);
-                    const hasIssue = issues.length > 0;
-                    return (
-                      <li
-                        key={item.id}
-                        className={`text-xs leading-relaxed text-text ${hasIssue ? '-mx-2 rounded bg-red-50 px-2 py-0.5' : ''}`}
-                        title={hasIssue ? issues.join(', ') : undefined}
-                      >
-                        {fmtItem(item)}
-                      </li>
-                    );
-                  })}
-                </ol>
+                <p className="text-[13px]">
+                  <span className="font-bold">{part.label}</span>
+                  <span className="ml-3 text-text-secondary">{part.desc}</span>
+                </p>
+                {isEmpty ? (
+                  <p className="mt-1.5 pl-7 italic text-text-muted">None</p>
+                ) : (
+                  <ol start={startNum} className="mt-2 list-decimal pl-7 space-y-1.5">
+                    {partItems.map((item) => {
+                      const issues = getIssues(item);
+                      const hasIssue = issues.length > 0;
+                      return (
+                        <li
+                          key={item.id}
+                          className={`text-[13px] leading-[1.9] text-text ${hasIssue ? '-mx-2 rounded bg-red-50 px-2 py-0.5' : ''}`}
+                          title={hasIssue ? issues.join(', ') : undefined}
+                        >
+                          {fmtItemJsx(item)}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
               </div>
             );
           })}
-          {list.items.length === 0 && (
-            <p className="text-xs text-text-muted">No items to preview.</p>
+          {list.items.length === 0 && !court.showEmptyParts && (
+            <p className="text-[13px] italic text-text-muted">No items to preview.</p>
           )}
+        </div>
+
+        {/* Signature block */}
+        <div className="mt-14 text-[13px]">
+          <p className="text-text-muted">Date: {list.filingDate || '_______________'}</p>
+          <p className="mt-7">Signed</p>
+          <div className="mt-9 w-60 border-t border-text/60 pt-1.5">
+            <p>{preparer || <span className="italic text-text-muted">[Name]</span>}</p>
+            {list.signatoryCapacity && <p className="text-text-muted">{list.signatoryCapacity}</p>}
+          </div>
         </div>
       </div>
     </aside>
@@ -204,15 +326,15 @@ function EditorStats({ list }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 font-medium text-success">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-success">
         <Icon name="solar:scale-linear" size={12} />
         Cases: {cases}
       </span>
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-600">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-purple-600">
         <Icon name="solar:document-text-linear" size={12} />
         Legislation: {legislation}
       </span>
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 font-medium text-brand">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-brand">
         <Icon name="solar:book-2-linear" size={12} />
         Books: {books}
       </span>
@@ -221,65 +343,107 @@ function EditorStats({ list }) {
 }
 
 /* ── List header — read-only or edit mode with auto-save ── */
+const PARTY_ROLE_OPTIONS = ['Applicant', 'Appellant', 'Respondent', 'Plaintiff', 'Defendant'];
+
 function ListHeader({ list, editing, onSave, partGroups = [], onCourtChange }) {
+  const court = getCourtStructure(list.courtStructure || 'vic');
   const [name, setName] = useState(list.name);
   const [caseRef, setCaseRef] = useState(list.caseRef || '');
-  const [saveStatus, setSaveStatus] = useState(null); // null | 'saving' | 'saved'
-  const prevName = useRef(list.name);
-  const prevRef = useRef(list.caseRef || '');
+  const [registryCity, setRegistryCity] = useState(list.registryCity || '');
+  const [division, setDivision] = useState(list.division || '');
+  const [filedOnBehalf, setFiledOnBehalf] = useState(list.filedOnBehalf || '');
+  const [partyRole, setPartyRole] = useState(list.partyRole || 'Applicant');
+  const [otherPartyName, setOtherPartyName] = useState(list.otherPartyName || '');
+  const [otherPartyRole, setOtherPartyRole] = useState(list.otherPartyRole || 'Respondent');
+  const [preparedBy, setPreparedBy] = useState(list.preparedBy || '');
+  const [filingDate, setFilingDate] = useState(list.filingDate || '');
+  const [signatoryCapacity, setSignatoryCapacity] = useState(list.signatoryCapacity || '');
+  const [saveStatus, setSaveStatus] = useState(null);
   const nameInputRef = useRef(null);
   const statusTimer = useRef(null);
+  const snapshotRef = useRef({});
+
+  const snap = () => ({
+    name: (list.name || ''),
+    caseRef: (list.caseRef || ''),
+    registryCity: (list.registryCity || ''),
+    division: (list.division || ''),
+    filedOnBehalf: (list.filedOnBehalf || ''),
+    partyRole: (list.partyRole || 'Applicant'),
+    otherPartyName: (list.otherPartyName || ''),
+    otherPartyRole: (list.otherPartyRole || 'Respondent'),
+    preparedBy: (list.preparedBy || ''),
+    filingDate: (list.filingDate || ''),
+    signatoryCapacity: (list.signatoryCapacity || ''),
+  });
 
   useEffect(() => {
-    setName(list.name);
-    setCaseRef(list.caseRef || '');
-    prevName.current = list.name;
-    prevRef.current = list.caseRef || '';
+    const s = snap();
+    snapshotRef.current = s;
+    setName(s.name); setCaseRef(s.caseRef); setRegistryCity(s.registryCity);
+    setDivision(s.division); setFiledOnBehalf(s.filedOnBehalf); setPartyRole(s.partyRole);
+    setOtherPartyName(s.otherPartyName); setOtherPartyRole(s.otherPartyRole);
+    setPreparedBy(s.preparedBy); setFilingDate(s.filingDate); setSignatoryCapacity(s.signatoryCapacity);
     setSaveStatus(null);
-  }, [list.id, list.name, list.caseRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list.id, list.name, list.caseRef, list.registryCity, list.division, list.filedOnBehalf, list.partyRole, list.otherPartyName, list.otherPartyRole, list.preparedBy, list.filingDate, list.signatoryCapacity]);
 
-  // Focus name input when entering edit mode
   useEffect(() => {
     if (editing) setTimeout(() => nameInputRef.current?.focus(), 50);
   }, [editing]);
 
   const saveIfChanged = async () => {
-    const trimmedName = name.trim() || prevName.current;
-    const trimmedRef = caseRef.trim();
-    if (trimmedName === prevName.current && trimmedRef === prevRef.current) return;
-    prevName.current = trimmedName;
-    prevRef.current = trimmedRef;
-    setName(trimmedName);
+    const cur = {
+      name: name.trim() || snapshotRef.current.name,
+      caseRef: caseRef.trim(),
+      registryCity: registryCity.trim(),
+      division,
+      filedOnBehalf: filedOnBehalf.trim(),
+      partyRole,
+      otherPartyName: otherPartyName.trim(),
+      otherPartyRole,
+      preparedBy: preparedBy.trim(),
+      filingDate,
+      signatoryCapacity: signatoryCapacity.trim(),
+    };
+    const prev = snapshotRef.current;
+    const changed = Object.keys(cur).some((k) => cur[k] !== prev[k]);
+    if (!changed) return;
+    snapshotRef.current = cur;
+    setName(cur.name);
     setSaveStatus('saving');
-    await onSave({ name: trimmedName, caseRef: trimmedRef });
+    await onSave(cur);
     setSaveStatus('saved');
     clearTimeout(statusTimer.current);
     statusTimer.current = setTimeout(() => setSaveStatus(null), 2000);
   };
 
-  const titleWidth = `${Math.min(Math.max((name || '').length + 2, 30), 50)}ch`;
-  const referenceWidth = `${Math.min(Math.max((caseRef || '').length + 2, 28), 44)}ch`;
+  const [showFiling, setShowFiling] = useState(false);
 
-  // Strip case name from caseRef to get just the neutral citation
-  const neutralCitation = list.caseRef
-    ? list.caseRef.replace(list.name, '').replace(/^\s*/, '')
-    : '';
-  const courtLabel = getCourtStructure(list.courtStructure || 'vic').label;
+  const titleWidth = `${Math.min(Math.max((name || '').length + 2, 30), 50)}ch`;
+  const referenceWidth = `${Math.min(Math.max((caseRef || '').length + 2, 20), 36)}ch`;
+  const courtLabel = court.label;
 
   if (!editing) {
-    const subtitle = [courtLabel, neutralCitation].filter(Boolean).join(' · ');
+    const subtitle = [courtLabel, list.caseRef].filter(Boolean).join(' · ');
     return (
       <div>
-        <h1 className="font-serif text-xl font-bold text-text">{list.name}</h1>
-        {subtitle && (
-          <p className="mt-1 text-xs text-text-secondary">{subtitle}</p>
-        )}
+        <h1 className="font-serif text-section-title font-bold text-text">{list.name}</h1>
+        {subtitle && <p className="mt-1 text-xs text-text-secondary">{subtitle}</p>}
       </div>
     );
   }
 
+  const inputCls = "max-w-full rounded-lg border border-border bg-white px-3 py-1 text-xs text-text placeholder:text-text-muted/60 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20";
+  const onEnter = (e) => { if (e.key === 'Enter') e.target.blur(); };
+  const selectSave = (setter) => (e) => { setter(e.target.value); setTimeout(saveIfChanged, 0); };
+
+  // Auto-expand if any filing field has data
+  const hasFilingData = filedOnBehalf || otherPartyName || preparedBy || filingDate || signatoryCapacity || registryCity || division;
+
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in space-y-2">
+      {/* Row 1: Case title */}
       <div className="flex items-center gap-2">
         <input
           ref={nameInputRef}
@@ -287,7 +451,7 @@ function ListHeader({ list, editing, onSave, partGroups = [], onCourtChange }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={saveIfChanged}
-          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+          onKeyDown={onEnter}
           placeholder="Case title, e.g. Smith v Jones [2024]"
           style={{ width: titleWidth }}
           className="max-w-full min-w-[18ch] rounded-lg border border-border bg-white px-3 py-1.5 font-serif text-xl font-bold text-text placeholder:text-text-muted/60 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
@@ -298,29 +462,47 @@ function ListHeader({ list, editing, onSave, partGroups = [], onCourtChange }) {
           </span>
         )}
       </div>
-      <div className="mt-1.5 flex flex-wrap items-center gap-2">
-        <input
-          type="text"
-          value={caseRef}
-          onChange={(e) => setCaseRef(e.target.value)}
-          onBlur={saveIfChanged}
-          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
-          placeholder="Case ref, e.g. [2024] NSWSC 412"
-          style={{ width: referenceWidth }}
-          className="max-w-full min-w-[20ch] rounded-lg border border-border bg-white px-3 py-1 text-xs text-text placeholder:text-text-muted/60 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
-        />
+      {/* Row 2: Case ref + Court */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input type="text" value={caseRef} onChange={(e) => setCaseRef(e.target.value)} onBlur={saveIfChanged} onKeyDown={onEnter} placeholder="File no, e.g. S CI 2024/00412" style={{ width: referenceWidth }} className={`min-w-[16ch] ${inputCls}`} />
         <span className="inline-block h-0.5 w-0.5 rounded-full bg-text-muted/40" />
-        <Select
-          size="sm"
-          value={list.courtStructure || 'vic'}
-          onChange={(e) => onCourtChange?.(e.target.value)}
-          className="inline-block"
-        >
-          {getCourtOptions().map((opt) => (
-            <option key={opt.id} value={opt.id}>{opt.label}</option>
-          ))}
+        <Select size="sm" value={list.courtStructure || 'vic'} onChange={(e) => onCourtChange?.(e.target.value)} className="inline-block">
+          {getCourtOptions().map((opt) => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
         </Select>
+        <button type="button" onClick={() => setShowFiling((v) => !v)} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-secondary">
+          <Icon name={showFiling || hasFilingData ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'} size={14} />
+          Filing details
+        </button>
       </div>
+      {/* Collapsible: Filing details */}
+      {(showFiling || hasFilingData) && (
+        <div className="space-y-2 animate-fade-in">
+          <div className="flex flex-wrap items-center gap-2">
+            <input type="text" value={registryCity} onChange={(e) => setRegistryCity(e.target.value)} onBlur={saveIfChanged} onKeyDown={onEnter} placeholder={court.defaultRegistry || 'Registry city'} className={`w-28 ${inputCls}`} />
+            {court.divisions?.length > 0 && (
+              <Select size="sm" value={division} onChange={selectSave(setDivision)} className="inline-block">
+                <option value="">Division...</option>
+                {court.divisions.map((d) => <option key={d} value={d}>{d}</option>)}
+              </Select>
+            )}
+            <span className="inline-block h-0.5 w-0.5 rounded-full bg-text-muted/40" />
+            <input type="text" value={filedOnBehalf} onChange={(e) => setFiledOnBehalf(e.target.value)} onBlur={saveIfChanged} onKeyDown={onEnter} placeholder="Party name (filing)" className={`w-36 ${inputCls}`} />
+            <Select size="sm" value={partyRole} onChange={selectSave(setPartyRole)} className="inline-block">
+              {PARTY_ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
+            </Select>
+            <span className="text-xs text-text-muted">v</span>
+            <input type="text" value={otherPartyName} onChange={(e) => setOtherPartyName(e.target.value)} onBlur={saveIfChanged} onKeyDown={onEnter} placeholder="Other party" className={`w-36 ${inputCls}`} />
+            <Select size="sm" value={otherPartyRole} onChange={selectSave(setOtherPartyRole)} className="inline-block">
+              {PARTY_ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
+            </Select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input type="text" value={preparedBy} onChange={(e) => setPreparedBy(e.target.value)} onBlur={saveIfChanged} onKeyDown={onEnter} placeholder="Prepared by..." className={`w-36 ${inputCls}`} />
+            <input type="date" value={filingDate} onChange={selectSave(setFilingDate)} onBlur={saveIfChanged} className={`w-36 ${inputCls}`} />
+            <input type="text" value={signatoryCapacity} onChange={(e) => setSignatoryCapacity(e.target.value)} onBlur={saveIfChanged} onKeyDown={onEnter} placeholder="Capacity, e.g. Counsel for the Applicant" className={`w-64 ${inputCls}`} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -370,6 +552,71 @@ function DraftEditableHeader({ nameRef, onCommit, onCancel }) {
   );
 }
 
+function CreateListModal({ onConfirm, onCancel }) {
+  const [name, setName] = useState('');
+  const [caseRef, setCaseRef] = useState('');
+  const [court, setCourt] = useState('vic');
+  const nameRef = useRef(null);
+
+  useEffect(() => { nameRef.current?.focus(); }, []);
+
+  const handleSubmit = (e) => {
+    e?.preventDefault();
+    if (name.trim()) onConfirm(name.trim(), caseRef.trim(), court);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 transition-opacity duration-200" onClick={onCancel}>
+      <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-black/5 animate-page-in" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h3 className="font-serif text-card-title font-semibold text-text">New Authority List</h3>
+          <button type="button" onClick={onCancel} className="btn-icon h-8 w-8 text-text-muted hover:bg-surface-subtle hover:text-text">
+            <Icon name="solar:close-circle-linear" size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-text-secondary">Case title</label>
+            <input
+              ref={nameRef}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Smith v Jones [2024]"
+              className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-text-secondary">Case reference (optional)</label>
+            <input
+              type="text"
+              value={caseRef}
+              onChange={(e) => setCaseRef(e.target.value)}
+              placeholder="[2024] NSWSC 412"
+              className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </div>
+          <div>
+            <Select label="Court" value={court} onChange={(e) => setCourt(e.target.value)} size="md">
+              {getCourtOptions().map((c) => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button size="sm" variant="secondary" type="button" onClick={onCancel}>Cancel</Button>
+            <Button size="sm" variant="primary" type="submit" disabled={!name.trim()}>
+              <Icon name="solar:add-circle-linear" size={16} />
+              Create List
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function BarristerListsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -394,10 +641,19 @@ export default function BarristerListsPage() {
   const [isNewDraft, setIsNewDraft] = useState(false);
   const draftNameRef = useRef(null);
 
+  // Create list modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
   // Edit mode — toggle via Edit button, auto-save on blur
   const [editMode, setEditMode] = useState(false);
 
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [bulkBusy, setBulkBusy] = useState(null); // 'duplicate' | 'delete' | null
+
+  // Card menu + multi-select
+  const [cardMenuId, setCardMenuId] = useState(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedCards, setSelectedCards] = useState(new Set());
 
   // Issue (section) management
   const [addingIssue, setAddingIssue] = useState(false);
@@ -406,6 +662,10 @@ export default function BarristerListsPage() {
   const [renameIssueValue, setRenameIssueValue] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   const [mobileView, setMobileView] = useState('editor'); // 'editor' | 'preview'
+  const [highlightedItemId, setHighlightedItemId] = useState(null);
+  const [showFixBar, setShowFixBar] = useState(false);
+  const [requestedLoanIds, setRequestedLoanIds] = useState(new Set());
+  const [requestedReturnIds, setRequestedReturnIds] = useState(new Set());
 
   const toggleGroupCollapse = (groupKey) => {
     setCollapsedGroups((prev) => {
@@ -440,17 +700,28 @@ export default function BarristerListsPage() {
   const [casualNewRef, setCasualNewRef] = useState('');
   const [casualAddedMap, setCasualAddedMap] = useState({});
 
+  // View crossfade: fade-out → swap → fade-in when navigating between overview ↔ editor
+  const [viewFading, setViewFading] = useState(false);
+  const fadingTimerRef = useRef(null);
+
   const syncSelectedList = useCallback((list) => {
-    setSelected(list);
-    setIsNewDraft(false);
-    setEditMode(false);
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (list?.id) next.set('listId', list.id);
-      else next.delete('listId');
-      next.delete('new');
-      return next;
-    }, { replace: true });
+    // Start fade-out
+    setViewFading(true);
+    if (fadingTimerRef.current) clearTimeout(fadingTimerRef.current);
+    fadingTimerRef.current = setTimeout(() => {
+      setSelected(list);
+      setIsNewDraft(false);
+      setEditMode(false);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (list?.id) next.set('listId', list.id);
+        else next.delete('listId');
+        next.delete('new');
+        return next;
+      }, { replace: true });
+      // Fade-in on next frame
+      requestAnimationFrame(() => setViewFading(false));
+    }, 150);
   }, [setSearchParams]);
 
   useEffect(() => {
@@ -489,6 +760,7 @@ export default function BarristerListsPage() {
   const refreshLists = useCallback(async () => {
     const data = await getLists();
     setLists(data);
+    window.dispatchEvent(new CustomEvent('authority-lists-changed'));
     const targetId = listIdParam || selected?.id;
     if (!targetId) {
       if (newParam === '1') return;
@@ -745,12 +1017,16 @@ export default function BarristerListsPage() {
   };
 
   const handleRequestLoan = async (book) => {
+    if (requestedLoanIds.has(book.id)) return;
     await requestLoan(book.id, onboarding.name || 'James Chen');
+    setRequestedLoanIds((prev) => new Set(prev).add(book.id));
     addToast({ message: 'Loan requested.', type: 'success' });
   };
 
   const handleRequestReturnSearch = async (book) => {
+    if (requestedReturnIds.has(book.id)) return;
     await requestReturn(book.id, onboarding.name || 'James Chen');
+    setRequestedReturnIds((prev) => new Set(prev).add(book.id));
     addToast({ message: 'Recall requested.', type: 'success' });
   };
 
@@ -769,16 +1045,28 @@ export default function BarristerListsPage() {
     setTimeout(() => draftNameRef.current?.select(), 100);
   }, [setSearchParams]);
 
-  const handleQuickCreate = useCallback(async () => {
-    await createDraftList(false);
-  }, [createDraftList]);
+  const handleQuickCreate = useCallback(() => {
+    setShowCreateModal(true);
+  }, []);
+
+  const handleCreateListFromModal = useCallback(async (name, caseRef, courtStructure) => {
+    const newList = await createList(name, caseRef, courtStructure);
+    const freshLists = await getLists();
+    setLists(freshLists);
+    setListsLoaded(true);
+    setShowCreateModal(false);
+    addToast({ message: `"${name}" created`, type: 'success' });
+    window.dispatchEvent(new CustomEvent('authority-lists-changed'));
+  }, [addToast]);
 
   useEffect(() => {
     if (newParam === '1' && !listIdParam && !newCreatedRef.current) {
       newCreatedRef.current = true;
-      createDraftList(true);
+      setShowCreateModal(true);
+      // Clear the ?new=1 param so it doesn't re-trigger
+      setSearchParams((prev) => { const next = new URLSearchParams(prev); next.delete('new'); return next; }, { replace: true });
     }
-  }, [createDraftList, listIdParam, newParam]);
+  }, [listIdParam, newParam, setSearchParams]);
 
 
   const handleCourtChange = async (courtId) => {
@@ -854,7 +1142,9 @@ export default function BarristerListsPage() {
   };
 
   const handleRequestReturn = async (book) => {
+    if (requestedReturnIds.has(book.id)) return;
     await requestReturn(book.id, onboarding.name || 'James Chen');
+    setRequestedReturnIds((prev) => new Set(prev).add(book.id));
     addToast({ message: 'Return requested. Clerk notified.', type: 'success' });
   };
 
@@ -875,7 +1165,7 @@ export default function BarristerListsPage() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Table of Authorities - ${selected.name}`,
+          title: `List of Authorities - ${selected.name}`,
           text,
         });
       } catch {
@@ -932,6 +1222,62 @@ export default function BarristerListsPage() {
     addToast({ message: 'List deleted', type: 'success' });
   };
 
+  const handleDuplicate = async (listId) => {
+    const list = lists.find((l) => l.id === listId);
+    await duplicateList(listId);
+    await refreshLists();
+    setCardMenuId(null);
+    addToast({ message: `"${list?.name}" duplicated`, type: 'success' });
+  };
+
+  const toggleCardSelect = (listId) => {
+    setSelectedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(listId)) next.delete(listId);
+      else next.add(listId);
+      return next;
+    });
+  };
+
+  const handleBulkDuplicate = async () => {
+    if (selectedCards.size === 0) return;
+    setBulkBusy('duplicate');
+    const count = selectedCards.size;
+    for (const id of [...selectedCards]) {
+      await duplicateList(id);
+    }
+    await refreshLists();
+    setSelectedCards(new Set());
+    setSelectMode(false);
+    setBulkBusy(null);
+    addToast({ message: `${count} ${count === 1 ? 'list' : 'lists'} duplicated`, type: 'success' });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedCards.size === 0) return;
+    setDeleteConfirmId('__bulk');
+  };
+
+  const confirmBulkDelete = async () => {
+    setBulkBusy('delete');
+    const ids = [...selectedCards];
+    for (const id of ids) {
+      await deleteList(id);
+      if (selected?.id === id) syncSelectedList(null);
+    }
+    setDeleteConfirmId(null);
+    setSelectedCards(new Set());
+    setSelectMode(false);
+    await refreshLists();
+    setBulkBusy(null);
+    addToast({ message: `${ids.length} ${ids.length === 1 ? 'list' : 'lists'} deleted`, type: 'success' });
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedCards(new Set());
+  };
+
   // Group items by Issue
   const issueGroups = useMemo(() => {
     if (!selected) return [];
@@ -948,6 +1294,23 @@ export default function BarristerListsPage() {
     return groups;
   }, [selected]);
 
+  // Items with issues (pinpoint missing / reporter missing)
+  /** Items with issues, ordered to match editor card rendering (issue groups top-to-bottom) */
+  const problemItems = useMemo(() => {
+    if (!selected) return [];
+    const hasIssue = (item) => {
+      if (item.usage === 'read' && !hasPinpointData(item)) return true;
+      if (item.type === 'book' && (!item.author || !item.publisher || !item.year)) return true;
+      return false;
+    };
+    // Follow same order as issueGroups (editor card order)
+    const issues = selected.issues || [];
+    const groups = issues.map((issueName) => selected.items.filter((i) => i.issue === issueName));
+    const ungrouped = selected.items.filter((i) => !i.issue || !issues.includes(i.issue));
+    const allInOrder = [...groups.flat(), ...ungrouped];
+    return allInOrder.filter(hasIssue);
+  }, [selected, lists]);
+
   // Part groups for sidebar summary + AGLC preview
   const court = selected ? getCourtStructure(selected.courtStructure) : null;
   const partGroups = useMemo(() => {
@@ -957,6 +1320,88 @@ export default function BarristerListsPage() {
       items: selected.items.filter((i) => derivePart(i.type, i.usage, selected.courtStructure) === part.key),
     }));
   }, [selected, court]);
+
+  // Ref to always access latest problemItems without stale closures
+  const problemItemsRef = useRef(problemItems);
+  problemItemsRef.current = problemItems;
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
+
+  // Handle "Fix issues" — activate edit mode, scroll to problem item, highlight + focus
+  const handleFixIssues = useCallback(async (itemId) => {
+    if (!selectedRef.current) return;
+
+    // Blur any active pinpoint input first so it saves before we navigate
+    const activePinpoint = document.activeElement;
+    if (activePinpoint?.dataset?.pinpointItem) {
+      activePinpoint.blur();
+      // Wait for blur → save → refreshLists to complete
+      await new Promise((r) => setTimeout(r, 500));
+    }
+
+    // Always pick the first problem item in editor card order
+    const freshProblems = problemItemsRef.current;
+    if (freshProblems.length === 0) return;
+    const targetId = freshProblems[0].id;
+
+    // 1) Activate edit mode if not already
+    if (!editMode && !isNewDraft) setEditMode(true);
+
+    // 2) Mobile: switch to editor view
+    setMobileView('editor');
+
+    // 3) Expand collapsed group containing target item
+    const sel = selectedRef.current;
+    const targetItem = sel.items.find((i) => i.id === targetId);
+    if (targetItem) {
+      const groupKey = (targetItem.issue && (sel.issues || []).includes(targetItem.issue))
+        ? targetItem.issue : '__ungrouped';
+      setCollapsedGroups((prev) => {
+        if (!prev.has(groupKey)) return prev;
+        const next = new Set(prev);
+        next.delete(groupKey);
+        return next;
+      });
+    }
+
+    // 4) Show the fix bar
+    setShowFixBar(true);
+
+    // 5) Highlight + scroll + focus
+    setHighlightedItemId(targetId);
+    setTimeout(() => {
+      const el = document.getElementById(`auth-item-${targetId}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      setTimeout(() => {
+        // Focus the input matching the actual issue
+        const sel = selectedRef.current;
+        const targetItem = sel?.items.find((i) => i.id === targetId);
+        if (!targetItem) return;
+        const needsPinpoint = targetItem.usage === 'read' && !hasPinpointData(targetItem);
+        const needsBookCite = targetItem.type === 'book' && (!targetItem.author || !targetItem.publisher || !targetItem.year);
+        if (needsPinpoint) {
+          const el = document.querySelector(`[data-pinpoint-item="${targetId}"]`);
+          if (el) { el.focus(); return; }
+        }
+        if (needsBookCite) {
+          const el = document.querySelector(`[data-bookcite-item="${targetId}"]`);
+          if (el) el.focus();
+        }
+      }, 400);
+    }, 50);
+
+    // 6) Auto-clear highlight after 2.5s
+    setTimeout(() => setHighlightedItemId(null), 2500);
+  }, [editMode, isNewDraft]);
+
+  // Auto-dismiss fix bar when all issues resolved
+  useEffect(() => {
+    if (showFixBar && problemItems.length === 0) {
+      setShowFixBar(false);
+      addToast({ message: 'All issues resolved', type: 'success' });
+    }
+  }, [problemItems.length, showFixBar, addToast]);
 
   // Computed search results (filtered + interleaved)
   const searchInterleaved = useMemo(() => {
@@ -1002,11 +1447,11 @@ export default function BarristerListsPage() {
       : item.type === 'legislation' ? 'solar:document-text-linear'
       : 'solar:book-2-linear';
     const typeColor = item.type === 'case' ? 'text-success'
-      : item.type === 'legislation' ? 'text-info'
+      : item.type === 'legislation' ? 'text-purple-600'
       : 'text-brand';
-    const typeBadgeCls = item.type === 'case' ? 'bg-success/10 text-success'
-      : item.type === 'legislation' ? 'bg-info/10 text-info'
-      : 'bg-brand/10 text-brand';
+    const typeBadgeCls = item.type === 'case' ? 'bg-surface-subtle text-success'
+      : item.type === 'legislation' ? 'bg-surface-subtle text-purple-600'
+      : 'bg-surface-subtle text-brand';
     const typeLabel = item.type === 'case' ? 'Case'
       : item.type === 'legislation' ? 'Legislation' : 'Book';
 
@@ -1020,127 +1465,179 @@ export default function BarristerListsPage() {
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...(isEditing ? provided.dragHandleProps : {})}
-            className={`rounded-xl p-3 transition-all ${isEditing ? 'cursor-grab active:cursor-grabbing' : ''} ${snapshot.isDragging ? 'border-2 border-dashed border-brand/30 bg-brand/5 shadow-none' : 'border border-border bg-white hover:border-border shadow-none'}`}
+            className={`rounded-xl p-3 transition-all ${isEditing ? 'cursor-grab active:cursor-grabbing' : ''} ${snapshot.isDragging ? 'border-2 border-dashed border-brand/30 bg-brand/5 shadow-none' : 'border border-border bg-white hover:border-border shadow-none'} ${highlightedItemId === item.id ? 'animate-issue-flash' : ''}`}
           >
-            {/* Row 1: drag handle + title + badges */}
-            <div className="flex items-start gap-2">
-              {/* Drag handle — edit mode only */}
-              {isEditing && (
-                <div
-                  className="mt-0.5 flex shrink-0 cursor-grab items-center justify-center rounded p-1 text-text-muted/50 transition-colors hover:bg-surface-subtle hover:text-text-muted active:cursor-grabbing"
-                >
-                  <Icon name="solar:hamburger-menu-linear" size={16} />
-                </div>
-              )}
-
-              {/* Content */}
+            <div className="flex items-center gap-3">
+              {/* Left: item content */}
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <Icon name={typeIcon} size={15} className={`shrink-0 ${typeColor}`} />
-                  <p className="truncate text-sm font-medium text-text">{item.title}</p>
+                {/* Row 1: drag handle + title + badges */}
+                <div className="flex items-start gap-2">
+                  {/* Drag handle — edit mode only */}
+                  {isEditing && (
+                    <div
+                      className="mt-0.5 flex shrink-0 cursor-grab items-center justify-center rounded p-1 text-text-muted/50 transition-colors hover:bg-surface-subtle hover:text-text-muted active:cursor-grabbing"
+                    >
+                      <Icon name="solar:hamburger-menu-linear" size={16} />
+                    </div>
+                  )}
+
+                  {/* Content */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Icon name={typeIcon} size={15} className={`shrink-0 ${typeColor}`} />
+                      <p className="truncate text-sm font-medium text-text">{item.title}</p>
+                    </div>
+                    {item.citation && <p className={`text-xs text-text-secondary ${isEditing ? 'pl-6' : 'pl-[22px]'}`}>{item.citation}</p>}
+                  </div>
+
+                  {/* Remove button — edit mode only */}
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(item.id)}
+                      className="shrink-0 rounded-lg p-1.5 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger"
+                    >
+                      <Icon name="solar:close-circle-linear" size={16} />
+                    </button>
+                  )}
                 </div>
-                {item.citation && <p className={`text-xs text-text-secondary ${isEditing ? 'pl-6' : 'pl-[22px]'}`}>{item.citation}</p>}
+
+                {/* Row 2 */}
+                <div className={`mt-2 flex flex-wrap items-center gap-2 ${isEditing ? 'pl-8' : 'pl-[22px]'}`}>
+                  {isEditing ? (
+                    <>
+                      {/* Edit mode: only editable controls */}
+                      <span className="inline-flex rounded-lg border border-border text-xs font-medium overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={async () => { await updateItem(selected.id, item.id, { usage: 'read' }); await refreshLists(); }}
+                          className={`px-2.5 py-1 transition-colors ${item.usage === 'read' ? 'bg-brand text-white' : 'bg-white text-text-secondary hover:bg-surface-subtle hover:text-text'}`}
+                        >
+                          Read
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => { await updateItem(selected.id, item.id, { usage: 'referred' }); await refreshLists(); }}
+                          className={`px-2.5 py-1 transition-colors ${item.usage === 'referred' || !item.usage ? 'bg-brand text-white' : 'bg-white text-text-secondary hover:bg-surface-subtle hover:text-text'}`}
+                        >
+                          Referred
+                        </button>
+                      </span>
+
+                      {(item.usage === 'read' || item.pageRange) && (
+                        <PinpointInput
+                          key={`${item.id}:${item.pageRange || ''}`}
+                          item={item}
+                          listId={selected.id}
+                          onSaved={(msg) => { refreshLists(); addToast({ message: msg, type: 'success' }); }}
+                        />
+                      )}
+
+                      {hasIssues && (
+                        <label className="relative inline-block">
+                          <select
+                            value={item.issue || ''}
+                            onChange={(e) => handleMoveToGroup(item, e.target.value || null)}
+                            className="appearance-none rounded-lg border border-border bg-white py-1 pl-2.5 pr-7 text-xs text-text-secondary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
+                          >
+                            <option disabled style={{ color: '#888', fontWeight: 600 }}>— Issue group —</option>
+                            <option value="">No section</option>
+                            {(selected.issues || []).map((iss) => (
+                              <option key={iss} value={iss}>{iss}</option>
+                            ))}
+                          </select>
+                          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-text-muted">
+                            <Icon name="solar:alt-arrow-down-linear" size={14} />
+                          </span>
+                        </label>
+                      )}
+
+                      {/* Book citation metadata editor — full width to force own row */}
+                      {item.type === 'book' && (
+                        <div className="w-full">
+                          <BookCitationEditor
+                            key={`bookcite-${item.id}`}
+                            item={item}
+                            listId={selected.id}
+                            onSaved={(msg) => { refreshLists(); addToast({ message: msg, type: 'success' }); }}
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* View mode: read-only badges */}
+                      <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${typeBadgeCls}`}>{typeLabel}</span>
+
+                      {item.uncatalogued && (
+                        <span className="rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+                          Uncatalogued
+                        </span>
+                      )}
+
+                      {court && (
+                        <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
+                          {court.parts.find((p) => p.key === derivePart(item.type, item.usage, selected.courtStructure))?.label || ''}
+                        </span>
+                      )}
+
+                      {item.pageRange ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
+                          <Icon name="solar:pin-bold" size={13} />
+                          {item.pageRange}
+                        </span>
+                      ) : item.usage === 'read' && (
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+                          <Icon name="solar:pin-bold" size={13} />
+                          Missing pinpoint
+                        </span>
+                      )}
+
+                      {item.type === 'book' && !item.uncatalogued && (
+                        <BookAvailability item={item} />
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
 
-              {/* Remove button — edit mode only */}
-              {isEditing && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveItem(item.id)}
-                  className="shrink-0 rounded-lg p-1.5 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger"
-                >
-                  <Icon name="solar:close-circle-linear" size={16} />
-                </button>
-              )}
-            </div>
-
-            {/* Row 2: tags + pinpoint + availability — single line */}
-            <div className={`mt-2 flex flex-wrap items-center gap-2 ${isEditing ? 'pl-8' : 'pl-[22px]'}`}>
-              {/* Type badge */}
-              <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${typeBadgeCls}`}>{typeLabel}</span>
-
-              {item.uncatalogued && (
-                <span className="inline-flex items-center gap-1 rounded-md border border-warning bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
-                  <Icon name="solar:danger-triangle-linear" size={12} />
-                  Uncatalogued
-                </span>
-              )}
-
-              {/* Usage toggle — edit mode only */}
-              {isEditing && (
-                <span className="inline-flex rounded-lg border border-border text-xs font-medium overflow-hidden">
+              {/* Right: action button — vertically centered (hidden in edit mode) */}
+              {!isEditing && item.type === 'book' && !item.uncatalogued && (() => {
+                const book = lookupBookByTitle(item.title);
+                if (!book) return null;
+                const loanRequested = requestedLoanIds.has(book.id);
+                const returnRequested = requestedReturnIds.has(book.id);
+                if (book.status === 'available') {
+                  return loanRequested ? (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-success">
+                      <Icon name="solar:check-circle-bold" size={14} />
+                      Requested
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleRequestLoan(book); }}
+                      className="shrink-0 whitespace-nowrap rounded-full border border-brand px-3 py-1.5 text-xs font-medium text-brand transition-colors hover:bg-brand/5"
+                    >
+                      Request Loan
+                    </button>
+                  );
+                }
+                return returnRequested ? (
+                  <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-success">
+                    <Icon name="solar:check-circle-bold" size={14} />
+                    Requested
+                  </span>
+                ) : (
                   <button
                     type="button"
-                    onClick={async () => { await updateItem(selected.id, item.id, { usage: 'read' }); await refreshLists(); }}
-                    className={`px-2.5 py-1 transition-colors ${item.usage === 'read' ? 'bg-brand text-white' : 'bg-white text-text-secondary hover:bg-surface-subtle hover:text-text'}`}
+                    onClick={(e) => { e.stopPropagation(); handleRequestReturn(book); }}
+                    className="shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-slate-100"
                   >
-                    Read
+                    Request Return
                   </button>
-                  <button
-                    type="button"
-                    onClick={async () => { await updateItem(selected.id, item.id, { usage: 'referred' }); await refreshLists(); }}
-                    className={`px-2.5 py-1 transition-colors ${item.usage === 'referred' || !item.usage ? 'bg-brand text-white' : 'bg-white text-text-secondary hover:bg-surface-subtle hover:text-text'}`}
-                  >
-                    Referred
-                  </button>
-                </span>
-              )}
-
-              {/* Derived part badge */}
-              {court && (
-                <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
-                  {court.parts.find((p) => p.key === derivePart(item.type, item.usage, selected.courtStructure))?.label || ''}
-                </span>
-              )}
-
-              {/* Pinpoint */}
-              {isEditing ? (
-                (item.usage === 'read' || item.pageRange) && (
-                  <PinpointInput
-                    key={`${item.id}:${item.pageRange || ''}`}
-                    item={item}
-                    listId={selected.id}
-                    onSaved={(msg) => { refreshLists(); addToast({ message: msg, type: 'success' }); }}
-                  />
-                )
-              ) : (
-                item.pageRange ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-text-secondary">
-                    <Icon name="solar:pin-bold" size={13} className="text-success" />
-                    {item.pageRange}
-                  </span>
-                ) : item.usage === 'read' && (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-warning">
-                    <Icon name="solar:pin-bold" size={13} />
-                    Missing pinpoint
-                  </span>
-                )
-              )}
-
-              {/* Book availability */}
-              {item.type === 'book' && !item.uncatalogued && (
-                <BookAvailability item={item} onRequestReturn={handleRequestReturn} />
-              )}
-
-              {/* Section selector — edit mode only */}
-              {isEditing && hasIssues && (
-                <label className="relative inline-block">
-                  <select
-                    value={item.issue || ''}
-                    onChange={(e) => handleMoveToGroup(item, e.target.value || null)}
-                    className="appearance-none rounded-lg border border-border bg-white py-1 pl-2.5 pr-7 text-xs text-text-secondary focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand/20"
-                  >
-                    <option disabled style={{ color: '#888', fontWeight: 600 }}>— Issue group —</option>
-                    <option value="">No section</option>
-                    {(selected.issues || []).map((iss) => (
-                      <option key={iss} value={iss}>{iss}</option>
-                    ))}
-                  </select>
-                  <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-text-muted">
-                    <Icon name="solar:alt-arrow-down-linear" size={14} />
-                  </span>
-                </label>
-              )}
+                );
+              })()}
             </div>
           </article>
         )}
@@ -1154,17 +1651,17 @@ export default function BarristerListsPage() {
   }
 
   return (
-    <div className={`animate-page-in ${selected ? 'h-full overflow-hidden' : ''}`}>
+    <div className={`h-full transition-opacity duration-150 ease-in-out ${viewFading ? 'opacity-0' : 'opacity-100'} ${selected ? 'overflow-hidden' : 'overflow-y-auto'}`} onClick={() => cardMenuId && setCardMenuId(null)}>
       {/* ── CASUAL SEARCH MODE (no list selected) ── */}
       {isSearching && !selected ? (
-        <>
+        <div className="mx-auto max-w-screen-2xl px-6 py-8 lg:px-14 xl:px-16 2xl:px-10">
           {/* Search header with context */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={exitSearchMode}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-subtle"
+                className="btn-icon h-8 w-8 text-text-secondary hover:bg-surface-subtle"
               >
                 <Icon name="solar:arrow-left-linear" size={16} />
               </button>
@@ -1176,11 +1673,11 @@ export default function BarristerListsPage() {
                       <span>Adding to <span className="font-medium text-text-secondary">{selected.name}</span></span>
                       <span className="rounded-md bg-surface-subtle px-1.5 py-0.5 text-xs font-medium text-text-muted">{selected.items.length}</span>
                     </div>
-                    <h1 className="font-serif text-2xl text-text">Search & Add</h1>
+                    <h1 className="font-serif text-page-title text-text">Search & Add</h1>
                   </>
                 ) : (
                   <>
-                    <h1 className="font-serif text-2xl text-text">Search</h1>
+                    <h1 className="font-serif text-page-title text-text">Search</h1>
                     <p className="mt-0.5 text-sm text-text-secondary">Find cases, books, and legislation across JADE and your library.</p>
                   </>
                 )}
@@ -1292,31 +1789,10 @@ export default function BarristerListsPage() {
               </button>
             </div>
           )}
-        </>
+        </div>
       ) : (
         <>
-          {/* ── NORMAL MODE ── */}
-          {!selected && (
-            <div
-              className="sticky top-0 z-[9] border-b border-border/60 bg-white/95 backdrop-blur-sm"
-              style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw', left: 0 }}
-            >
-              <div className="flex items-center justify-between gap-6 px-6 py-3 lg:px-14 xl:px-16 2xl:px-10">
-                <div className="min-w-0">
-                  <h1 className="font-serif text-xl font-bold text-text">Authorities</h1>
-                  <p className="mt-0.5 text-xs text-text-secondary">Build authority lists from search results and export for court.</p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={handleQuickCreate}
-                >
-                  <Icon name="solar:add-circle-linear" size={16} />
-                  New List
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* ── NORMAL MODE — header handled by AppShell ── */}
 
       {selected ? (
         <div className="flex w-full flex-col" style={{ height: '100%', overflow: 'hidden' }}>
@@ -1399,7 +1875,7 @@ export default function BarristerListsPage() {
                     Copy
                   </Button>
                   <Button size="sm" variant="primary" onClick={() => setShowExportPreview(true)}>
-                    <Icon name="solar:export-linear" size={16} />
+                    <Icon name="solar:upload-linear" size={16} />
                     Export
                   </Button>
                 </div>
@@ -1486,8 +1962,8 @@ export default function BarristerListsPage() {
             style={workspaceColumnsStyle}
           >
             {/* Left pane — editor */}
-            <section className="min-w-0 h-full min-h-0 overflow-y-auto bg-white pl-6 pr-5 lg:pl-8 xl:pl-10">
-
+            <section className="relative flex min-w-0 h-full min-h-0 flex-col bg-white">
+              <div className="flex-1 overflow-y-auto pl-6 pr-5 lg:pl-8 xl:pl-10">
               <div className="pb-8 pt-4">
                 <div className="mb-4">
                   <EditorStats list={selected} />
@@ -1553,7 +2029,7 @@ export default function BarristerListsPage() {
                                   const cloneItem = group.items.find((i) => i.id === rubric.draggableId);
                                   if (!cloneItem) return <div ref={cloneProvided.innerRef} {...cloneProvided.draggableProps} {...cloneProvided.dragHandleProps} />;
                                   const cloneIcon = cloneItem.type === 'case' ? 'solar:document-text-linear' : cloneItem.type === 'legislation' ? 'solar:bill-list-linear' : 'solar:book-2-linear';
-                                  const cloneBadge = cloneItem.type === 'case' ? 'bg-success/10 text-success' : cloneItem.type === 'legislation' ? 'bg-info/10 text-info' : 'bg-brand/10 text-brand';
+                                  const cloneBadge = cloneItem.type === 'case' ? 'bg-surface-subtle text-success' : cloneItem.type === 'legislation' ? 'bg-surface-subtle text-purple-600' : 'bg-surface-subtle text-brand';
                                   return (
                                     <article
                                       ref={cloneProvided.innerRef}
@@ -1596,17 +2072,17 @@ export default function BarristerListsPage() {
                             )}
 
                             {!isCollapsed && (
-                              <div className="relative border-t border-border/30 px-4 py-3">
-                                <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 transition-all ${isFocused && inlineQuery ? 'border-brand bg-brand/5' : 'border-border bg-surface-subtle/80'}`}>
-                                  <Icon name="solar:add-circle-linear" size={16} className={isFocused && inlineQuery ? 'text-brand' : 'text-text-muted/60'} />
+                              <div className="relative border-t border-border/30 px-4 py-3" style={{ zIndex: isFocused && showInlineResults ? 10 : 'auto' }}>
+                                <div className={`flex h-11 items-center gap-2 rounded-xl border px-3 transition-all ${isFocused && inlineQuery ? 'border-brand bg-white shadow-sm' : 'border-border bg-surface-muted hover:border-border-strong'}`}>
+                                  <Icon name="solar:magnifer-linear" size={16} className={isFocused && inlineQuery ? 'text-brand' : 'text-text-secondary'} />
                                   <input
                                     type="text"
                                     value={isFocused ? inlineQuery : ''}
                                     onChange={(e) => setInlineQuery(e.target.value)}
                                     onFocus={() => { setFocusedIssue(groupKey); if (inlineQuery.trim().length >= 2) setShowInlineResults(true); }}
                                     onClick={(e) => e.stopPropagation()}
-                                    placeholder={`Add to "${issueLabel || selected.name}"...`}
-                                    className="flex-1 border-none bg-transparent text-sm text-text placeholder:text-text-muted/60 focus:outline-none"
+                                    placeholder={`Search to add to "${issueLabel || selected.name}"...`}
+                                    className="flex-1 border-none bg-transparent text-sm leading-none text-text placeholder:text-text-muted focus:outline-none"
                                   />
                                   {isFocused && inlineQuery && (
                                     <button type="button" onClick={(e) => { e.stopPropagation(); setInlineQuery(''); setShowInlineResults(false); }} className="text-text-muted hover:text-text">
@@ -1625,12 +2101,13 @@ export default function BarristerListsPage() {
                                       return (
                                         <div
                                           key={`${type}-${item.id}`}
-                                          className="flex items-center gap-2 border-b border-border-light px-3 py-2.5 last:border-b-0 transition-colors hover:bg-brand/5"
+                                          onClick={(e) => { e.stopPropagation(); if (!isAdded) handleInlineAdd(item, type); }}
+                                          className={`flex items-center gap-2 border-b border-border-light px-3 py-2.5 last:border-b-0 transition-colors ${isAdded ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-brand/5'}`}
                                         >
                                           <span className={`rounded-md px-1.5 py-0.5 text-xs font-bold uppercase ${
-                                            (type === 'jade' ? item.type : 'book') === 'case' ? 'bg-success/10 text-success'
-                                            : (type === 'jade' ? item.type : 'book') === 'legislation' ? 'bg-info/10 text-info'
-                                            : 'bg-surface-subtle text-text-secondary'
+                                            (type === 'jade' ? item.type : 'book') === 'case' ? 'bg-surface-subtle text-success'
+                                            : (type === 'jade' ? item.type : 'book') === 'legislation' ? 'bg-surface-subtle text-purple-600'
+                                            : 'bg-surface-subtle text-brand'
                                           }`}>
                                             {type === 'jade' ? item.type : 'Book'}
                                           </span>
@@ -1643,15 +2120,14 @@ export default function BarristerListsPage() {
                                             </span>
                                           )}
                                           {isAdded ? (
-                                            <span className="rounded-md bg-success/10 px-2 py-1 text-xs font-semibold text-success">Added</span>
+                                            <span className="inline-flex items-center gap-1 shrink-0 rounded-lg bg-success/10 px-2 py-1 text-xs font-medium text-success">
+                                              <Icon name="solar:check-circle-bold" size={14} />
+                                              Added
+                                            </span>
                                           ) : (
-                                            <button
-                                              type="button"
-                                              onClick={(e) => { e.stopPropagation(); handleInlineAdd(item, type); }}
-                                              className="rounded-md border border-success/30 bg-transparent px-2 py-1 text-xs font-bold text-success transition-colors hover:bg-success/10"
-                                            >
+                                            <span className="shrink-0 rounded-lg bg-brand/10 px-2 py-1 text-xs font-bold text-brand">
                                               + Add
-                                            </button>
+                                            </span>
                                           )}
                                         </div>
                                       );
@@ -1684,15 +2160,15 @@ export default function BarristerListsPage() {
                     </div>
 
                     <div className="relative px-5 pb-4">
-                      <div className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 transition-all ${inlineQuery ? 'border-brand bg-brand/5' : 'border-border bg-surface-subtle/80'}`}>
-                        <Icon name="solar:magnifer-linear" size={16} className={inlineQuery ? 'text-brand' : 'text-text-muted/60'} />
+                      <div className={`flex h-11 items-center gap-2 rounded-xl border px-3 transition-all ${inlineQuery ? 'border-brand bg-white shadow-sm' : 'border-border bg-surface-muted hover:border-border-strong'}`}>
+                        <Icon name="solar:magnifer-linear" size={16} className={inlineQuery ? 'text-brand' : 'text-text-secondary'} />
                         <input
                           type="text"
                           value={inlineQuery}
                           onChange={(e) => setInlineQuery(e.target.value)}
                           onFocus={() => { setFocusedIssue('__ungrouped'); if (inlineQuery.trim().length >= 2) setShowInlineResults(true); }}
                           placeholder="Search cases, legislation, books..."
-                          className="flex-1 border-none bg-transparent text-sm text-text placeholder:text-text-muted/60 focus:outline-none"
+                          className="flex-1 border-none bg-transparent text-sm leading-none text-text placeholder:text-text-muted focus:outline-none"
                         />
                         {inlineQuery && (
                           <button type="button" onClick={() => { setInlineQuery(''); setShowInlineResults(false); }} className="text-text-muted hover:text-text">
@@ -1711,12 +2187,13 @@ export default function BarristerListsPage() {
                             return (
                               <div
                                 key={`${type}-${item.id}`}
-                                className="flex items-center gap-2 border-b border-border-light px-3 py-2.5 last:border-b-0 transition-colors hover:bg-brand/5"
+                                onClick={(e) => { e.stopPropagation(); if (!isAdded) handleInlineAdd(item, type); }}
+                                className={`flex items-center gap-2 border-b border-border-light px-3 py-2.5 last:border-b-0 transition-colors ${isAdded ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-brand/5'}`}
                               >
                                 <span className={`rounded-md px-1.5 py-0.5 text-xs font-bold uppercase ${
-                                  (type === 'jade' ? item.type : 'book') === 'case' ? 'bg-success/10 text-success'
-                                  : (type === 'jade' ? item.type : 'book') === 'legislation' ? 'bg-info/10 text-info'
-                                  : 'bg-surface-subtle text-text-secondary'
+                                  (type === 'jade' ? item.type : 'book') === 'case' ? 'bg-surface-subtle text-success'
+                                  : (type === 'jade' ? item.type : 'book') === 'legislation' ? 'bg-surface-subtle text-purple-600'
+                                  : 'bg-surface-subtle text-brand'
                                 }`}>
                                   {type === 'jade' ? item.type : 'Book'}
                                 </span>
@@ -1729,15 +2206,14 @@ export default function BarristerListsPage() {
                                   </span>
                                 )}
                                 {isAdded ? (
-                                  <span className="rounded-md bg-success/10 px-2 py-1 text-xs font-semibold text-success">Added</span>
+                                  <span className="inline-flex items-center gap-1 shrink-0 rounded-lg bg-success/10 px-2 py-1 text-xs font-medium text-success">
+                                    <Icon name="solar:check-circle-bold" size={14} />
+                                    Added
+                                  </span>
                                 ) : (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); handleInlineAdd(item, type); }}
-                                    className="rounded-md border border-success/30 bg-transparent px-2 py-1 text-xs font-bold text-success transition-colors hover:bg-success/10"
-                                  >
+                                  <span className="shrink-0 rounded-lg bg-brand/10 px-2 py-1 text-xs font-bold text-brand">
                                     + Add
-                                  </button>
+                                  </span>
                                 )}
                               </div>
                             );
@@ -1795,6 +2271,44 @@ export default function BarristerListsPage() {
                   </div>
                 )}
               </div>
+              </div>
+
+              {/* Fix issues sticky bar */}
+              {showFixBar && problemItems.length > 0 && (
+                <div className="shrink-0 border-t border-red-200 bg-red-50 px-6 py-2.5 flex items-center justify-between gap-3 animate-fade-in lg:px-8 xl:px-10">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-red-600">
+                    <Icon name="solar:danger-triangle-linear" size={13} />
+                    {problemItems.length} {problemItems.length === 1 ? 'issue' : 'issues'} remaining
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        // Blur active input so it saves first
+                        const active = document.activeElement;
+                        if (active && (active.dataset.pinpointItem || active.dataset.bookciteItem)) {
+                          active.blur();
+                          await new Promise((r) => setTimeout(r, 500));
+                        }
+                        const fresh = problemItemsRef.current;
+                        if (fresh.length === 0) return;
+                        // Pick the first problem item (list is already in Part order)
+                        handleFixIssues(fresh[0].id);
+                      }}
+                      className="rounded-full bg-red-100 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-200"
+                    >
+                      Next issue
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowFixBar(false)}
+                      className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-subtle"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
             </section>
 
             {/* Divider — resize handle */}
@@ -1823,10 +2337,7 @@ export default function BarristerListsPage() {
             <section ref={previewPaneRef} className="min-w-0 h-full min-h-0 overflow-y-auto bg-slate-100 py-5 pl-5 pr-6 lg:pr-8 xl:pr-10">
               <AGLCPreviewInline
                 list={selected}
-                onScrollToItem={(itemId) => {
-                  const el = document.getElementById(`auth-item-${itemId}`);
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }}
+                onScrollToItem={handleFixIssues}
               />
             </section>
           </div>
@@ -1849,7 +2360,7 @@ export default function BarristerListsPage() {
                         )}
                         <div className="space-y-2">
                           {group.items.map((item) => (
-                            <div key={item.id} id={`auth-item-${item.id}`} className="rounded-xl border border-border bg-white px-4 py-3">
+                            <div key={item.id} id={`auth-item-${item.id}`} className={`rounded-xl border border-border bg-white px-4 py-3 ${highlightedItemId === item.id ? 'animate-issue-flash' : ''}`}>
                               <p className="text-sm font-medium text-text">{item.title}</p>
                               {item.citation && <p className="mt-0.5 text-xs text-text-muted">{item.citation}</p>}
                             </div>
@@ -1867,94 +2378,161 @@ export default function BarristerListsPage() {
           <div className={`bg-slate-100 p-5 lg:hidden ${mobileView === 'editor' ? 'hidden' : ''}`}>
             <AGLCPreviewInline
               list={selected}
-              onScrollToItem={(itemId) => {
-                const el = document.getElementById(`auth-item-${itemId}`);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }}
+              onScrollToItem={handleFixIssues}
             />
           </div>
         </div>
       ) : (
-        /* List overview — with action menus */
-        !listsLoaded ? (
-        <div className="mt-5 space-y-2 animate-pulse">
+        /* List overview — 3-column grid with card menus */
+        <div className="mx-auto max-w-screen-2xl px-6 py-8 lg:px-14 xl:px-16 2xl:px-10">
+        <PageHeader title="Authority Lists" subtitle="Organise citations and export court-ready lists.">
+            {selectMode ? (
+              <>
+                <span className="text-xs text-text-secondary">{selectedCards.size} selected</span>
+                <Button size="sm" variant="secondary" onClick={handleBulkDuplicate} disabled={selectedCards.size === 0} loading={bulkBusy === 'duplicate'}>
+                  <Icon name="solar:copy-linear" size={16} />
+                  Duplicate
+                </Button>
+                <Button size="sm" variant="secondary" onClick={handleBulkDelete} disabled={selectedCards.size === 0} className="!text-danger !border-slate-300">
+                  <Icon name="solar:trash-bin-trash-linear" size={16} />
+                  Delete
+                </Button>
+                <Button size="sm" variant="secondary" onClick={exitSelectMode}>
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                {lists.length > 0 && (
+                  <Button size="sm" variant="secondary" onClick={() => setSelectMode(true)}>
+                    <Icon name="solar:check-square-linear" size={16} />
+                    Select
+                  </Button>
+                )}
+                <Button size="sm" variant="primary" onClick={handleQuickCreate}>
+                  <Icon name="solar:add-circle-linear" size={16} />
+                  New List
+                </Button>
+              </>
+            )}
+        </PageHeader>
+        {!listsLoaded ? (
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-pulse">
           {[1, 2, 3].map((i) => (
             <div key={i} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/5">
               <div className="space-y-2">
-                <div className="h-4 w-2/5 rounded bg-border" />
-                <div className="h-3 w-3/5 rounded bg-surface-subtle" />
+                <div className="h-4 w-3/5 rounded bg-border" />
+                <div className="h-3 w-4/5 rounded bg-surface-subtle" />
                 <div className="flex gap-2 mt-1">
-                  <div className="h-5 w-16 rounded bg-surface-subtle" />
-                  <div className="h-5 w-16 rounded bg-surface-subtle" />
-                  <div className="h-5 w-20 rounded bg-surface-subtle" />
+                  <div className="h-5 w-14 rounded bg-surface-subtle" />
+                  <div className="h-5 w-14 rounded bg-surface-subtle" />
                 </div>
               </div>
             </div>
           ))}
         </div>
         ) : (
-        <div className="mt-5 space-y-2 animate-fade-in">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
           {lists.map((list) => {
             const cases = list.items.filter((i) => i.type === 'case').length;
             const legislation = list.items.filter((i) => i.type === 'legislation').length;
             const books = list.items.filter((i) => i.type === 'book').length;
             const courtLabel = getCourtStructure(list.courtStructure).label;
+            const isCardSelected = selectedCards.has(list.id);
 
             return (
               <article
                 key={list.id}
-                className="relative rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/5 transition-colors hover:bg-surface-subtle"
+                onClick={() => {
+                  if (selectMode) { toggleCardSelect(list.id); return; }
+                  syncSelectedList(list);
+                }}
+                className={`relative cursor-pointer rounded-xl bg-white p-5 shadow-sm ring-1 transition-all hover:shadow-md ${
+                  isCardSelected ? 'ring-2 ring-brand bg-brand/5' : 'ring-black/5 hover:ring-black/10'
+                }`}
               >
-                <div className="flex items-center justify-between cursor-pointer" onClick={() => syncSelectedList(list)}>
-                  <div>
-                    <p className="text-sm font-semibold text-text">{list.name}</p>
-                    <p className="mt-0.5 text-xs text-text-secondary">{list.caseRef}</p>
-                    <div className="mt-1.5 flex flex-wrap gap-2">
-                      {cases > 0 && (
-                        <span className="rounded-md bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
-                          {cases} {cases === 1 ? 'case' : 'cases'}
-                        </span>
-                      )}
-                      {legislation > 0 && (
-                        <span className="rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
-                          {legislation} legislation
-                        </span>
-                      )}
-                      {books > 0 && (
-                        <span className="rounded-md bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                          {books} {books === 1 ? 'book' : 'books'}
-                        </span>
-                      )}
-                      {(list.issues?.length > 0) && (
-                        <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-muted">
-                          {list.issues.length} {list.issues.length === 1 ? 'issue' : 'issues'}
-                        </span>
-                      )}
-                      <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-muted">
-                        {courtLabel}
-                      </span>
-                      {list.createdAt && (
-                        <span className="text-xs text-text-muted">{list.createdAt}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
+                {/* Three-dot menu */}
+                {!selectMode && (
+                  <div className="absolute right-3 top-3">
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(list.id); }}
-                      className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger"
-                      aria-label={`Delete ${list.name}`}
+                      onClick={(e) => { e.stopPropagation(); setCardMenuId(cardMenuId === list.id ? null : list.id); }}
+                      className="btn-icon h-8 w-8 text-text-muted hover:bg-surface-subtle hover:text-text"
                     >
-                      <Icon name="solar:trash-bin-trash-linear" size={16} />
+                      <Icon name="solar:menu-dots-bold" size={16} />
                     </button>
-                    <Icon name="solar:arrow-right-linear" size={14} className="text-text-muted" />
+                    {cardMenuId === list.id && (
+                      <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl border border-border bg-white shadow-lg ring-1 ring-black/5 animate-fade-in">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); handleDuplicate(list.id); }}
+                          className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-text transition-colors hover:bg-surface-subtle"
+                        >
+                          <Icon name="solar:copy-linear" size={15} />
+                          Duplicate
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setCardMenuId(null); setDeleteConfirmId(list.id); }}
+                          className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-danger transition-colors hover:bg-danger/5"
+                        >
+                          <Icon name="solar:trash-bin-trash-linear" size={15} />
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className={selectMode ? '' : 'pr-8'}>
+                  <h3 className="flex items-center gap-2 font-serif text-card-title font-semibold text-text">
+                    {selectMode && (
+                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                        isCardSelected ? 'border-brand bg-brand text-white' : 'border-border bg-white'
+                      }`}>
+                        {isCardSelected && <Icon name="solar:check-linear" size={12} />}
+                      </span>
+                    )}
+                    <Icon name="solar:folder-open-linear" size={18} className="shrink-0 text-brand" />
+                    <span className="truncate">{list.name}</span>
+                  </h3>
+                  <p className="mt-1 h-4 truncate text-xs text-text-muted">{list.caseRef || ''}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {cases > 0 && (
+                      <span className="rounded-md bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+                        {cases} {cases === 1 ? 'case' : 'cases'}
+                      </span>
+                    )}
+                    {legislation > 0 && (
+                      <span className="rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
+                        {legislation} legislation
+                      </span>
+                    )}
+                    {books > 0 && (
+                      <span className="rounded-md bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                        {books} {books === 1 ? 'book' : 'books'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-muted">
+                      {courtLabel}
+                    </span>
+                    {(list.issues?.length > 0) && (
+                      <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-muted">
+                        {list.issues.length} {list.issues.length === 1 ? 'issue' : 'issues'}
+                      </span>
+                    )}
+                    {list.createdAt && (
+                      <span className="text-xs text-text-muted">{list.createdAt}</span>
+                    )}
                   </div>
                 </div>
               </article>
             );
           })}
           {lists.length === 0 && !isNewDraft && (
-            <div className="mt-4 flex flex-col items-center rounded-2xl border border-dashed border-border bg-white p-8 text-center">
+            <div className="col-span-full mt-4 flex flex-col items-center rounded-2xl border border-dashed border-border bg-white p-8 text-center">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand/10">
                 <Icon name="solar:list-check-linear" size={24} className="text-brand" />
               </span>
@@ -1985,7 +2563,8 @@ export default function BarristerListsPage() {
             </div>
           )}
         </div>
-        )
+        )}
+        </div>
       )}
         </>
       )}
@@ -1995,8 +2574,8 @@ export default function BarristerListsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 transition-opacity duration-200" onClick={() => setPendingItem(null)}>
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 animate-page-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="font-serif text-lg text-text">Add to List</h3>
-              <button type="button" onClick={() => setPendingItem(null)} className="rounded-lg p-1 text-text-muted transition-colors hover:bg-surface-subtle hover:text-text">
+              <h3 className="font-serif text-card-title text-text">Add to List</h3>
+              <button type="button" onClick={() => setPendingItem(null)} className="btn-icon h-8 w-8 text-text-muted hover:bg-surface-subtle hover:text-text">
                 <Icon name="solar:close-circle-linear" size={18} />
               </button>
             </div>
@@ -2057,17 +2636,50 @@ export default function BarristerListsPage() {
         </div>
       )}
 
+      {/* Create list modal */}
+      {showCreateModal && (
+        <CreateListModal
+          onConfirm={handleCreateListFromModal}
+          onCancel={() => setShowCreateModal(false)}
+        />
+      )}
+
       {/* Delete confirmation dialog */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setDeleteConfirmId(null)}>
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 animate-page-in" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-serif text-lg text-text">Delete List?</h3>
-            <p className="mt-2 text-sm text-text-secondary">
-              This will permanently remove the list and all its entries. This cannot be undone.
+            <h3 className="font-serif text-card-title text-text">
+              {deleteConfirmId === '__bulk' ? `Delete ${selectedCards.size} ${selectedCards.size === 1 ? 'List' : 'Lists'}?` : 'Delete List?'}
+            </h3>
+            {deleteConfirmId === '__bulk' && (
+              <ul className="mt-3 space-y-1">
+                {[...selectedCards].map((id) => {
+                  const l = lists.find((x) => x.id === id);
+                  return l ? (
+                    <li key={id} className="flex items-center gap-2 text-sm text-text">
+                      <Icon name="solar:folder-open-linear" size={14} className="shrink-0 text-brand" />
+                      <span className="truncate">{l.name}</span>
+                    </li>
+                  ) : null;
+                })}
+              </ul>
+            )}
+            <p className="mt-3 text-sm text-text-secondary">
+              {deleteConfirmId === '__bulk'
+                ? 'All entries in these lists will be permanently deleted. This cannot be undone.'
+                : 'This will permanently remove the list and all its entries. This cannot be undone.'}
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <Button size="sm" variant="secondary" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
-              <Button size="sm" variant="primary" onClick={() => handleDelete(deleteConfirmId)} className="!bg-danger hover:!bg-danger/90">Delete</Button>
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => deleteConfirmId === '__bulk' ? confirmBulkDelete() : handleDelete(deleteConfirmId)}
+                className="!bg-danger hover:!bg-danger/90"
+                loading={bulkBusy === 'delete'}
+              >
+                Delete
+              </Button>
             </div>
           </div>
         </div>

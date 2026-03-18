@@ -35,6 +35,11 @@ export default {
         info: 'var(--color-info)',
         danger: 'var(--color-danger)',
       },
+      fontSize: {
+        'page-title': ['var(--font-size-page)', { lineHeight: '1.25' }],
+        'section-title': ['var(--font-size-section)', { lineHeight: '1.33' }],
+        'card-title': ['var(--font-size-card-title)', { lineHeight: '1.4' }],
+      },
       fontFamily: {
         serif: ['Playfair Display', 'serif'],
         sans: ['Inter', 'sans-serif'],

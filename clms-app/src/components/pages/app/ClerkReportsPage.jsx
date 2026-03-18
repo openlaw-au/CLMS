@@ -1,5 +1,6 @@
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
+import PageHeader from '../../molecules/PageHeader';
 import { useToast } from '../../../context/ToastContext';
 
 const monthlyData = [
@@ -35,22 +36,16 @@ export default function ClerkReportsPage() {
 
   return (
     <div className="animate-page-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-serif text-3xl text-text">Insights</h1>
-          <p className="mt-2 text-sm text-text-secondary">Library intelligence, usage trends, and coverage metrics.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={() => addToast({ message: 'Detailed analytics export is mocked in this prototype', type: 'info' })}>
-            <Icon name="solar:upload-linear" size={14} />
-            Export CSV
-          </Button>
-          <Button size="sm" variant="secondary" onClick={() => addToast({ message: 'Print layout is mocked in this prototype', type: 'info' })}>
-            <Icon name="solar:printer-linear" size={14} />
-            Print Report
-          </Button>
-        </div>
-      </div>
+      <PageHeader title="Insights" subtitle="Library intelligence, usage trends, and coverage metrics.">
+        <Button size="sm" variant="secondary" onClick={() => addToast({ message: 'Detailed analytics export is mocked in this prototype', type: 'info' })}>
+          <Icon name="solar:upload-linear" size={14} />
+          Export CSV
+        </Button>
+        <Button size="sm" variant="secondary" onClick={() => addToast({ message: 'Print layout is mocked in this prototype', type: 'info' })}>
+          <Icon name="solar:printer-linear" size={14} />
+          Print Report
+        </Button>
+      </PageHeader>
 
       {/* Summary cards */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -3,15 +3,17 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
 import Breadcrumb from '../atoms/Breadcrumb';
+import HeaderSearchBar from '../molecules/HeaderSearchBar';
 import { useAppContext } from '../../context/AppContext';
 import { getLists } from '../../services/authorityListsService';
 import { getLoans } from '../../services/loansService';
-import { getSuggestions } from '../../services/searchService';
 const navByRole = {
   barrister: [
     { label: 'Dashboard', slug: 'dashboard', icon: 'solar:home-2-linear' },
+    { label: 'Search', slug: 'search', icon: 'solar:magnifer-linear' },
     { label: 'Authority Lists', slug: 'authorities', icon: 'solar:list-check-linear' },
     { label: 'Loans', slug: 'loans', icon: 'solar:book-bookmark-linear' },
+    { label: 'Settings', slug: 'settings', icon: 'solar:settings-linear' },
   ],
   clerk: [
     { label: 'Dashboard', slug: 'dashboard', icon: 'solar:home-2-linear' },
@@ -32,16 +34,12 @@ export default function AppShell({ role, children }) {
   const profileMenuRef = useRef(null);
   const headerRef = useRef(null);
   const [measuredHeaderH, setMeasuredHeaderH] = useState(57);
-  const [headerQuery, setHeaderQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const searchWrapperRef = useRef(null);
-  const searchInputRef = useRef(null);
   const [hasBarristerLists, setHasBarristerLists] = useState(false);
   const [sidebarLists, setSidebarLists] = useState([]);
   const [authorityListsExpanded, setAuthorityListsExpanded] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notiOpen, setNotiOpen] = useState(false);
+  const notiRef = useRef(null);
 
   // Close sidebar and reset viewport on route change
   useEffect(() => {
@@ -63,56 +61,63 @@ export default function AppShell({ role, children }) {
     return () => ro.disconnect();
   }, []);
 
-  // Autosuggest — debounced fetch
-  const fetchSuggestions = useCallback(async (q) => {
-    if (!q || q.trim().length < 1) { setSuggestions([]); return; }
-    const results = await getSuggestions(q);
-    setSuggestions(results);
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => fetchSuggestions(headerQuery), 120);
-    return () => clearTimeout(timer);
-  }, [headerQuery, fetchSuggestions]);
-
-  useEffect(() => {
-    if (role !== 'barrister') return undefined;
-
-    let cancelled = false;
-
+  const refreshSidebarLists = useCallback(() => {
+    if (role !== 'barrister') return;
     getLists().then((lists) => {
-      if (!cancelled) {
-        setHasBarristerLists(lists.length > 0);
-        setSidebarLists(lists);
-      }
+      setHasBarristerLists(lists.length > 0);
+      setSidebarLists(lists);
     });
+  }, [role]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [role, location.pathname]);
-
-  // Close suggestions when clicking outside
   useEffect(() => {
-    if (!showSuggestions) return undefined;
-    const handleClickOutside = (e) => {
-      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showSuggestions]);
+    refreshSidebarLists();
+  }, [refreshSidebarLists, location.pathname]);
 
-  // Notification badge — pending actions count
-  const [pendingCount, setPendingCount] = useState(0);
+  // Listen for authority-lists-changed events from child pages
   useEffect(() => {
-    // TODO(api): Replace with GET /api/notifications/count — fetch unread notification count
+    const handler = () => refreshSidebarLists();
+    window.addEventListener('authority-lists-changed', handler);
+    return () => window.removeEventListener('authority-lists-changed', handler);
+  }, [refreshSidebarLists]);
+
+  // Notifications
+  const [notifications, setNotifications] = useState([]);
+  const [dismissedNotiIds, setDismissedNotiIds] = useState(new Set());
+  useEffect(() => {
+    // TODO(api): Replace with GET /api/notifications — fetch user notifications
     getLoans().then((loans) => {
-      const pending = loans.filter((l) => l.status === 'pending' || l.status === 'overdue').length;
-      setPendingCount(pending);
+      const notis = [];
+      loans.forEach((loan) => {
+        if (loan.status === 'overdue') {
+          notis.push({ id: `overdue-${loan.id}`, icon: 'solar:alarm-linear', iconColor: 'text-red-600', bg: 'bg-red-50', message: `"${loan.bookTitle}" is overdue`, detail: `Due ${loan.dueDate}`, to: '/app/loans', time: '2d ago' });
+        }
+        if (loan.status === 'pending') {
+          notis.push({ id: `pending-${loan.id}`, icon: 'solar:hourglass-linear', iconColor: 'text-amber-600', bg: 'bg-amber-50', message: `Loan request pending`, detail: loan.bookTitle, to: '/app/loans', time: '1d ago' });
+        }
+      });
+      if (notis.length === 0) {
+        notis.push({ id: 'welcome', icon: 'solar:hand-shake-linear', iconColor: 'text-emerald-600', bg: 'bg-emerald-50', message: 'Welcome to CLMS', detail: 'Start by searching or creating an authority list.', to: '/app/dashboard', time: 'now' });
+      }
+      setNotifications(notis);
     });
   }, []);
+  const visibleNotis = notifications.filter((n) => !dismissedNotiIds.has(n.id));
+  const pendingCount = visibleNotis.length;
+
+  // Close notification dropdown on outside click (delayed to avoid toggle conflict)
+  useEffect(() => {
+    if (!notiOpen) return undefined;
+    const handlePointerDown = (event) => {
+      if (notiRef.current && !notiRef.current.contains(event.target)) setNotiOpen(false);
+    };
+    const handleKeyDown = (event) => { if (event.key === 'Escape') setNotiOpen(false); };
+    // Use setTimeout to avoid the same click that opened it from closing it
+    const id = setTimeout(() => {
+      document.addEventListener('mousedown', handlePointerDown);
+      document.addEventListener('keydown', handleKeyDown);
+    }, 0);
+    return () => { clearTimeout(id); document.removeEventListener('mousedown', handlePointerDown); document.removeEventListener('keydown', handleKeyDown); };
+  }, [notiOpen]);
   const currentSlug = location.pathname.replace('/app/', '').split('/')[0] || 'dashboard';
   const slugAlias = {
     lists: 'authorities',
@@ -125,7 +130,7 @@ export default function AppShell({ role, children }) {
   const isDashboardHero = normalizedSlug === 'dashboard';
 
   const navItems = navByRole[role];
-  const mainNav = navItems.filter((item) => item.slug !== 'settings');
+  const mainNav = navItems;
   const settingsNav = navItems.find((item) => item.slug === 'settings');
   const userName = onboarding.name || (role === 'clerk' ? 'Clerk' : 'Counsel');
   const initials = userName
@@ -147,7 +152,7 @@ export default function AppShell({ role, children }) {
 
   const searchPlaceholder = role === 'clerk'
     ? 'Search catalogue...'
-    : 'Search books, JADE, and authorities...';
+    : 'Search my lists, authorities, books...';
   const quickAction = role === 'clerk'
     ? { label: 'Add Book', to: '/app/catalogue', icon: 'solar:add-circle-linear' }
     : hasBarristerLists
@@ -203,22 +208,25 @@ export default function AppShell({ role, children }) {
   const isListCreation = normalizedSlug === 'authorities' && newParam === '1';
   const isAuthSearch = normalizedSlug === 'authorities' && !!qParam;
   const isListSubpage = isListDetail || isListCreation;
-  const isHeaderMinimal = isListSubpage || isAuthSearch;
+  const isAuthoritiesOverview = normalizedSlug === 'authorities' && !isListSubpage && !isAuthSearch;
+  const isHeaderMinimal = isListSubpage || isAuthSearch || isAuthoritiesOverview;
   const activeList = isListDetail ? sidebarLists.find((l) => l.id === listIdParam) : null;
   const listHeaderTitle = isListCreation ? 'New List' : activeList?.name || 'List';
-  const mainClassName = isListSubpage
+  // Authorities page always uses full-width layout so overview↔editor transitions don't cause layout jumps
+  const isAuthPage = normalizedSlug === 'authorities';
+  const mainClassName = (isListSubpage || isAuthPage)
     ? 'w-full max-w-none px-0 pb-0 pt-0'
     : isDashboardHero
       ? 'mx-auto max-w-screen-2xl px-6 pb-8 pt-0 lg:px-14 xl:px-16 2xl:px-10'
       : 'mx-auto max-w-screen-2xl px-6 py-8 lg:px-14 xl:px-16 2xl:px-10';
 
   const dashboardHeaderLabel = role === 'clerk' ? 'Library Operations' : 'Research Workspace';
-  const shellHeaderHeight = isDashboardHero && !headerCondensed ? 72 : 57;
+  const shellHeaderHeight = 57;
   const headerClassName = isDashboardHero
     ? headerCondensed
       ? 'border-b border-border/60 bg-white/88 py-3 shadow-[0_12px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'
-      : 'border-b border-white/18 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] py-4 shadow-[0_12px_32px_rgba(124,45,18,0.08)] backdrop-blur-xl'
-    : isListSubpage ? 'border-b border-border/60 bg-white py-3' : 'border-b border-border/60 bg-white/80 py-3 backdrop-blur-sm';
+      : 'border-b border-white/18 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] py-3 shadow-[0_12px_32px_rgba(124,45,18,0.08)] backdrop-blur-xl'
+    : 'border-b border-border/60 bg-white py-3';
   const quickActionClassName = isBarristerQuickAction
     ? 'hidden !px-3.5 !py-2 !text-xs lg:inline-flex'
     : 'hidden !px-3.5 !py-2 !text-xs lg:inline-flex';
@@ -241,10 +249,7 @@ export default function AppShell({ role, children }) {
     resetSession(role);
     navigate(`/login?role=${role}`);
   };
-  const headerUtilityButtonClassName = isDashboardHero && !headerCondensed
-    ? 'relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-transparent text-white/90 transition-colors hover:bg-white/12 hover:text-white'
-    : 'relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-transparent text-text-secondary transition-colors hover:bg-slate-100 hover:text-text';
-  const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2xl px-2.5 py-1.5 text-left transition-colors ${
+const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2xl px-2.5 py-1.5 text-left transition-colors ${
     isDashboardHero && !headerCondensed
       ? profileMenuOpen ? 'bg-white/14' : 'hover:bg-white/10'
       : profileMenuOpen ? 'bg-slate-100' : 'hover:bg-slate-100'
@@ -263,50 +268,6 @@ export default function AppShell({ role, children }) {
   const leftChambersNameClassName = isDashboardHero && !headerCondensed
     ? 'truncate text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(124,45,18,0.16)]'
     : 'truncate text-sm font-medium text-text';
-  const headerSearchWrapperClassName = isDashboardHero && !headerCondensed
-    ? 'relative hidden min-w-0 flex-1 md:block'
-    : 'relative hidden min-w-0 flex-1 md:block';
-  const handleHeaderSearchSubmit = (event) => {
-    event.preventDefault();
-    const trimmedQuery = headerQuery.trim();
-    setShowSuggestions(false);
-
-    if (role === 'clerk') {
-      navigate(trimmedQuery ? `/app/catalogue?q=${encodeURIComponent(trimmedQuery)}` : '/app/catalogue');
-      return;
-    }
-
-    navigate(trimmedQuery ? `/app/authorities?q=${encodeURIComponent(trimmedQuery)}` : '/app/authorities');
-  };
-
-  const handleSuggestionSelect = (suggestion) => {
-    setShowSuggestions(false);
-    setHeaderQuery('');
-    if (role === 'clerk') {
-      navigate(`/app/catalogue?q=${encodeURIComponent(suggestion.title)}`);
-      return;
-    }
-
-    navigate(`/app/authorities?q=${encodeURIComponent(suggestion.title)}`);
-  };
-
-  const handleSearchKeyDown = (e) => {
-    if (!showSuggestions || suggestions.length === 0) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
-    } else if (e.key === 'Enter' && activeIndex >= 0) {
-      e.preventDefault();
-      handleSuggestionSelect(suggestions[activeIndex]);
-    } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-      setActiveIndex(-1);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Mobile sidebar overlay */}
@@ -318,7 +279,7 @@ export default function AppShell({ role, children }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out md:z-20 md:translate-x-0 md:shadow-sm ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed left-0 top-0 z-40 flex h-screen w-72 flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out md:z-20 md:translate-x-0 md:shadow-sm ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between px-3 pb-3 pt-2">
           <Link to="/app/dashboard" className="flex" onClick={() => setSidebarOpen(false)}>
             <img src="/assets/CLMS_logo.svg" alt="CLMS" className="h-6 w-auto" />
@@ -326,7 +287,7 @@ export default function AppShell({ role, children }) {
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-slate-100 hover:text-text md:hidden"
+            className="btn-icon h-8 w-8 shrink-0 text-text-secondary hover:bg-slate-100 hover:text-text md:hidden"
             aria-label="Close sidebar"
           >
             <Icon name="solar:close-circle-linear" size={20} />
@@ -357,7 +318,7 @@ export default function AppShell({ role, children }) {
                       type="button"
                       aria-label="Create authority list"
                       onClick={() => navigate('/app/authorities?new=1')}
-                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                      className={`btn-icon h-8 w-8 shrink-0 ${
                         isAuthoritiesActive
                           ? 'text-white/80 hover:bg-white/12 hover:text-white'
                           : 'text-text-muted hover:bg-slate-200/80 hover:text-text'
@@ -370,7 +331,7 @@ export default function AppShell({ role, children }) {
                       aria-label={authorityListsExpanded ? 'Collapse authority lists' : 'Expand authority lists'}
                       aria-expanded={authorityListsExpanded}
                       onClick={() => setAuthorityListsExpanded((prev) => !prev)}
-                      className={`mr-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                      className={`btn-icon mr-1 h-8 w-8 shrink-0 ${
                         isAuthoritiesActive
                           ? 'text-white/80 hover:bg-white/12 hover:text-white'
                           : 'text-text-muted hover:bg-slate-200/80 hover:text-text'
@@ -489,7 +450,7 @@ export default function AppShell({ role, children }) {
 
       {/* Main */}
       <div
-        className={`relative md:pl-64 ${isDashboardHero ? 'overflow-hidden' : ''}`}
+        className="relative md:pl-72"
         style={{ '--header-h': `${shellHeaderHeight}px` }}
       >
         {isDashboardHero && (
@@ -500,11 +461,11 @@ export default function AppShell({ role, children }) {
 
         {/* Top header */}
         <header ref={headerRef} className={`sticky top-0 z-10 transition-all duration-300 ${headerClassName}`}>
-          <div className="flex items-center gap-4 px-6 md:gap-10 lg:px-14 xl:px-16 2xl:px-10">
+          <div className="relative flex items-center gap-4 px-6 md:gap-10 lg:px-14 xl:px-16 2xl:px-10">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-colors md:hidden ${
+              className={`btn-icon h-10 w-10 shrink-0 md:hidden ${
                 isDashboardHero && !headerCondensed
                   ? 'text-white/90 hover:bg-white/12 hover:text-white'
                   : 'text-text-secondary hover:bg-slate-100 hover:text-text'
@@ -514,7 +475,11 @@ export default function AppShell({ role, children }) {
               <Icon name="solar:hamburger-menu-linear" size={24} />
             </button>
             <div className="shrink-0">
-              {isAuthSearch ? (
+              {isAuthoritiesOverview ? (
+                <Breadcrumb items={[
+                  { label: 'Authority Lists' },
+                ]} />
+              ) : isAuthSearch ? (
                 <Breadcrumb items={[
                   { label: 'Authority Lists', onClick: () => navigate('/app/authorities') },
                   { label: 'Search Results' },
@@ -524,108 +489,28 @@ export default function AppShell({ role, children }) {
                   { label: 'Authority Lists', onClick: () => navigate('/app/authorities') },
                   { label: 'List Editor' },
                 ]} />
+              ) : isDashboardHero ? (
+                <div className="flex items-center gap-2.5">
+                  {renderChambersMark(
+                    'h-8 w-8',
+                    headerCondensed ? 'bg-slate-100 text-slate-500' : 'bg-white/18 text-white/80',
+                    16,
+                    'rounded-xl',
+                  )}
+                  <span className={`hidden font-serif text-sm font-semibold lg:inline ${headerCondensed ? 'text-text' : 'text-white'}`}>
+                    {onboarding.chambersName || 'Chambers'}
+                  </span>
+                </div>
               ) : (
-                <>
-                  <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${leftHeaderTextClassName}`}>{leftHeaderLabel}</p>
-                  <div className="mt-1 flex items-center gap-2">
-                    {renderChambersMark('h-7 w-7', leftChambersToneClassName, 14, 'rounded-full')}
-                    <p className={leftChambersNameClassName}>
-                      {onboarding.chambersName || 'Chambers Dashboard'}
-                    </p>
-                  </div>
-                </>
+                <Breadcrumb items={[{ label: currentNavLabel }]} />
               )}
             </div>
 
-            <form onSubmit={handleHeaderSearchSubmit} ref={searchWrapperRef} className={`${headerSearchWrapperClassName} mx-auto${isHeaderMinimal ? ' !hidden' : ''}`} style={{ maxWidth: 500 }}>
-              <div className="flex items-center gap-3 rounded-full border border-white/70 bg-white px-3 py-2 ring-1 ring-black/5">
-                <span className="flex shrink-0 items-center justify-center pl-1 text-brand">
-                  <Icon
-                    name="solar:magnifer-linear"
-                    size={18}
-                  />
-                </span>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={headerQuery}
-                  onChange={(event) => { setHeaderQuery(event.target.value); setShowSuggestions(true); setActiveIndex(-1); }}
-                  onFocus={() => { if (headerQuery.trim()) setShowSuggestions(true); }}
-                  onKeyDown={handleSearchKeyDown}
-                  placeholder={searchPlaceholder}
-                  className="min-w-0 flex-1 bg-transparent py-1 text-sm text-text placeholder:text-slate-400 focus:outline-none"
-                  autoComplete="off"
-                  role="combobox"
-                  aria-expanded={showSuggestions && suggestions.length > 0}
-                  aria-autocomplete="list"
-                  aria-controls="header-search-suggestions"
-                />
-                <button
-                  type="submit"
-                  className="inline-flex shrink-0 items-center justify-center rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-                >
-                  Search
-                </button>
-              </div>
-
-              {/* Autosuggest dropdown */}
-              {showSuggestions && suggestions.length > 0 && (
-                <div
-                  id="header-search-suggestions"
-                  role="listbox"
-                  className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 rounded-[24px] border border-slate-200 bg-white p-2 shadow-[0_22px_48px_rgba(15,23,42,0.14)] ring-1 ring-black/5"
-                >
-                  <p className="px-2 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
-                    Suggestions
-                  </p>
-                  {suggestions.map((s, idx) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      role="option"
-                      aria-selected={idx === activeIndex}
-                      onClick={() => handleSuggestionSelect(s)}
-                      onMouseEnter={() => setActiveIndex(idx)}
-                      className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors ${
-                        idx === activeIndex ? 'bg-slate-100' : 'hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                        s.type === 'book' ? 'bg-brand/10 text-brand' : s.jadeType === 'legislation' ? 'bg-violet-100 text-violet-600' : 'bg-emerald-100 text-emerald-600'
-                      }`}>
-                        <Icon name={s.icon} size={15} />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-text">{s.title}</p>
-                        <p className="truncate text-xs text-text-muted">{s.subtitle}</p>
-                      </div>
-                      {s.type === 'book' && (
-                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                          s.status === 'available' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
-                        }`}>
-                          {s.status === 'available' ? 'Available' : 'On loan'}
-                        </span>
-                      )}
-                      {s.type === 'jade' && (
-                        <span className="shrink-0 rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-600">
-                          JADE
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                  <div className="mt-1 border-t border-slate-100 px-2 pt-2">
-                    <button
-                      type="submit"
-                      className="flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-slate-50 hover:text-brand"
-                    >
-                      <Icon name="solar:magnifer-linear" size={13} />
-                      Search all for "{headerQuery}"
-                      <span className="ml-auto rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-text-muted">Enter</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </form>
+            <HeaderSearchBar
+              placeholder={searchPlaceholder}
+              role={role}
+              className="absolute left-1/2 hidden w-full max-w-[500px] -translate-x-1/2 md:block"
+            />
 
             <div className="relative ml-auto flex shrink-0 items-center gap-3">
               {quickAction && (
@@ -639,27 +524,78 @@ export default function AppShell({ role, children }) {
                   {quickAction.label}
                 </Button>
               )}
-              <button type="button" className={headerUtilityButtonClassName} aria-label="Notifications">
-                <Icon name="solar:bell-linear" size={24} />
-                {pendingCount > 0 && (
-                  <span className={`animate-bell-dot absolute right-2 top-2 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 ${isDashboardHero && !headerCondensed ? 'ring-2 ring-[rgba(234,88,12,0.4)]' : 'ring-2 ring-white'}`} />
+              <div ref={notiRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setNotiOpen((v) => !v)}
+                  className={`btn-icon relative h-10 w-10 shrink-0 ${
+                    isDashboardHero && !headerCondensed
+                      ? 'text-white/90 hover:bg-white/12 hover:text-white'
+                      : 'text-text-secondary hover:bg-slate-100 hover:text-text'
+                  }`}
+                  aria-label="Notifications"
+                >
+                  <Icon name="solar:bell-linear" size={22} />
+                  {pendingCount > 0 && (
+                    <span className={`absolute right-2 top-2 flex h-2.5 w-2.5 rounded-full bg-red-500 ${isDashboardHero && !headerCondensed ? 'ring-2 ring-[rgba(234,88,12,0.4)]' : 'ring-2 ring-white'}`} />
+                  )}
+                </button>
+                {notiOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-80 animate-fade-in overflow-hidden rounded-2xl border border-border/60 bg-white shadow-xl ring-1 ring-black/5">
+                    <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                      <h3 className="text-sm font-semibold text-text">Notifications</h3>
+                      {visibleNotis.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setDismissedNotiIds(new Set(notifications.map((n) => n.id)))}
+                          className="text-xs text-text-muted transition-colors hover:text-text"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-72 overflow-y-auto">
+                      {visibleNotis.length > 0 ? visibleNotis.map((noti) => (
+                        <div key={noti.id} className="flex items-start gap-3 border-b border-border/40 px-4 py-3 last:border-b-0 transition-colors hover:bg-slate-50">
+                          <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${noti.bg}`}>
+                            <Icon name={noti.icon} size={16} className={noti.iconColor} />
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => { navigate(noti.to); setNotiOpen(false); }}
+                            className="min-w-0 flex-1 text-left"
+                          >
+                            <p className="text-xs font-medium text-text">{noti.message}</p>
+                            <p className="mt-0.5 truncate text-xs text-text-muted">{noti.detail}</p>
+                          </button>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className="text-xs text-text-muted">{noti.time}</span>
+                            <button
+                              type="button"
+                              onClick={() => setDismissedNotiIds((prev) => new Set([...prev, noti.id]))}
+                              className="rounded-full p-1 text-text-muted transition-colors hover:bg-slate-100 hover:text-text"
+                            >
+                              <Icon name="solar:close-circle-linear" size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="px-4 py-8 text-center">
+                          <Icon name="solar:bell-linear" size={24} className="mx-auto text-slate-300" />
+                          <p className="mt-2 text-xs text-text-muted">No notifications</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/app/settings')}
-                className={headerUtilityButtonClassName}
-                aria-label="Settings"
-              >
-                <Icon name="solar:settings-linear" size={24} />
-              </button>
+              </div>
             </div>
           </div>
         </header>
 
         <main
           className={mainClassName}
-          style={isListSubpage ? { height: `calc(100vh - ${measuredHeaderH}px)`, overflow: 'hidden' } : undefined}
+          style={(isListSubpage || isAuthPage) ? { height: `calc(100vh - ${measuredHeaderH}px)`, overflow: 'hidden' } : undefined}
         >
           {children}
         </main>

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
 import Badge from '../../atoms/Badge';
+import PageHeader from '../../molecules/PageHeader';
 import BookDetailPanel from '../../organisms/BookDetailPanel';
 import AddBookFlow from '../../organisms/AddBookFlow';
 import ImportModal from '../../organisms/ImportModal';
@@ -110,24 +111,19 @@ export default function ClerkCataloguePage() {
 
   return (
     <div className="animate-page-in">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-3xl text-text">Catalogue</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Maintain catalogue quality for faster search and cleaner authority workflows.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="primary" onClick={() => setShowAddBook(true)}>
-            <Icon name="solar:add-circle-linear" size={16} />
-            Add Book
-          </Button>
-          <Button size="sm" variant="secondary" onClick={() => setShowImport(true)}>
-            <Icon name="solar:upload-linear" size={16} />
-            Import CSV
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Catalogue"
+        subtitle="Maintain catalogue quality for faster search and cleaner authority workflows."
+      >
+        <Button size="sm" variant="primary" onClick={() => setShowAddBook(true)}>
+          <Icon name="solar:add-circle-linear" size={16} />
+          Add Book
+        </Button>
+        <Button size="sm" variant="secondary" onClick={() => setShowImport(true)}>
+          <Icon name="solar:upload-linear" size={16} />
+          Import CSV
+        </Button>
+      </PageHeader>
 
       <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-white p-2">
         <button

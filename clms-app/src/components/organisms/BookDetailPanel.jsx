@@ -93,7 +93,7 @@ export default function BookDetailPanel({ book, onClose, onSaved }) {
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h2 className="font-serif text-lg text-text">{book.title}</h2>
+              <h2 className="font-serif text-card-title text-text">{book.title}</h2>
               <p className="mt-0.5 text-xs text-text-secondary">
                 {book.author} · {book.edition} Ed
               </p>

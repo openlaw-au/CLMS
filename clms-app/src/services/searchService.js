@@ -1,5 +1,6 @@
 import { booksMock } from '../mocks/books';
 import { jadeResultsMock } from '../mocks/jadeResults';
+import { authorityListsMock } from '../mocks/authorityLists';
 
 const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -36,7 +37,24 @@ export async function getSuggestions(query) {
   const suggestions = [];
   const seen = new Set();
 
-  // Direct book title matches (highest priority)
+  // My authority lists (highest priority)
+  for (const l of authorityListsMock) {
+    if (
+      (l.name.toLowerCase().includes(lower) || (l.caseRef && l.caseRef.toLowerCase().includes(lower))) &&
+      !seen.has(l.name)
+    ) {
+      seen.add(l.name);
+      suggestions.push({
+        id: l.id,
+        type: 'list',
+        title: l.name,
+        subtitle: `${l.items.length} entries${l.caseRef ? ` · ${l.caseRef}` : ''}`,
+        icon: 'solar:folder-open-linear',
+      });
+    }
+  }
+
+  // Direct book title matches
   for (const b of booksMock) {
     if (b.title.toLowerCase().includes(lower) && !seen.has(b.title)) {
       seen.add(b.title);

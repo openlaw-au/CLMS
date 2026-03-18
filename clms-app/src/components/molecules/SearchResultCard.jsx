@@ -74,14 +74,14 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
           <Badge variant="info">JADE</Badge>
         </div>
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          <span className="rounded-md bg-success/10 px-2 py-0.5 text-xs font-medium text-success">JADE</span>
+          <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-purple-600">JADE</span>
           <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-            item.type === 'case' ? 'bg-success/10 text-success' : 'bg-info/10 text-info'
+            item.type === 'case' ? 'bg-surface-subtle text-success' : 'bg-surface-subtle text-purple-600'
           }`}>
             {item.type === 'case' ? 'Case Law' : 'Legislation'}
           </span>
           {item.tags.map((tag) => (
-            <span key={tag} className="rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">{tag}</span>
+            <span key={tag} className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">{tag}</span>
           ))}
         </div>
         {item.citedCount != null && (
@@ -198,7 +198,7 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
       )}
 
       <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-        <span className="rounded-md bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">Book</span>
+        <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-brand">Book</span>
         <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
           {item.location}, Flr {item.floor}
         </span>

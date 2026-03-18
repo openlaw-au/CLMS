@@ -13,6 +13,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    jadeAvailable: true,
     enrichment: { subject: 'Evidence', jurisdiction: ['Federal'], resourceType: 'Monograph', tags: ['hearsay', 'expert evidence'], notes: '' },
   },
   {
@@ -22,6 +23,7 @@ export const booksMock = [
     edition: '2nd',
     publisher: 'Lawbook Co',
     isbn: '9780455240268',
+
     location: 'Owen Dixon East',
     floor: '3',
     status: 'on-loan',
@@ -29,6 +31,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: 'm2',
     dueDate: '2026-03-01',
+    jadeAvailable: false,
     enrichment: null,
   },
   {
@@ -41,10 +44,11 @@ export const booksMock = [
     location: 'Level 5 Library',
     floor: '5',
     status: 'available',
-    practiceArea: 'Ethics',
+    practiceArea: 'Professional Responsibility',
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    jadeAvailable: true,
     enrichment: null,
   },
   {
@@ -61,6 +65,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    jadeAvailable: true,
     enrichment: { subject: 'Equity', jurisdiction: ['Federal'], resourceType: 'Monograph', tags: ['trusts', 'fiduciary duties'], notes: '' },
   },
   {
@@ -70,6 +75,7 @@ export const booksMock = [
     edition: '8th',
     publisher: 'LexisNexis Butterworths',
     isbn: '9780409340150',
+
     location: 'Level 5 Library',
     floor: '5',
     status: 'on-loan',
@@ -77,6 +83,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: 'm4',
     dueDate: '2026-02-20',
+    jadeAvailable: false,
     enrichment: null,
   },
   {
@@ -86,6 +93,7 @@ export const booksMock = [
     edition: 'Service 197',
     publisher: 'LexisNexis Butterworths',
     isbn: '9780409305821',
+
     location: 'Owen Dixon East',
     floor: '3',
     status: 'available',
@@ -93,6 +101,7 @@ export const booksMock = [
     jurisdiction: 'NSW',
     borrower: null,
     dueDate: null,
+    jadeAvailable: true,
     enrichment: null,
   },
   {
@@ -102,6 +111,7 @@ export const booksMock = [
     edition: '3rd',
     publisher: 'Federation Press',
     isbn: '9781760022174',
+
     location: 'Level 5 Library',
     floor: '5',
     status: 'available',
@@ -109,6 +119,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    jadeAvailable: false,
     enrichment: null,
   },
   {
@@ -125,6 +136,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: 'm1',
     dueDate: '2026-03-05',
+    jadeAvailable: true,
     enrichment: null,
   },
   {
@@ -134,13 +146,15 @@ export const booksMock = [
     edition: '7th',
     publisher: 'Thomson Reuters',
     isbn: '9780455243283',
+
     location: 'Owen Dixon East',
     floor: '3',
     status: 'available',
-    practiceArea: 'Administrative Law',
+    practiceArea: 'Public Law',
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    jadeAvailable: false,
     enrichment: null,
   },
   {
@@ -157,6 +171,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    jadeAvailable: true,
     enrichment: null,
   },
   {
@@ -166,13 +181,15 @@ export const booksMock = [
     edition: '2nd',
     publisher: 'LexisNexis Butterworths',
     isbn: '9780409326840',
+
     location: 'Owen Dixon East',
     floor: '3',
     status: 'available',
-    practiceArea: 'General',
+    practiceArea: 'Reference',
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    jadeAvailable: false,
     enrichment: null,
   },
   {
@@ -182,6 +199,7 @@ export const booksMock = [
     edition: '4th',
     publisher: 'Thomson Reuters',
     isbn: '9780455245072',
+
     location: 'Level 5 Library',
     floor: '5',
     status: 'available',
@@ -189,6 +207,7 @@ export const booksMock = [
     jurisdiction: 'VIC',
     borrower: null,
     dueDate: null,
+    jadeAvailable: true,
     enrichment: null,
   },
   {
@@ -198,6 +217,7 @@ export const booksMock = [
     edition: '1st',
     publisher: 'Federation Press',
     isbn: '9781760024018',
+
     location: 'Owen Dixon East',
     floor: '3',
     status: 'available',
@@ -205,6 +225,7 @@ export const booksMock = [
     jurisdiction: 'Federal',
     borrower: null,
     dueDate: null,
+    jadeAvailable: false,
     enrichment: null,
   },
 ];

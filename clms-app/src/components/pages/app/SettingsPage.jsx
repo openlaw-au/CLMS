@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Icon from '../../atoms/Icon';
+import PageHeader from '../../molecules/PageHeader';
 import { useAppContext } from '../../../context/AppContext';
 
 const COMMON_SECTIONS = [
@@ -34,8 +35,7 @@ export default function SettingsPage() {
 
   return (
     <div className="animate-page-in">
-      <h1 className="font-serif text-3xl text-text">Settings</h1>
-      <p className="mt-2 text-sm text-text-secondary">Account and application preferences.</p>
+      <PageHeader title="Settings" subtitle="Account and application preferences." />
 
       <div className="mt-5 space-y-2">
         {sections.map((section) => (

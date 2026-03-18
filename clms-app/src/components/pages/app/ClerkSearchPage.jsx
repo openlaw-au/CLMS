@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '../../atoms/Icon';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
+import PageHeader from '../../molecules/PageHeader';
 import Badge from '../../atoms/Badge';
 import FilterPillBar from '../../molecules/FilterPillBar';
 import { useToast } from '../../../context/ToastContext';
@@ -222,18 +223,12 @@ export default function ClerkSearchPage() {
 
   return (
     <div className="animate-page-in pb-12">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-3xl text-text">Search</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            One search across chambers books, JADE cases, and legislation.
-          </p>
-        </div>
+      <PageHeader title="Search" subtitle="One search across chambers books, JADE cases, and legislation.">
         <Button size="sm" variant="secondary" onClick={() => navigate('/app/authorities')}>
           <Icon name="solar:list-check-linear" size={14} />
           Open Authorities
         </Button>
-      </div>
+      </PageHeader>
 
       <div className="mt-5 max-w-2xl">
         <Input
@@ -250,7 +245,7 @@ export default function ClerkSearchPage() {
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {/* Suggested searches */}
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:col-span-2">
-            <h2 className="font-serif text-lg text-text">Start Researching</h2>
+            <h2 className="font-serif text-card-title text-text">Start Researching</h2>
             <p className="mt-1 text-xs text-text-secondary">Search books, JADE cases, and legislation in one place.</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {SUGGESTED_QUERIES.map((q) => (
@@ -294,7 +289,7 @@ export default function ClerkSearchPage() {
           <div className="space-y-4">
             <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
               <div className="flex items-center justify-between">
-                <h2 className="font-serif text-lg text-text">Authority Lists</h2>
+                <h2 className="font-serif text-card-title text-text">Authority Lists</h2>
                 <button
                   type="button"
                   onClick={() => navigate('/app/authorities')}
@@ -320,7 +315,7 @@ export default function ClerkSearchPage() {
             </section>
 
             <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-              <h2 className="font-serif text-lg text-text">Search covers</h2>
+              <h2 className="font-serif text-card-title text-text">Search covers</h2>
               <div className="mt-3 space-y-2.5">
                 <div className="flex items-center gap-2.5 text-sm text-text-secondary">
                   <Icon name="solar:book-2-linear" size={14} className="shrink-0 text-brand" />

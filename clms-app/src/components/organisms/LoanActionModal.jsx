@@ -13,7 +13,7 @@ export default function LoanActionModal({ loan, onDeny, onClose }) {
     <>
       <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
       <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="font-serif text-lg text-text">Deny Loan Request</h2>
+        <h2 className="font-serif text-card-title text-text">Deny Loan Request</h2>
         <p className="mt-1 text-sm text-text-secondary">
           Deny {loan.borrower}'s request for "{loan.bookTitle}"
         </p>

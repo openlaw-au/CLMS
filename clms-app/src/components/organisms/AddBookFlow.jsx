@@ -50,7 +50,7 @@ export default function AddBookFlow({ onClose, onAdded, prefill = null }) {
       <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
       <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl">
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-lg text-text">Add Book</h2>
+          <h2 className="font-serif text-card-title text-text">Add Book</h2>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-text-muted hover:bg-slate-100">
             <Icon name="solar:close-circle-linear" size={20} />
           </button>

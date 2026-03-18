@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
+import PageHeader from '../../molecules/PageHeader';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import { getBooks } from '../../../services/booksService';
@@ -46,23 +47,19 @@ export default function ClerkLocationsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-serif text-3xl text-text">Locations</h1>
-          <p className="mt-2 text-sm text-text-secondary">Manage your chambers library locations.</p>
-        </div>
+      <PageHeader title="Locations" subtitle="Manage your chambers library locations.">
         <Button size="sm" variant="primary" onClick={() => addToast({ message: 'Location editor coming soon', type: 'info' })}>
           <Icon name="solar:add-circle-linear" size={16} />
           Add Location
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Location tree */}
       <div className="mt-5 space-y-2">
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
           <div className="flex items-center gap-2 mb-4">
             <Icon name="solar:buildings-linear" size={20} className="text-brand" />
-            <h2 className="font-serif text-lg text-text">{onboarding.chambersName || 'Owen Dixon Chambers'}</h2>
+            <h2 className="font-serif text-card-title text-text">{onboarding.chambersName || 'Owen Dixon Chambers'}</h2>
           </div>
 
           {Object.entries(buildingGroups).map(([building, floors]) => (

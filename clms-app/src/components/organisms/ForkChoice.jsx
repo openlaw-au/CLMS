@@ -113,11 +113,11 @@ export default function ForkChoice() {
           setStartingSolo(true);
           updateOnboarding({ mode: 'solo' });
           // TODO(api): POST /api/onboarding/solo
-          setTimeout(() => navigate('/app/search?role=barrister&mode=solo'), 600);
+          setTimeout(() => navigate('/app/dashboard?role=barrister&mode=solo'), 600);
         }}
         onContinueAfterInvite={(email) => {
           updateOnboarding({ clerkInviteEmail: email, mode: 'solo' });
-          navigate('/app/search?role=barrister&mode=solo');
+          navigate('/app/dashboard?role=barrister&mode=solo');
         }}
       />
     </section>

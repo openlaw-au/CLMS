@@ -179,7 +179,7 @@ export default function ClerkDashboardPage() {
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:col-span-2">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="font-serif text-xl text-text">Catalogue Health</h2>
+              <h2 className="font-serif text-section-title text-text">Catalogue Health</h2>
               <p className="mt-1 text-xs text-text-secondary">
                 Better metadata improves search and authority lists.
               </p>
@@ -254,7 +254,7 @@ export default function ClerkDashboardPage() {
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="font-serif text-lg text-text">Uncatalogued Books</h2>
+                <h2 className="font-serif text-card-title text-text">Uncatalogued Books</h2>
                 <p className="mt-1 text-xs text-text-secondary">Barrister-added titles waiting for triage.</p>
               </div>
               <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
@@ -315,7 +315,7 @@ export default function ClerkDashboardPage() {
           {/* Pending requests */}
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-lg text-text">Pending Requests</h2>
+              <h2 className="font-serif text-card-title text-text">Pending Requests</h2>
               <button
                 type="button"
                 onClick={() => navigate('/app/loans')}
@@ -347,7 +347,7 @@ export default function ClerkDashboardPage() {
           {/* Authority activity — connects clerk work to barrister output */}
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-lg text-text">Authority Lists</h2>
+              <h2 className="font-serif text-card-title text-text">Authority Lists</h2>
               <button
                 type="button"
                 onClick={() => navigate('/app/authorities')}
@@ -376,7 +376,7 @@ export default function ClerkDashboardPage() {
 
           {/* Loan snapshot */}
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-            <h2 className="font-serif text-lg text-text">Loan Snapshot</h2>
+            <h2 className="font-serif text-card-title text-text">Loan Snapshot</h2>
             <div className="mt-3 space-y-2 text-sm">
               <div className="flex items-center justify-between text-text-secondary">
                 <span>Active</span>

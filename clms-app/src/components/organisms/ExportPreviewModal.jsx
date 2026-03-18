@@ -32,7 +32,7 @@ export default function ExportPreviewModal({ list, onClose }) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Table of Authorities - ${list.name}`,
+          title: `List of Authorities - ${list.name}`,
           text,
         });
       } catch {
@@ -59,7 +59,7 @@ export default function ExportPreviewModal({ list, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/60 bg-white px-6 py-4">
           <div>
-            <h2 className="font-serif text-lg text-text">Export Preview</h2>
+            <h2 className="font-serif text-card-title text-text">Export Preview</h2>
             <p className="mt-0.5 text-xs text-text-secondary">{list.name} · {list.caseRef}</p>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-text-muted hover:bg-slate-100">

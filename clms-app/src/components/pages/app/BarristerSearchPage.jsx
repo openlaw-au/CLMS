@@ -5,6 +5,7 @@ import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
 import SearchResultCard from '../../molecules/SearchResultCard';
 import FilterPillBar from '../../molecules/FilterPillBar';
+import PageHeader from '../../molecules/PageHeader';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import { suggestedBarristerQueries } from '../../../mocks/barristerQueries';
@@ -297,12 +298,10 @@ export default function BarristerSearchPage() {
         </div>
       )}
 
-      <div>
-        <h1 className="font-serif text-3xl text-text">Search</h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          Find cases, books, and legislation across JADE and your chambers library.
-        </p>
-      </div>
+      <PageHeader
+        title="Search"
+        subtitle="Find cases, books, and legislation across JADE and your chambers library."
+      />
 
       {firstVisit && !listIdParam && (
         <div className="mt-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
@@ -436,7 +435,7 @@ export default function BarristerSearchPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="font-serif text-lg text-text">Add to List</h3>
+              <h3 className="font-serif text-card-title text-text">Add to List</h3>
               <button type="button" onClick={() => setPendingItem(null)} className="rounded-lg p-1 text-text-muted transition-colors hover:bg-slate-100 hover:text-text">
                 <Icon name="solar:close-circle-linear" size={18} />
               </button>

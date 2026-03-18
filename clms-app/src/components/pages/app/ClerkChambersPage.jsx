@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import Icon from '../../atoms/Icon';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
+import PageHeader from '../../molecules/PageHeader';
 import Badge from '../../atoms/Badge';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
@@ -90,24 +91,16 @@ export default function ClerkChambersPage() {
 
   return (
     <div className="animate-page-in">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-serif text-3xl text-text">Chambers</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Manage people and physical library locations in one place.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant={tab === 'members' ? 'primary' : 'secondary'} onClick={() => setTab('members')}>
-            <Icon name="solar:users-group-rounded-linear" size={14} />
-            Members
-          </Button>
-          <Button size="sm" variant={tab === 'locations' ? 'primary' : 'secondary'} onClick={() => setTab('locations')}>
-            <Icon name="solar:map-point-linear" size={14} />
-            Locations
-          </Button>
-        </div>
-      </div>
+      <PageHeader title="Chambers" subtitle="Manage people and physical library locations in one place.">
+        <Button size="sm" variant={tab === 'members' ? 'primary' : 'secondary'} onClick={() => setTab('members')}>
+          <Icon name="solar:users-group-rounded-linear" size={14} />
+          Members
+        </Button>
+        <Button size="sm" variant={tab === 'locations' ? 'primary' : 'secondary'} onClick={() => setTab('locations')}>
+          <Icon name="solar:map-point-linear" size={14} />
+          Locations
+        </Button>
+      </PageHeader>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[
@@ -197,7 +190,7 @@ export default function ClerkChambersPage() {
         <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
           <div className="mb-4 flex items-center gap-2">
             <Icon name="solar:buildings-linear" size={20} className="text-brand" />
-            <h2 className="font-serif text-lg text-text">{onboarding.chambersName || 'Your Chambers'}</h2>
+            <h2 className="font-serif text-card-title text-text">{onboarding.chambersName || 'Your Chambers'}</h2>
           </div>
 
           <div className="space-y-2">
