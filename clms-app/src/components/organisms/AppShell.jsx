@@ -400,6 +400,19 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
           })}
         </nav>
 
+        {onboarding.mode === 'solo' && (
+          <div className="mx-1 mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <div className="flex items-center gap-2 text-xs font-medium text-amber-900">
+              <Icon name="solar:buildings-2-linear" size={14} className="shrink-0 text-amber-700" />
+              Solo mode
+            </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-amber-800">Join chambers for shared catalogue and loans.</p>
+            <Button size="sm" variant="secondary" className="mt-2 w-full !border-amber-300 !bg-white !text-amber-900 !text-xs hover:!bg-amber-50" onClick={() => navigate('/onboarding/barrister/lookup')}>
+              Join Chambers
+            </Button>
+          </div>
+        )}
+
         <div ref={profileMenuRef} className="relative mt-auto -mx-3 border-t border-border/60 px-3 pt-2">
           <button
             type="button"
