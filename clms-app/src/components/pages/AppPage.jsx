@@ -5,7 +5,6 @@ import AppShell from '../organisms/AppShell';
 import { useAppContext } from '../../context/AppContext';
 
 import BarristerDashboardPage from './app/BarristerDashboardPage';
-import BarristerSearchPage from './app/BarristerSearchPage';
 import BarristerListsPage from './app/BarristerListsPage';
 import BarristerLoansPage from './app/BarristerLoansPage';
 import ClerkDashboardPage from './app/ClerkDashboardPage';
@@ -18,7 +17,6 @@ import SettingsPage from './app/SettingsPage';
 
 const BARRISTER_PAGES = {
   dashboard: BarristerDashboardPage,
-  search: BarristerSearchPage,
   authorities: BarristerListsPage,
   lists: BarristerListsPage,
   loans: BarristerLoansPage,
@@ -56,7 +54,7 @@ export default function AppPage() {
   }, [roleParam, setRole]);
 
   useEffect(() => {
-    if (!firstVisit || celebrationShown) return undefined;
+    if (!firstVisit || celebrationShown || !onboarding.name) return undefined;
     markCelebrationShown();
 
     const shoot = () => {

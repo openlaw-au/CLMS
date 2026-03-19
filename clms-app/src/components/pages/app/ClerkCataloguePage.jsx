@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
 import Badge from '../../atoms/Badge';
+import Skeleton from '../../atoms/Skeleton';
+import ContentLoader from '../../atoms/ContentLoader';
 import PageHeader from '../../molecules/PageHeader';
 import BookDetailPanel from '../../organisms/BookDetailPanel';
 import AddBookFlow from '../../organisms/AddBookFlow';
@@ -18,6 +20,7 @@ function isBookEnriched(book) {
 export default function ClerkCataloguePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { addToast } = useToast();
+  const [loading, setLoading] = useState(true);
   const [books, setBooks] = useState([]);
   const [sortBy, setSortBy] = useState('title');
   const [filterTab, setFilterTab] = useState('all');
@@ -33,7 +36,11 @@ export default function ClerkCataloguePage() {
 
   useEffect(() => {
     // TODO(api): Replace with GET /api/books?sort={sortBy} - fetch sorted catalogue
-    getBooks().then(setBooks);
+    const min = new Promise((r) => setTimeout(r, 400));
+    Promise.all([getBooks(), min]).then(([b]) => {
+      setBooks(b);
+      setLoading(false);
+    });
   }, [refreshKey]);
 
   useEffect(() => {
@@ -111,58 +118,87 @@ export default function ClerkCataloguePage() {
 
   return (
     <div className="animate-page-in">
-      <PageHeader
-        title="Catalogue"
-        subtitle="Maintain catalogue quality for faster search and cleaner authority workflows."
+      {/* Header area — skeleton vs real */}
+      <ContentLoader
+        loading={loading}
+        skeleton={
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-7 w-32 rounded-lg" />
+              <Skeleton className="mt-2 h-4 w-56 rounded" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-24 rounded-xl" />
+              <Skeleton className="h-9 w-24 rounded-xl" />
+            </div>
+          </div>
+        }
       >
-        <Button size="sm" variant="primary" onClick={() => setShowAddBook(true)}>
-          <Icon name="solar:add-circle-linear" size={16} />
-          Add Book
-        </Button>
-        <Button size="sm" variant="secondary" onClick={() => setShowImport(true)}>
-          <Icon name="solar:upload-linear" size={16} />
-          Import CSV
-        </Button>
-      </PageHeader>
+        <PageHeader
+          title="Catalogue"
+          subtitle="Maintain catalogue quality for faster search and cleaner authority workflows."
+        >
+          <Button size="sm" variant="primary" onClick={() => setShowAddBook(true)}>
+            <Icon name="solar:add-circle-linear" size={16} />
+            Add Book
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => setShowImport(true)}>
+            <Icon name="solar:upload-linear" size={16} />
+            Import CSV
+          </Button>
+        </PageHeader>
+      </ContentLoader>
 
+      {/* Toolbar — container always visible */}
       <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-white p-2">
-        <button
-          type="button"
-          onClick={() => setViewMode('library')}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-            viewMode === 'library' ? 'bg-brand text-white' : 'bg-slate-100 text-text-secondary hover:bg-slate-200'
-          }`}
+        <ContentLoader
+          loading={loading}
+          skeleton={
+            <>
+              {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-8 w-20 rounded-full" />)}
+            </>
+          }
         >
-          Card View
-        </button>
-        <button
-          type="button"
-          onClick={() => setViewMode('table')}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-            viewMode === 'table' ? 'bg-brand text-white' : 'bg-slate-100 text-text-secondary hover:bg-slate-200'
-          }`}
-        >
-          Admin Table
-        </button>
-
-        <div className="ml-auto flex gap-1 rounded-lg bg-slate-100 p-1">
-          {filterTabs.map((tab) => (
+          <div className="flex w-full flex-wrap items-center gap-2">
             <button
-              key={tab.key}
               type="button"
-              onClick={() => setFilterTab(tab.key)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                filterTab === tab.key ? 'bg-white text-text shadow-sm' : 'text-text-secondary hover:text-text'
+              onClick={() => setViewMode('library')}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === 'library' ? 'bg-brand text-white' : 'bg-slate-100 text-text-secondary hover:bg-slate-200'
               }`}
             >
-              {tab.label} ({tab.count})
+              Card View
             </button>
-          ))}
-        </div>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === 'table' ? 'bg-brand text-white' : 'bg-slate-100 text-text-secondary hover:bg-slate-200'
+              }`}
+            >
+              Admin Table
+            </button>
+
+            <div className="ml-auto flex gap-1 rounded-lg bg-slate-100 p-1">
+              {filterTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setFilterTab(tab.key)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                    filterTab === tab.key ? 'bg-white text-text shadow-sm' : 'text-text-secondary hover:text-text'
+                  }`}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
+            </div>
+          </div>
+        </ContentLoader>
       </div>
 
-      {queueEntry && (
-        <div className="mt-4 rounded-2xl border border-brand/20 bg-brand/5 p-4">
+      {!loading && queueEntry && (
+        <div className="mt-4 rounded-2xl border border-brand/20 bg-brand/5 p-4 animate-fade-in">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-text">
@@ -183,212 +219,268 @@ export default function ClerkCataloguePage() {
         </div>
       )}
 
+      {/* Main content grid — container always visible */}
       <div className="mt-4 grid gap-4 lg:grid-cols-4">
         <div className="lg:col-span-3">
-          {effectiveViewMode === 'library' ? (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {sortedBooks.map((book) => {
-                const enriched = isBookEnriched(book);
-                const status = book.status === 'available' ? 'Available' : 'On Loan';
-
-                return (
-                  <article key={book.id} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="line-clamp-2 text-sm font-semibold text-text">{book.title}</p>
-                        <p className="mt-1 text-xs text-text-secondary">{book.author}</p>
-                      </div>
-                      <Badge variant={book.status === 'available' ? 'status' : 'default'}>{status}</Badge>
+          <ContentLoader
+            loading={loading}
+            skeleton={
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <div key={i} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-24 rounded-md" />
+                      <Skeleton className="h-5 w-16 rounded-md" />
                     </div>
+                    <Skeleton className="mt-3 h-4 w-full rounded" />
+                    <Skeleton className="mt-2 h-3 w-32 rounded" />
+                    <Skeleton className="mt-2 h-3 w-40 rounded" />
+                  </div>
+                ))}
+              </div>
+            }
+          >
+            {effectiveViewMode === 'library' ? (
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {sortedBooks.map((book) => {
+                    const enriched = isBookEnriched(book);
+                    const status = book.status === 'available' ? 'Available' : 'On Loan';
 
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-text-secondary">
-                        {book.location}, Floor {book.floor}
-                      </span>
-                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                        enriched ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-text-muted'
-                      }`}>
-                        {enriched ? 'Enriched' : 'ISBN Only'}
-                      </span>
+                    return (
+                      <article key={book.id} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="line-clamp-2 text-sm font-semibold text-text">{book.title}</p>
+                            <p className="mt-1 text-xs text-text-secondary">{book.author}</p>
+                          </div>
+                          <Badge variant={book.status === 'available' ? 'status' : 'default'}>{status}</Badge>
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-text-secondary">
+                            {book.location}, Floor {book.floor}
+                          </span>
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                            enriched ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-text-muted'
+                          }`}>
+                            {enriched ? 'Enriched' : 'ISBN Only'}
+                          </span>
+                        </div>
+
+                        <div className="mt-3 flex gap-2">
+                          {queueEntry && queueAction === 'link' && (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={async () => {
+                                await linkToExisting(queueEntry.id, book.id);
+                                addToast({ message: `${queueEntry.title} linked to ${book.title}`, type: 'success' });
+                                clearQueueContext();
+                                setRefreshKey((prev) => prev + 1);
+                              }}
+                            >
+                              <Icon name="solar:link-linear" size={14} />
+                              Link This Book
+                            </Button>
+                          )}
+                          <Button size="sm" variant="secondary" onClick={() => setSelectedBook(book)}>
+                            <Icon name="solar:eye-linear" size={14} />
+                            View
+                          </Button>
+                          <Button size="sm" variant="secondary" onClick={() => setSelectedBook(book)}>
+                            <Icon name="solar:pen-linear" size={14} />
+                            Edit Metadata
+                          </Button>
+                        </div>
+                      </article>
+                    );
+                  })}
+
+                  {sortedBooks.length === 0 && (
+                    <div className="rounded-2xl border border-dashed border-border bg-white p-6 sm:col-span-2 xl:col-span-3">
+                      <p className="text-sm font-medium text-text">No books in this filter.</p>
+                      <p className="mt-1 text-xs text-text-secondary">Try switching filters or import more books.</p>
                     </div>
-
-                    <div className="mt-3 flex gap-2">
-                      {queueEntry && queueAction === 'link' && (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          onClick={async () => {
-                            await linkToExisting(queueEntry.id, book.id);
-                            addToast({ message: `${queueEntry.title} linked to ${book.title}`, type: 'success' });
-                            clearQueueContext();
-                            setRefreshKey((prev) => prev + 1);
-                          }}
-                        >
-                          <Icon name="solar:link-linear" size={14} />
-                          Link This Book
-                        </Button>
-                      )}
-                      <Button size="sm" variant="secondary" onClick={() => setSelectedBook(book)}>
-                        <Icon name="solar:eye-linear" size={14} />
-                        View
-                      </Button>
-                      <Button size="sm" variant="secondary" onClick={() => setSelectedBook(book)}>
-                        <Icon name="solar:pen-linear" size={14} />
-                        Edit Metadata
-                      </Button>
-                    </div>
-                  </article>
-                );
-              })}
-
-              {sortedBooks.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-border bg-white p-6 sm:col-span-2 xl:col-span-3">
-                  <p className="text-sm font-medium text-text">No books in this filter.</p>
-                  <p className="mt-1 text-xs text-text-secondary">Try switching filters or import more books.</p>
+                  )}
                 </div>
+              ) : (
+                <>
+                  <div className="mb-2 flex gap-2">
+                    {['title', 'author', 'status'].map((sortKey) => (
+                      <button
+                        key={sortKey}
+                        type="button"
+                        onClick={() => setSortBy(sortKey)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                          sortBy === sortKey
+                            ? 'bg-white text-text shadow-sm ring-1 ring-black/5'
+                            : 'text-text-secondary hover:bg-white/60'
+                        }`}
+                      >
+                        Sort by {sortKey}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-border/60 text-xs text-text-secondary">
+                          <th className="px-5 py-3 font-medium">Title</th>
+                          <th className="px-5 py-3 font-medium">Author</th>
+                          <th className="px-5 py-3 font-medium">Subject</th>
+                          <th className="px-5 py-3 font-medium">Location</th>
+                          <th className="px-5 py-3 font-medium">Enrichment</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedBooks.map((book) => {
+                          const enriched = isBookEnriched(book);
+                          return (
+                            <tr
+                              key={book.id}
+                              className="cursor-pointer border-b border-border/30 transition-colors hover:bg-slate-50"
+                              onClick={() => setSelectedBook(book)}
+                            >
+                              <td className="px-5 py-3.5 font-medium text-text">{book.title}</td>
+                              <td className="px-5 py-3.5 text-text-secondary">{book.author}</td>
+                              <td className="px-5 py-3.5 text-text-secondary">{book.enrichment?.subject || '-'}</td>
+                              <td className="px-5 py-3.5 text-text-secondary">{book.location}</td>
+                              <td className="px-5 py-3.5">
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                  enriched ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-text-muted'
+                                }`}>
+                                  {enriched ? (
+                                    <>
+                                      <Icon name="solar:check-circle-linear" size={10} />
+                                      Enriched
+                                    </>
+                                  ) : (
+                                    'ISBN Only'
+                                  )}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
-            </div>
-          ) : (
-            <>
-              <div className="mb-2 flex gap-2">
-                {['title', 'author', 'status'].map((sortKey) => (
+          </ContentLoader>
+        </div>
+
+        {/* Sidebar cards — containers always visible */}
+        <div className="space-y-4">
+          {/* Metadata Quality */}
+          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+            <ContentLoader
+              loading={loading}
+              skeleton={
+                <>
+                  <Skeleton className="h-5 w-36 rounded-lg" />
+                  <Skeleton className="mt-2 h-3 w-48 rounded" />
+                  <Skeleton className="mt-4 h-3 w-24 rounded" />
+                </>
+              }
+            >
+              <h2 className="text-sm font-semibold text-text">Metadata Quality</h2>
+              <p className="mt-1 text-xs text-text-secondary">
+                Enriched metadata powers barrister search filters.
+              </p>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-text-secondary">{enrichedCount} of {books.length} enriched</p>
+                  <span className="text-lg font-semibold text-text">{enrichedPct}%</span>
+                </div>
+                <div className="mt-2 h-2 w-full rounded-full bg-slate-200">
+                  <div
+                    className="h-2 rounded-full bg-emerald-500 transition-all duration-500"
+                    style={{ width: `${enrichedPct}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {[
+                  { label: 'Missing subject', count: missingSubject, icon: 'solar:tag-linear' },
+                  { label: 'Missing jurisdiction', count: missingJurisdiction, icon: 'solar:flag-linear' },
+                  { label: 'Missing resource type', count: missingResourceType, icon: 'solar:document-text-linear' },
+                ].map((gap) => (
                   <button
-                    key={sortKey}
+                    key={gap.label}
                     type="button"
-                    onClick={() => setSortBy(sortKey)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                      sortBy === sortKey
-                        ? 'bg-white text-text shadow-sm ring-1 ring-black/5'
-                        : 'text-text-secondary hover:bg-white/60'
-                    }`}
+                    onClick={() => setFilterTab('isbn-only')}
+                    className="flex w-full items-center gap-2.5 rounded-xl border border-border/70 bg-slate-50/40 px-3 py-2 text-left transition-colors hover:bg-slate-100"
                   >
-                    Sort by {sortKey}
+                    <Icon name={gap.icon} size={14} className={gap.count > 0 ? 'text-amber-500' : 'text-emerald-500'} />
+                    <span className="flex-1 text-xs text-text-secondary">{gap.label}</span>
+                    <span className={`text-sm font-semibold ${gap.count > 0 ? 'text-text' : 'text-emerald-600'}`}>{gap.count}</span>
                   </button>
                 ))}
               </div>
-
-              <div className="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-border/60 text-xs text-text-secondary">
-                      <th className="px-5 py-3 font-medium">Title</th>
-                      <th className="px-5 py-3 font-medium">Author</th>
-                      <th className="px-5 py-3 font-medium">Subject</th>
-                      <th className="px-5 py-3 font-medium">Location</th>
-                      <th className="px-5 py-3 font-medium">Enrichment</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedBooks.map((book) => {
-                      const enriched = isBookEnriched(book);
-                      return (
-                        <tr
-                          key={book.id}
-                          className="cursor-pointer border-b border-border/30 transition-colors hover:bg-slate-50"
-                          onClick={() => setSelectedBook(book)}
-                        >
-                          <td className="px-5 py-3.5 font-medium text-text">{book.title}</td>
-                          <td className="px-5 py-3.5 text-text-secondary">{book.author}</td>
-                          <td className="px-5 py-3.5 text-text-secondary">{book.enrichment?.subject || '-'}</td>
-                          <td className="px-5 py-3.5 text-text-secondary">{book.location}</td>
-                          <td className="px-5 py-3.5">
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                              enriched ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-text-muted'
-                            }`}>
-                              {enriched ? (
-                                <>
-                                  <Icon name="solar:check-circle-linear" size={10} />
-                                  Enriched
-                                </>
-                              ) : (
-                                'ISBN Only'
-                              )}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="space-y-4">
-          {/* Metadata Quality — the core metric for this page */}
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-            <h2 className="text-sm font-semibold text-text">Metadata Quality</h2>
-            <p className="mt-1 text-xs text-text-secondary">
-              Enriched metadata powers barrister search filters.
-            </p>
-
-            <div className="mt-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-text-secondary">{enrichedCount} of {books.length} enriched</p>
-                <span className="text-lg font-semibold text-text">{enrichedPct}%</span>
-              </div>
-              <div className="mt-2 h-2 w-full rounded-full bg-slate-200">
-                <div
-                  className="h-2 rounded-full bg-emerald-500 transition-all duration-500"
-                  style={{ width: `${enrichedPct}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-2">
-              {[
-                { label: 'Missing subject', count: missingSubject, icon: 'solar:tag-linear' },
-                { label: 'Missing jurisdiction', count: missingJurisdiction, icon: 'solar:flag-linear' },
-                { label: 'Missing resource type', count: missingResourceType, icon: 'solar:document-text-linear' },
-              ].map((gap) => (
-                <button
-                  key={gap.label}
-                  type="button"
-                  onClick={() => setFilterTab('isbn-only')}
-                  className="flex w-full items-center gap-2.5 rounded-xl border border-border/70 bg-slate-50/40 px-3 py-2 text-left transition-colors hover:bg-slate-100"
-                >
-                  <Icon name={gap.icon} size={14} className={gap.count > 0 ? 'text-amber-500' : 'text-emerald-500'} />
-                  <span className="flex-1 text-xs text-text-secondary">{gap.label}</span>
-                  <span className={`text-sm font-semibold ${gap.count > 0 ? 'text-text' : 'text-emerald-600'}`}>{gap.count}</span>
-                </button>
-              ))}
-            </div>
+            </ContentLoader>
           </section>
 
           {/* Inventory summary */}
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-            <h2 className="text-sm font-semibold text-text">Inventory</h2>
-            <div className="mt-3 space-y-2.5">
-              {[
-                ['Total Books', books.length, 'solar:book-2-linear', 'text-brand'],
-                ['Available', availableCount, 'solar:check-circle-linear', 'text-emerald-600'],
-                ['On Loan', onLoanCount, 'solar:book-bookmark-linear', 'text-blue-600'],
-              ].map(([label, value, icon, tone]) => (
-                <div key={label} className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Icon name={icon} size={16} className={tone} />
-                    <span className="text-sm text-text-secondary">{label}</span>
+            <ContentLoader
+              loading={loading}
+              skeleton={
+                <>
+                  <Skeleton className="h-5 w-28 rounded-lg" />
+                  <div className="mt-3 space-y-2.5">
+                    {[0, 1, 2].map((j) => <Skeleton key={j} className="h-5 w-full rounded" />)}
                   </div>
-                  <span className="text-sm font-semibold text-text">{value}</span>
-                </div>
-              ))}
-            </div>
+                </>
+              }
+            >
+              <h2 className="text-sm font-semibold text-text">Inventory</h2>
+              <div className="mt-3 space-y-2.5">
+                {[
+                  ['Total Books', books.length, 'solar:book-2-linear', 'text-brand'],
+                  ['Available', availableCount, 'solar:check-circle-linear', 'text-emerald-600'],
+                  ['On Loan', onLoanCount, 'solar:book-bookmark-linear', 'text-blue-600'],
+                ].map(([label, value, icon, tone]) => (
+                  <div key={label} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name={icon} size={16} className={tone} />
+                      <span className="text-sm text-text-secondary">{label}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-text">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </ContentLoader>
           </section>
 
           {/* Locations */}
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-            <h2 className="text-sm font-semibold text-text">Locations</h2>
-            <div className="mt-3 space-y-2">
-              {locations.map((location) => (
-                <div key={location} className="flex items-center gap-2.5">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                    <Icon name="solar:map-point-linear" size={14} className="text-text-muted" />
-                  </span>
-                  <span className="text-sm text-text-secondary">{location}</span>
-                </div>
-              ))}
-            </div>
+            <ContentLoader
+              loading={loading}
+              skeleton={
+                <>
+                  <Skeleton className="h-5 w-24 rounded-lg" />
+                  <div className="mt-3 space-y-2">
+                    {[0, 1].map((j) => <Skeleton key={j} className="h-7 w-full rounded" />)}
+                  </div>
+                </>
+              }
+            >
+              <h2 className="text-sm font-semibold text-text">Locations</h2>
+              <div className="mt-3 space-y-2">
+                {locations.map((location) => (
+                  <div key={location} className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                      <Icon name="solar:map-point-linear" size={14} className="text-text-muted" />
+                    </span>
+                    <span className="text-sm text-text-secondary">{location}</span>
+                  </div>
+                ))}
+              </div>
+            </ContentLoader>
           </section>
         </div>
       </div>

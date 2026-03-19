@@ -137,7 +137,7 @@ export default function HeaderSearchBar({ placeholder, role, className = '' }) {
   return (
     <>
       <form onSubmit={handleSubmit} ref={wrapperRef} className={className}>
-        <div className="flex items-center gap-2 rounded-full border border-border/60 bg-white p-1 ring-1 ring-black/5">
+        <div className="flex items-center gap-2 rounded-full border border-border/60 bg-[#f8fafc] p-1 ring-1 ring-black/5">
           <span className="flex shrink-0 items-center justify-center pl-2 text-brand">
             <Icon name="solar:magnifer-linear" size={16} />
           </span>
@@ -149,7 +149,7 @@ export default function HeaderSearchBar({ placeholder, role, className = '' }) {
             onFocus={() => { if (query.trim()) setShowSuggestions(true); }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="min-w-0 flex-1 bg-transparent py-0.5 text-sm text-text placeholder:text-slate-400 focus:outline-none"
+            className="min-w-0 flex-1 bg-transparent py-0.5 text-sm text-text placeholder:text-text-muted focus:outline-none"
             autoComplete="off"
             role="combobox"
             aria-expanded={showSuggestions && suggestions.length > 0}

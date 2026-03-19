@@ -26,6 +26,18 @@ export function formatDueDate(dateStr) {
 }
 
 /**
+ * Format a date as short "D Mon" string, e.g. "20 Feb".
+ * @param {string} dateStr — ISO date string (YYYY-MM-DD)
+ * @returns {string}
+ */
+export function formatShortDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+/**
  * Get overdue severity level for styling.
  * @param {string} dateStr — ISO date string
  * @returns {'none'|'warning'|'danger'|'critical'}

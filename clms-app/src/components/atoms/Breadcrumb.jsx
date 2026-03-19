@@ -22,7 +22,7 @@ export default function Breadcrumb({ items = [] }) {
               <button
                 type="button"
                 onClick={item.onClick}
-                className="text-[12px] font-medium text-text-secondary transition-colors hover:text-text"
+                className="text-[12px] font-medium text-text-secondary transition-colors hover:text-text hover:underline"
               >
                 {item.label}
               </button>

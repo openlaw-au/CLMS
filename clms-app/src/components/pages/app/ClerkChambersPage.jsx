@@ -3,6 +3,8 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import Icon from '../../atoms/Icon';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
+import Skeleton from '../../atoms/Skeleton';
+import ContentLoader from '../../atoms/ContentLoader';
 import PageHeader from '../../molecules/PageHeader';
 import Badge from '../../atoms/Badge';
 import { useAppContext } from '../../../context/AppContext';
@@ -46,6 +48,7 @@ export default function ClerkChambersPage() {
 
   const [members, setMembers] = useState([]);
   const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('barrister');
   const [expandedLoc, setExpandedLoc] = useState({});
@@ -61,9 +64,13 @@ export default function ClerkChambersPage() {
 
   useEffect(() => {
     // TODO(api): Replace with GET /api/members — fetch all chambers members
-    getMembers().then(setMembers);
     // TODO(api): Replace with GET /api/books — fetch catalogue for location counts
-    getBooks().then(setBooks);
+    const min = new Promise((r) => setTimeout(r, 400));
+    Promise.all([getMembers(), getBooks(), min]).then(([m, b]) => {
+      setMembers(m);
+      setBooks(b);
+      setLoading(false);
+    });
   }, []);
 
   const barristers = members.filter((member) => member.role === 'barrister');
@@ -91,18 +98,46 @@ export default function ClerkChambersPage() {
 
   return (
     <div className="animate-page-in">
-      <PageHeader title="Chambers" subtitle="Manage people and physical library locations in one place.">
-        <Button size="sm" variant={tab === 'members' ? 'primary' : 'secondary'} onClick={() => setTab('members')}>
-          <Icon name="solar:users-group-rounded-linear" size={14} />
-          Members
-        </Button>
-        <Button size="sm" variant={tab === 'locations' ? 'primary' : 'secondary'} onClick={() => setTab('locations')}>
-          <Icon name="solar:map-point-linear" size={14} />
-          Locations
-        </Button>
-      </PageHeader>
+      {/* Header area — skeleton vs real */}
+      <ContentLoader
+        loading={loading}
+        skeleton={
+          <div>
+            <Skeleton className="h-7 w-32 rounded-lg" />
+            <Skeleton className="mt-2 h-4 w-56 rounded" />
+          </div>
+        }
+      >
+        <PageHeader title="Chambers" subtitle="Manage people and physical library locations in one place.">
+          <Button size="sm" variant={tab === 'members' ? 'primary' : 'secondary'} onClick={() => setTab('members')}>
+            <Icon name="solar:users-group-rounded-linear" size={14} />
+            Members
+          </Button>
+          <Button size="sm" variant={tab === 'locations' ? 'primary' : 'secondary'} onClick={() => setTab('locations')}>
+            <Icon name="solar:map-point-linear" size={14} />
+            Locations
+          </Button>
+        </PageHeader>
+      </ContentLoader>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      {/* Metric cards — containers always visible */}
+      <ContentLoader
+        loading={loading}
+        className="mt-5 grid gap-3 sm:grid-cols-3"
+        skeleton={
+          <>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-10 w-10 rounded-xl" />
+                  <Skeleton className="h-7 w-10 rounded-lg" />
+                </div>
+                <Skeleton className="mt-2 h-4 w-20 rounded" />
+              </div>
+            ))}
+          </>
+        }
+      >
         {[
           ['Barristers', barristers.length, 'solar:scale-linear', 'bg-brand/10', 'text-brand'],
           ['Clerks', clerks.length, 'solar:clipboard-list-linear', 'bg-slate-100', 'text-text-secondary'],
@@ -118,10 +153,30 @@ export default function ClerkChambersPage() {
             <p className="mt-2 text-sm text-text-secondary">{label}</p>
           </article>
         ))}
-      </div>
+      </ContentLoader>
 
-      {tab === 'members' ? (
-        <div className="mt-5 space-y-4">
+      {/* Content area — skeleton cards or real tab content */}
+      <ContentLoader
+        loading={loading}
+        className="mt-5"
+        skeleton={
+          <div className="space-y-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div>
+                    <Skeleton className="h-4 w-32 rounded" />
+                    <Skeleton className="mt-1.5 h-3 w-20 rounded" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      >
+        {tab === 'members' ? (
+        <div className="space-y-4">
           <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
             <p className="text-sm font-medium text-text">Invite a member</p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -187,7 +242,7 @@ export default function ClerkChambersPage() {
           </section>
         </div>
       ) : (
-        <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
           <div className="mb-4 flex items-center gap-2">
             <Icon name="solar:buildings-linear" size={20} className="text-brand" />
             <h2 className="font-serif text-card-title text-text">{onboarding.chambersName || 'Your Chambers'}</h2>
@@ -251,7 +306,8 @@ export default function ClerkChambersPage() {
             </p>
           )}
         </div>
-      )}
+        )}
+      </ContentLoader>
     </div>
   );
 }

@@ -35,7 +35,7 @@ export default function ClerkReportsPage() {
   const { addToast } = useToast();
 
   return (
-    <div className="animate-page-in">
+    <div className="animate-fade-in">
       <PageHeader title="Insights" subtitle="Library intelligence, usage trends, and coverage metrics.">
         <Button size="sm" variant="secondary" onClick={() => addToast({ message: 'Detailed analytics export is mocked in this prototype', type: 'info' })}>
           <Icon name="solar:upload-linear" size={14} />

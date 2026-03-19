@@ -4,6 +4,7 @@ import Icon from '../../atoms/Icon';
 import Input from '../../atoms/Input';
 import Select from '../../atoms/Select';
 import Button from '../../atoms/Button';
+import Skeleton from '../../atoms/Skeleton';
 import PageHeader from '../../molecules/PageHeader';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
@@ -187,9 +188,18 @@ function AGLCPreviewInline({ list, onScrollToItem }) {
   if (incompleteBooks > 0) allIssues.push(`${incompleteBooks} incomplete citation`);
   const firstProblemItem = list.items.find((item) => getIssues(item).length > 0);
 
-  // Continuous numbering support
+  // Continuous numbering — precompute start number per part (pure, no render-phase mutation)
   const useContinuous = court.continuousNumbering;
-  let runningCount = 0;
+  const partStartNums = useMemo(() => {
+    const nums = {};
+    let running = 0;
+    court.parts.forEach((part) => {
+      const count = list.items.filter((i) => derivePart(i.type, i.usage, list.courtStructure) === part.key).length;
+      nums[part.key] = useContinuous ? running + 1 : 1;
+      running += count;
+    });
+    return nums;
+  }, [court.parts, list.items, list.courtStructure, useContinuous]);
 
   // Filing metadata
   const roleLabel = (list.partyRole || 'Applicant').toUpperCase();
@@ -265,8 +275,7 @@ function AGLCPreviewInline({ list, onScrollToItem }) {
           {court.parts.map((part) => {
             const partItems = sortAlpha(list.items.filter((i) => derivePart(i.type, i.usage, list.courtStructure) === part.key));
             const isEmpty = partItems.length === 0;
-            const startNum = useContinuous ? runningCount + 1 : 1;
-            if (!isEmpty && useContinuous) runningCount += partItems.length;
+            const startNum = partStartNums[part.key] || 1;
 
             // Skip empty parts unless court requires showing them
             if (isEmpty && !court.showEmptyParts) return null;
@@ -1023,6 +1032,16 @@ export default function BarristerListsPage() {
     addToast({ message: 'Loan requested.', type: 'success' });
   };
 
+  const handleCancelLoan = (book) => {
+    // TODO(api): Replace with DELETE /api/loans/:id — cancel pending loan request
+    setRequestedLoanIds((prev) => {
+      const next = new Set(prev);
+      next.delete(book.id);
+      return next;
+    });
+    addToast({ message: 'Request cancelled.', type: 'success' });
+  };
+
   const handleRequestReturnSearch = async (book) => {
     if (requestedReturnIds.has(book.id)) return;
     await requestReturn(book.id, onboarding.name || 'James Chen');
@@ -1146,6 +1165,16 @@ export default function BarristerListsPage() {
     await requestReturn(book.id, onboarding.name || 'James Chen');
     setRequestedReturnIds((prev) => new Set(prev).add(book.id));
     addToast({ message: 'Return requested. Clerk notified.', type: 'success' });
+  };
+
+  const handleCancelReturn = (book) => {
+    // TODO(api): Replace with DELETE /api/loans/:id/request-return — cancel return request
+    setRequestedReturnIds((prev) => {
+      const next = new Set(prev);
+      next.delete(book.id);
+      return next;
+    });
+    addToast({ message: 'Return request cancelled.', type: 'success' });
   };
 
   const handleCopyPreviewText = useCallback(async () => {
@@ -1321,11 +1350,11 @@ export default function BarristerListsPage() {
     }));
   }, [selected, court]);
 
-  // Ref to always access latest problemItems without stale closures
+  // Refs synced in effects to avoid render-phase mutation
   const problemItemsRef = useRef(problemItems);
-  problemItemsRef.current = problemItems;
   const selectedRef = useRef(selected);
-  selectedRef.current = selected;
+  useEffect(() => { problemItemsRef.current = problemItems; }, [problemItems]);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
 
   // Handle "Fix issues" — activate edit mode, scroll to problem item, highlight + focus
   const handleFixIssues = useCallback(async (itemId) => {
@@ -1339,10 +1368,12 @@ export default function BarristerListsPage() {
       await new Promise((r) => setTimeout(r, 500));
     }
 
-    // Always pick the first problem item in editor card order
+    // Use provided itemId if valid, otherwise fall back to first problem item
     const freshProblems = problemItemsRef.current;
     if (freshProblems.length === 0) return;
-    const targetId = freshProblems[0].id;
+    const targetId = (itemId && freshProblems.some((p) => p.id === itemId))
+      ? itemId
+      : freshProblems[0].id;
 
     // 1) Activate edit mode if not already
     if (!editMode && !isNewDraft) setEditMode(true);
@@ -1609,10 +1640,19 @@ export default function BarristerListsPage() {
                 const returnRequested = requestedReturnIds.has(book.id);
                 if (book.status === 'available') {
                   return loanRequested ? (
-                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-success">
-                      <Icon name="solar:check-circle-bold" size={14} />
-                      Requested
-                    </span>
+                    <div className="flex shrink-0 animate-fade-in items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+                        <Icon name="solar:hourglass-linear" size={12} />
+                        Loan Requested
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleCancelLoan(book); }}
+                        className="text-xs text-text-muted hover:text-text"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   ) : (
                     <button
                       type="button"
@@ -1624,15 +1664,24 @@ export default function BarristerListsPage() {
                   );
                 }
                 return returnRequested ? (
-                  <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-success">
-                    <Icon name="solar:check-circle-bold" size={14} />
-                    Requested
-                  </span>
+                  <div className="flex shrink-0 animate-fade-in items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
+                      <Icon name="solar:clock-circle-linear" size={12} />
+                      Return Requested
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleCancelReturn(book); }}
+                      className="text-xs text-text-muted hover:text-text"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 ) : (
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); handleRequestReturn(book); }}
-                    className="shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-slate-100"
+                    className="shrink-0 whitespace-nowrap rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-subtle"
                   >
                     Request Return
                   </button>
@@ -1648,6 +1697,33 @@ export default function BarristerListsPage() {
   // While draft is being created, show nothing (prevents list overview flash)
   if (newParam === '1' && !selected) {
     return <div className="animate-page-in" />;
+  }
+
+  if (!listsLoaded) {
+    return (
+      <div className="animate-page-in mx-auto max-w-screen-2xl px-6 py-8 lg:px-14 xl:px-16 2xl:px-10">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-7 w-40 rounded-lg" />
+            <Skeleton className="mt-2 h-4 w-64 rounded" />
+          </div>
+          <Skeleton className="h-9 w-28 rounded-xl" />
+        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+              <Skeleton className="h-5 w-32 rounded-lg" />
+              <Skeleton className="mt-2 h-3 w-48 rounded" />
+              <Skeleton className="mt-4 h-3 w-24 rounded" />
+              <div className="mt-4 flex gap-2">
+                <Skeleton className="h-6 w-16 rounded-full" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

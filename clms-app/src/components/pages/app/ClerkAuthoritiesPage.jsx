@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
+import Skeleton from '../../atoms/Skeleton';
+import ContentLoader from '../../atoms/ContentLoader';
 import PageHeader from '../../molecules/PageHeader';
 import { useToast } from '../../../context/ToastContext';
 import { getLists, addItem, updateItem } from '../../../services/authorityListsService';
@@ -89,7 +91,8 @@ export default function ClerkAuthoritiesPage() {
 
   useEffect(() => {
     // TODO(api): Replace with GET /api/authority-lists — fetch all chambers authority lists
-    getLists().then((data) => { setLists(data); setListsLoaded(true); });
+    const min = new Promise((r) => setTimeout(r, 400));
+    Promise.all([getLists(), min]).then(([data]) => { setLists(data); setListsLoaded(true); });
   }, []);
 
   const selected = useMemo(
@@ -100,65 +103,57 @@ export default function ClerkAuthoritiesPage() {
   const totalItems = lists.reduce((acc, list) => acc + list.items.length, 0);
   const readyToExport = lists.filter((list) => list.items.length > 0).length;
 
+  const loading = !listsLoaded;
+
   return (
     <div className="animate-page-in">
-      <PageHeader title="Authorities" subtitle="Manage shared authority lists used in research and court submissions.">
-        <Button size="sm" variant="secondary" onClick={() => navigate('/app/catalogue')}>
-          <Icon name="solar:book-2-linear" size={14} />
-          Open Catalogue
-        </Button>
-        <Button
-          size="sm"
-          variant="primary"
-          onClick={() => addToast({ message: 'List creation flow is mocked for now', type: 'info' })}
-        >
-          <Icon name="solar:add-circle-linear" size={14} />
-          New List
-        </Button>
-      </PageHeader>
+      {/* Header area — skeleton vs real */}
+      <ContentLoader
+        loading={loading}
+        skeleton={
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-7 w-40 rounded-lg" />
+              <Skeleton className="mt-2 h-4 w-56 rounded" />
+            </div>
+            <Skeleton className="h-9 w-28 rounded-xl" />
+          </div>
+        }
+      >
+        <PageHeader title="Authorities" subtitle="Manage shared authority lists used in research and court submissions.">
+          <Button size="sm" variant="secondary" onClick={() => navigate('/app/catalogue')}>
+            <Icon name="solar:book-2-linear" size={14} />
+            Open Catalogue
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => addToast({ message: 'List creation flow is mocked for now', type: 'info' })}
+          >
+            <Icon name="solar:add-circle-linear" size={14} />
+            New List
+          </Button>
+        </PageHeader>
+      </ContentLoader>
 
-      {!listsLoaded ? (
-        <div className="mt-5 space-y-4 animate-pulse">
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[1, 2, 3].map((i) => (
+      {/* Metric cards — containers always visible */}
+      <ContentLoader
+        loading={loading}
+        className="mt-5 grid gap-3 sm:grid-cols-3"
+        skeleton={
+          <>
+            {[0, 1, 2].map((i) => (
               <div key={i} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
                 <div className="flex items-center justify-between">
-                  <div className="h-10 w-10 rounded-xl bg-slate-200" />
-                  <div className="h-7 w-10 rounded bg-slate-200" />
+                  <Skeleton className="h-10 w-10 rounded-xl" />
+                  <Skeleton className="h-7 w-10 rounded-lg" />
                 </div>
-                <div className="mt-2 h-4 w-20 rounded bg-slate-100" />
+                <Skeleton className="mt-2 h-4 w-24 rounded" />
               </div>
             ))}
-          </div>
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-              <div className="h-5 w-20 rounded bg-slate-200" />
-              <div className="mt-3 space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="rounded-xl border border-border/50 p-3 space-y-1.5">
-                    <div className="h-3.5 w-3/4 rounded bg-slate-200" />
-                    <div className="h-3 w-1/2 rounded bg-slate-100" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:col-span-2">
-              <div className="h-5 w-40 rounded bg-slate-200" />
-              <div className="mt-2 h-3 w-56 rounded bg-slate-100" />
-              <div className="mt-4 space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="rounded-xl border border-border/50 p-3 space-y-1.5">
-                    <div className="h-3.5 w-3/5 rounded bg-slate-200" />
-                    <div className="h-3 w-2/5 rounded bg-slate-100" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-      <div className="animate-fade-in">
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          </>
+        }
+      >
         {[
           ['Lists', lists.length, 'solar:list-check-linear', 'bg-brand/10', 'text-brand'],
           ['Total Entries', totalItems, 'solar:document-text-linear', 'bg-blue-50', 'text-blue-600'],
@@ -174,41 +169,72 @@ export default function ClerkAuthoritiesPage() {
             <p className="mt-2 text-sm text-text-secondary">{label}</p>
           </article>
         ))}
-      </div>
+      </ContentLoader>
 
+      {/* Main content grid — containers always visible */}
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
+        {/* Lists sidebar */}
         <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 lg:col-span-1">
-          <h2 className="font-serif text-card-title text-text">All Lists</h2>
-          <div className="mt-3 space-y-2">
-            {lists.map((list) => {
-              const active = selected?.id === list.id;
-              return (
-                <button
-                  key={list.id}
-                  type="button"
-                  onClick={() => setSelectedId(list.id)}
-                  className={`w-full rounded-xl border px-3 py-3 text-left transition-colors ${
-                    active
-                      ? 'border-brand/30 bg-brand/5'
-                      : 'border-border/70 bg-white hover:bg-slate-50'
-                  }`}
-                >
-                  <p className="text-sm font-medium text-text">{list.name}</p>
-                  <p className="mt-0.5 text-xs text-text-secondary">{list.caseRef}</p>
-                  <p className="mt-1 text-[11px] text-text-muted">{list.items.length} entries</p>
-                </button>
-              );
-            })}
-            {lists.length === 0 && (
-              <p className="rounded-xl border border-dashed border-border p-3 text-sm text-text-muted">
-                No lists yet. Add results from Search to start your first authority list.
-              </p>
-            )}
-          </div>
+          <ContentLoader
+            loading={loading}
+            skeleton={
+              <>
+                <Skeleton className="h-5 w-24 rounded-lg" />
+                <div className="mt-3 space-y-2">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="rounded-xl border border-border/70 p-3">
+                      <Skeleton className="h-4 w-36 rounded" />
+                      <Skeleton className="mt-2 h-3 w-48 rounded" />
+                      <Skeleton className="mt-2 h-3 w-24 rounded" />
+                    </div>
+                  ))}
+                </div>
+              </>
+            }
+          >
+            <h2 className="font-serif text-card-title text-text">All Lists</h2>
+            <div className="mt-3 space-y-2">
+              {lists.map((list) => {
+                const active = selected?.id === list.id;
+                return (
+                  <button
+                    key={list.id}
+                    type="button"
+                    onClick={() => setSelectedId(list.id)}
+                    className={`w-full rounded-xl border px-3 py-3 text-left transition-colors ${
+                      active
+                        ? 'border-brand/30 bg-brand/5'
+                        : 'border-border/70 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-text">{list.name}</p>
+                    <p className="mt-0.5 text-xs text-text-secondary">{list.caseRef}</p>
+                    <p className="mt-1 text-[11px] text-text-muted">{list.items.length} entries</p>
+                  </button>
+                );
+              })}
+              {lists.length === 0 && (
+                <p className="rounded-xl border border-dashed border-border p-3 text-sm text-text-muted">
+                  No lists yet. Add results from Search to start your first authority list.
+                </p>
+              )}
+            </div>
+          </ContentLoader>
         </section>
 
+        {/* Detail panel */}
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:col-span-2">
-          {selected ? (
+          <ContentLoader
+            loading={loading}
+            skeleton={
+              <>
+                <Skeleton className="h-5 w-36 rounded-lg" />
+                <Skeleton className="mt-2 h-3 w-48 rounded" />
+                <Skeleton className="mt-4 h-3 w-24 rounded" />
+              </>
+            }
+          >
+            {selected ? (
             <>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -409,10 +435,9 @@ export default function ClerkAuthoritiesPage() {
               <p className="mt-1 text-xs text-text-secondary">You can add entries from Search and export AGLC output.</p>
             </div>
           )}
+          </ContentLoader>
         </section>
       </div>
-      </div>
-      )}
       {showExportPreview && selected && (
         <ExportPreviewModal list={selected} onClose={() => setShowExportPreview(false)} />
       )}

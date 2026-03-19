@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowLeftRight,
   ArrowRight,
+  ArrowUpDown,
   Award,
   Bell,
   BookMarked,
@@ -178,6 +179,7 @@ const iconMap = {
   'solar:widget-2-linear': LayoutGrid,
   'solar:widget-5-linear': LayoutGrid,
   'solar:list-linear': List,
+  'solar:sort-linear': ArrowUpDown,
 };
 
 const fallbackIcon = CircleAlert;

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
+import Skeleton from '../../atoms/Skeleton';
+import ContentLoader from '../../atoms/ContentLoader';
 import { useAppContext } from '../../../context/AppContext';
 import { getLoans } from '../../../services/loansService';
 import { getLists } from '../../../services/authorityListsService';
@@ -15,14 +17,19 @@ export default function BarristerDashboardPage() {
 
   const [loans, setLoans] = useState([]);
   const [lists, setLists] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [dismissedAlerts, setDismissedAlerts] = useState(new Set());
   const [alertsCollapsed, setAlertsCollapsed] = useState(false);
 
   useEffect(() => {
     // TODO(api): Replace with GET /api/loans?borrower=me - fetch all borrower loans
-    getLoans().then(setLoans);
     // TODO(api): Replace with GET /api/authority-lists - fetch authority lists for current barrister
-    getLists().then(setLists);
+    const min = new Promise((r) => setTimeout(r, 400));
+    Promise.all([getLoans(), getLists(), min]).then(([l, li]) => {
+      setLoans(l);
+      setLists(li);
+      setLoading(false);
+    });
   }, []);
 
 
@@ -116,58 +123,97 @@ export default function BarristerDashboardPage() {
     },
   ];
 
+  const metricCardClass = 'min-h-[160px] rounded-[28px] border border-white/35 bg-[linear-gradient(180deg,rgba(255,255,255,0.48),rgba(255,255,255,0.88))] p-6 backdrop-blur-xl shadow-[0_20px_50px_rgba(124,45,18,0.15)]';
+
   return (
     <div className="animate-page-in">
+      {/* Hero */}
       <section className="relative flex min-h-[240px] flex-col justify-center rounded-b-[40px] px-1 pb-24 pt-16 text-white md:min-h-[260px] md:px-0 md:pb-28 md:pt-20">
-        <div>
+        <ContentLoader
+          loading={loading}
+          skeleton={
+            <>
+              <Skeleton dark className="h-10 w-48 rounded-lg md:w-56" />
+              <Skeleton dark className="mt-3 h-6 w-72 rounded-lg md:w-96" />
+            </>
+          }
+        >
           <h1 className="font-serif text-4xl leading-none tracking-tight md:text-5xl">Hi, {firstName}.</h1>
-          <p
-            className="mt-3 font-serif text-xl leading-tight text-white/84 md:text-2xl"
-          >
+          <p className="mt-3 font-serif text-xl leading-tight text-white/84 md:text-2xl">
             Search authorities, organise your research, and export court-ready citations.
           </p>
-        </div>
-
-        {isSolo && (
-          <div className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-white/18 bg-white/12 px-4 py-3 text-sm text-white/90 backdrop-blur">
-            <Icon name="solar:buildings-2-linear" size={16} className="text-white/85" />
-            <div>
-              <p className="font-medium">You are in solo mode</p>
-              <p className="text-xs text-white/70">Join chambers to unlock shared catalogue and loan workflow.</p>
+          {isSolo && (
+            <div className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-white/18 bg-white/12 px-4 py-3 text-sm text-white/90 backdrop-blur">
+              <Icon name="solar:buildings-2-linear" size={16} className="text-white/85" />
+              <div>
+                <p className="font-medium">You are in solo mode</p>
+                <p className="text-xs text-white/70">Join chambers to unlock shared catalogue and loan workflow.</p>
+              </div>
+              <Button size="sm" variant="secondary" className="!border-white/20 !bg-white !text-slate-900 hover:!bg-white/90" onClick={() => navigate('/onboarding/barrister/lookup')}>
+                Join Chambers
+              </Button>
             </div>
-            <Button size="sm" variant="secondary" className="!border-white/20 !bg-white !text-slate-900 hover:!bg-white/90" onClick={() => navigate('/onboarding/barrister/lookup')}>
-              Join Chambers
-            </Button>
-          </div>
-        )}
-
+          )}
+        </ContentLoader>
       </section>
 
+      {/* Metric cards — containers always visible, content cross-fades */}
       <div className="relative z-[1] -mt-[56px] md:-mt-[60px]">
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {dashboardMetrics.map((metric) => (
-              <button
-                key={metric.label}
-                type="button"
-                onClick={() => navigate(metric.to)}
-                className="min-h-[160px] rounded-[28px] border border-white/35 bg-[linear-gradient(180deg,rgba(255,255,255,0.26),rgba(255,255,255,0.84))] p-4 text-left shadow-[0_20px_50px_rgba(124,45,18,0.18)] backdrop-blur-xl transition-colors hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.9))]"
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => {
+            const metric = !loading ? dashboardMetrics[i] : null;
+            return (
+              <div
+                key={i}
+                role={metric ? 'button' : undefined}
+                tabIndex={metric ? 0 : undefined}
+                onClick={metric ? () => navigate(metric.to) : undefined}
+                onKeyDown={metric ? (e) => { if (e.key === 'Enter') navigate(metric.to); } : undefined}
+                className={`${metricCardClass} text-left ${metric ? 'cursor-pointer transition-colors hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.58),rgba(255,255,255,0.92))]' : ''}`}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <span className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] ${metric.iconBg}`}>
-                    <Icon name={metric.icon} size={18} />
-                  </span>
-                  <p className="text-3xl font-semibold leading-none text-slate-950">{metric.value}</p>
-                </div>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{metric.label}</p>
-                <p className="mt-1 text-sm text-slate-600">{metric.detail}</p>
-              </button>
-            ))}
-          </div>
+                <ContentLoader
+                  loading={loading}
+                  skeleton={
+                    <>
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-11 w-11 rounded-2xl" />
+                        <Skeleton className="h-8 w-12 rounded-lg" />
+                      </div>
+                      <Skeleton className="mt-4 h-3 w-20 rounded" />
+                      <Skeleton className="mt-2 h-3 w-28 rounded" />
+                    </>
+                  }
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] ${metric?.iconBg || ''}`}>
+                      {metric && <Icon name={metric.icon} size={18} />}
+                    </span>
+                    <p className="text-3xl font-bold leading-none tracking-tight text-slate-950">{metric?.value}</p>
+                  </div>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{metric?.label}</p>
+                  <p className="mt-1 text-sm text-slate-600">{metric?.detail}</p>
+                </ContentLoader>
+              </div>
+            );
+          })}
         </div>
+      </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-2">
-          {/* Authority Lists card — dynamic height, no scroll */}
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+      {/* Bottom cards — containers always visible */}
+      <div className="mt-12 grid gap-4 md:grid-cols-2">
+        {/* Authority Lists card */}
+        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+          <ContentLoader
+            loading={loading}
+            skeleton={
+              <>
+                <Skeleton className="h-5 w-40 rounded-lg" />
+                <div className="mt-4 space-y-2">
+                  {[0, 1, 2].map((j) => <Skeleton key={j} className="h-10 w-full rounded-xl" />)}
+                </div>
+              </>
+            }
+          >
             <div className="flex min-h-[36px] items-center justify-between">
               <div className="flex items-center gap-2">
                 <Icon name="solar:list-check-linear" size={22} className="text-brand" />
@@ -184,8 +230,8 @@ export default function BarristerDashboardPage() {
             {lists.length > 0 ? (
               <div className="mt-3 space-y-1.5">
                 {[...lists].sort((a, b) => (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '')).slice(0, 5).map((list) => {
-                  const missingPinpoints = list.items.filter((i) => i.usage === 'read' && !i.pageRange).length;
-                  const incompleteCites = list.items.filter((i) => i.type === 'book' && !i.uncatalogued && (!i.author || !i.publisher || !i.year)).length;
+                  const missingPinpoints = list.items.filter((li) => li.usage === 'read' && !li.pageRange).length;
+                  const incompleteCites = list.items.filter((li) => li.type === 'book' && !li.uncatalogued && (!li.author || !li.publisher || !li.year)).length;
                   const issueCount = missingPinpoints + incompleteCites;
                   const isReady = list.items.length > 0 && issueCount === 0;
                   return (
@@ -221,11 +267,25 @@ export default function BarristerDashboardPage() {
             ) : (
               <p className="mt-3 text-xs text-text-muted">No lists yet. Create one to get started.</p>
             )}
-          </section>
+          </ContentLoader>
+        </section>
 
-          {/* Alerts card — height pinned to left card, scrollable */}
-          <section className="relative rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
-            <div className="absolute inset-0 flex flex-col overflow-hidden rounded-2xl p-5">
+        {/* Alerts card — height pinned to left card, scrollable */}
+        <section className="relative rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+          <div className="absolute inset-0 flex flex-col overflow-hidden rounded-2xl p-5">
+            <ContentLoader
+              loading={loading}
+              className="flex flex-1 flex-col min-h-0"
+              childClassName="flex flex-1 flex-col min-h-0"
+              skeleton={
+                <>
+                  <Skeleton className="h-5 w-24 rounded-lg" />
+                  <div className="mt-4 space-y-2">
+                    {[0, 1, 2].map((j) => <Skeleton key={j} className="h-10 w-full rounded-xl" />)}
+                  </div>
+                </>
+              }
+            >
               <div className="flex min-h-[36px] shrink-0 items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Icon name="solar:danger-triangle-linear" size={22} className="text-red-600" />
@@ -237,34 +297,35 @@ export default function BarristerDashboardPage() {
               {visibleAlerts.length > 0 ? (
                 <div className="thin-scrollbar mt-3 min-h-0 flex-1 space-y-1.5 overflow-y-auto">
                   {visibleAlerts.map((alert) => (
-                    <div
+                    <button
                       key={alert.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50/60 px-3 py-2 transition-colors hover:bg-red-50"
+                      type="button"
+                      onClick={() => navigate(alert.to)}
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50/60 px-3 py-2 text-left transition-colors hover:bg-red-100/80"
                     >
-                      <button
-                        type="button"
-                        onClick={() => navigate(alert.to)}
-                        className="flex min-w-0 items-center gap-2 text-left"
-                      >
+                      <span className="flex min-w-0 items-center gap-2">
                         <Icon name={alert.icon} size={13} className="shrink-0 text-red-600" />
                         <span className="text-xs text-red-800">{alert.message}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDismissedAlerts((prev) => new Set([...prev, alert.id]))}
-                        className="shrink-0 rounded-full p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text"
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setDismissedAlerts((prev) => new Set([...prev, alert.id])); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setDismissedAlerts((prev) => new Set([...prev, alert.id])); } }}
+                        className="shrink-0 rounded-full p-1.5 text-text-muted transition-colors hover:bg-slate-200 hover:text-text"
                       >
                         <Icon name="solar:close-circle-linear" size={14} />
-                      </button>
-                    </div>
+                      </span>
+                    </button>
                   ))}
                 </div>
               ) : (
                 <p className="mt-3 text-xs text-text-muted">No active alerts. You're all clear.</p>
               )}
-            </div>
-          </section>
-        </div>
+            </ContentLoader>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

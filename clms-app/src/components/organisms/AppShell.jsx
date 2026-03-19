@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
+import BadgeDot from '../atoms/BadgeDot';
 import Breadcrumb from '../atoms/Breadcrumb';
 import HeaderSearchBar from '../molecules/HeaderSearchBar';
 import { useAppContext } from '../../context/AppContext';
@@ -10,9 +11,8 @@ import { getLoans } from '../../services/loansService';
 const navByRole = {
   barrister: [
     { label: 'Dashboard', slug: 'dashboard', icon: 'solar:home-2-linear' },
-    { label: 'Search', slug: 'search', icon: 'solar:magnifer-linear' },
     { label: 'Authority Lists', slug: 'authorities', icon: 'solar:list-check-linear' },
-    { label: 'Loans', slug: 'loans', icon: 'solar:book-bookmark-linear' },
+    { label: 'Library', slug: 'loans', icon: 'solar:library-linear' },
     { label: 'Settings', slug: 'settings', icon: 'solar:settings-linear' },
   ],
   clerk: [
@@ -128,6 +128,8 @@ export default function AppShell({ role, children }) {
   };
   const normalizedSlug = slugAlias[currentSlug] || currentSlug;
   const isDashboardHero = normalizedSlug === 'dashboard';
+  const hasHeroGradient = normalizedSlug === 'dashboard';
+  const hasHeroBg = hasHeroGradient;
 
   const navItems = navByRole[role];
   const mainNav = navItems;
@@ -163,7 +165,7 @@ export default function AppShell({ role, children }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!isDashboardHero) {
+    if (!hasHeroGradient) {
       setHeaderCondensed(false);
       return undefined;
     }
@@ -175,7 +177,7 @@ export default function AppShell({ role, children }) {
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isDashboardHero]);
+  }, [hasHeroGradient]);
 
   useEffect(() => {
     if (!profileMenuOpen) return undefined;
@@ -216,13 +218,13 @@ export default function AppShell({ role, children }) {
   const isAuthPage = normalizedSlug === 'authorities';
   const mainClassName = (isListSubpage || isAuthPage)
     ? 'w-full max-w-none px-0 pb-0 pt-0'
-    : isDashboardHero
+    : hasHeroGradient
       ? 'mx-auto max-w-screen-2xl px-6 pb-8 pt-0 lg:px-14 xl:px-16 2xl:px-10'
       : 'mx-auto max-w-screen-2xl px-6 py-8 lg:px-14 xl:px-16 2xl:px-10';
 
   const dashboardHeaderLabel = role === 'clerk' ? 'Library Operations' : 'Research Workspace';
   const shellHeaderHeight = 57;
-  const headerClassName = isDashboardHero
+  const headerClassName = hasHeroGradient
     ? headerCondensed
       ? 'border-b border-border/60 bg-white/88 py-3 shadow-[0_12px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'
       : 'border-b border-white/18 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] py-3 shadow-[0_12px_32px_rgba(124,45,18,0.08)] backdrop-blur-xl'
@@ -250,22 +252,22 @@ export default function AppShell({ role, children }) {
     navigate(`/login?role=${role}`);
   };
 const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2xl px-2.5 py-1.5 text-left transition-colors ${
-    isDashboardHero && !headerCondensed
+    hasHeroGradient && !headerCondensed
       ? profileMenuOpen ? 'bg-white/14' : 'hover:bg-white/10'
       : profileMenuOpen ? 'bg-slate-100' : 'hover:bg-slate-100'
   }`;
   const currentNavLabel = navItems.find((item) => item.slug === normalizedSlug)?.label || 'Workspace';
 
   const leftHeaderLabel = isDashboardHero && !headerCondensed ? dashboardHeaderLabel : currentNavLabel;
-  const leftHeaderTextClassName = isDashboardHero && !headerCondensed ? 'text-white/80' : 'text-text-muted';
-  const leftChambersToneClassName = isDashboardHero && !headerCondensed
+  const leftHeaderTextClassName = hasHeroGradient && !headerCondensed ? 'text-white/80' : 'text-text-muted';
+  const leftChambersToneClassName = hasHeroGradient && !headerCondensed
     ? onboarding.chambersLogo
       ? 'bg-white/18 ring-1 ring-white/22 backdrop-blur'
       : 'bg-white/14 text-white/90 ring-1 ring-white/22 backdrop-blur'
     : onboarding.chambersLogo
       ? 'bg-slate-100 ring-1 ring-slate-200'
       : 'bg-slate-100 text-text-secondary ring-1 ring-slate-200';
-  const leftChambersNameClassName = isDashboardHero && !headerCondensed
+  const leftChambersNameClassName = hasHeroGradient && !headerCondensed
     ? 'truncate text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(124,45,18,0.16)]'
     : 'truncate text-sm font-medium text-text';
   return (
@@ -280,7 +282,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
 
       {/* Sidebar */}
       <aside className={`fixed left-0 top-0 z-40 flex h-screen w-72 flex-col bg-white p-4 shadow-lg transition-transform duration-300 ease-in-out md:z-20 md:translate-x-0 md:shadow-sm ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between px-3 pb-3 pt-2">
+        <div className="flex items-center justify-between px-3 pb-5 pt-3">
           <Link to="/app/dashboard" className="flex" onClick={() => setSidebarOpen(false)}>
             <img src="/assets/CLMS_logo.svg" alt="CLMS" className="h-6 w-auto" />
           </Link>
@@ -453,7 +455,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
         className="relative md:pl-72"
         style={{ '--header-h': `${shellHeaderHeight}px` }}
       >
-        {isDashboardHero && (
+        {hasHeroGradient && (
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[340px] bg-[linear-gradient(135deg,#9a3412_0%,#c2410c_18%,#ea580c_48%,#fb923c_100%)] md:h-[356px] lg:h-[372px]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(255,255,255,0.22),transparent_22%),radial-gradient(circle_at_10%_0%,rgba(255,255,255,0.12),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.06))]" />
           </div>
@@ -466,7 +468,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
               type="button"
               onClick={() => setSidebarOpen(true)}
               className={`btn-icon h-10 w-10 shrink-0 md:hidden ${
-                isDashboardHero && !headerCondensed
+                hasHeroGradient && !headerCondensed
                   ? 'text-white/90 hover:bg-white/12 hover:text-white'
                   : 'text-text-secondary hover:bg-slate-100 hover:text-text'
               }`}
@@ -529,7 +531,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
                   type="button"
                   onClick={() => setNotiOpen((v) => !v)}
                   className={`btn-icon relative h-10 w-10 shrink-0 ${
-                    isDashboardHero && !headerCondensed
+                    hasHeroGradient && !headerCondensed
                       ? 'text-white/90 hover:bg-white/12 hover:text-white'
                       : 'text-text-secondary hover:bg-slate-100 hover:text-text'
                   }`}
@@ -537,7 +539,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
                 >
                   <Icon name="solar:bell-linear" size={22} />
                   {pendingCount > 0 && (
-                    <span className={`absolute right-2 top-2 flex h-2.5 w-2.5 rounded-full bg-red-500 ${isDashboardHero && !headerCondensed ? 'ring-2 ring-[rgba(234,88,12,0.4)]' : 'ring-2 ring-white'}`} />
+                    <BadgeDot className="absolute right-2 top-2" />
                   )}
                 </button>
                 {notiOpen && (
