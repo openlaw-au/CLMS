@@ -4,3 +4,4 @@ DESIGN_RULES.md
 heatmap.html
 .vercel
 docs/decisions/
+dist/
