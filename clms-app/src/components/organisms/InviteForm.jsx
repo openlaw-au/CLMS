@@ -18,6 +18,8 @@ export default function InviteForm() {
     setRows((prev) => prev.filter((_, rowIndex) => rowIndex !== index));
   };
 
+  const hasValidEmail = rows.some((row) => row.email.trim());
+
   return (
     <section className="mx-auto w-full max-w-2xl rounded-3xl border border-border bg-white p-6 shadow-soft sm:p-8">
       <h1 className="font-serif text-3xl text-text">Invite your barristers</h1>
@@ -39,16 +41,28 @@ export default function InviteForm() {
       >
         + Add another
       </button>
-      <div className="mt-6 flex justify-end gap-2">
-        <Button variant="secondary" onClick={() => navigate('/app/dashboard?role=clerk')}>
-          Skip
+      <div className="mt-6 flex items-center justify-between">
+        <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => navigate('/onboarding/clerk/step/3')}>
+          &larr; Back
         </Button>
-        <Button variant="clerk" loading={sending} onClick={() => {
-          setSending(true);
-          setTimeout(() => navigate('/app/dashboard?role=clerk'), 600);
-        }}>
-          {sending ? 'Sending...' : 'Send Invites'}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => navigate('/onboarding/clerk/setup')}>
+            Skip
+          </Button>
+          <Button
+            variant="primary"
+            disabled={!hasValidEmail}
+            className={!hasValidEmail ? 'opacity-40' : ''}
+            loading={sending}
+            onClick={() => {
+              setSending(true);
+              // TODO(api): POST /api/invitations with rows array, then navigate on success
+              setTimeout(() => navigate('/onboarding/clerk/setup'), 600);
+            }}
+          >
+            {sending ? 'Sending...' : 'Send Invites'}
+          </Button>
+        </div>
       </div>
     </section>
   );

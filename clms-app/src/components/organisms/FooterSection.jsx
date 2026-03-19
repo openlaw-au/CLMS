@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import Icon from '../atoms/Icon';
 
-export default function FooterSection() {
+export default function FooterSection({ role = 'barrister' }) {
   return (
     <footer id="support" className="relative z-10 w-full bg-[var(--color-bg-dark)] py-16 text-slate-400">
       <div className="mx-auto max-w-7xl px-6">
@@ -12,7 +12,7 @@ export default function FooterSection() {
               Search and cite from anywhere. Catalogue and track every book. One system for barristers and clerks.
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <Link to="/signup" className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-hover">
+              <Link to={`/signup?role=${role}`} className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-hover">
                 Get Started
               </Link>
               <button type="button" className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white">

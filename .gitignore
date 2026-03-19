@@ -3,3 +3,5 @@ DESIGN_RULES.md
 .DS_Store
 heatmap.html
 .vercel
+docs/decisions/
+dist/

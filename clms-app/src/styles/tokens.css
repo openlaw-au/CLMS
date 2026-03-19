@@ -2,6 +2,7 @@
   --color-primary: #ea580c;
   --color-primary-hover: #c2410c;
   --color-primary-rgb: 234 88 12;
+  --color-primary-soft: #fed7aa;
   --color-clerk: #2563eb;
   --color-clerk-hover: #1d4ed8;
   --color-clerk-rgb: 37 99 235;
@@ -9,7 +10,7 @@
   --color-text: #0b1220;
   --color-text-secondary: #475569;
   --color-text-tertiary: #64748b;
-  --color-text-muted: #94a3b8;
+  --color-text-muted: #78849a;
   --color-text-inverse: #ffffff;
 
   --color-bg: #f8f9fb;
@@ -25,9 +26,20 @@
   --color-border-light: #f1f5f9;
   --color-border-strong: #cbd5e1;
 
-  --color-success: #10b981;
-  --color-info: #2563eb;
-  --color-danger: #dc2626;
+  --color-success: #059669;
+  --color-success-light: #10b981;
+  --color-warning: #b45309;
+  --color-warning-light: #d97706;
+  --color-info: #1d4ed8;
+  --color-info-light: #2563eb;
+  --color-danger: #b91c1c;
+
+  /* Typography scale — even px, semantic naming */
+  --font-size-page: 2rem;          /* 32px — h1 page titles */
+  --font-size-section: 1.5rem;     /* 24px — h2 section titles */
+  --font-size-card-title: 1.125rem;/* 18px — h3, card titles, modal titles */
+  --font-size-body: 0.875rem;      /* 14px — body copy */
+  --font-size-caption: 0.75rem;    /* 12px — badges, captions */
 
   --radius-pill: 9999px;
   --radius-card: 1rem;

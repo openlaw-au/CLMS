@@ -51,8 +51,13 @@ export default function ChambersLookup() {
           <ChamberCard
             key={result.id}
             chamber={result}
-            onSelect={() => {
-              updateOnboarding({ chambersFound: true, chambersName: result.name, mode: 'joined' });
+            onSelect={(selectedChamber) => {
+              updateOnboarding({
+                chambersFound: true,
+                chambersName: selectedChamber.name,
+                chambersLogo: selectedChamber.logo || null,
+                mode: 'joined',
+              });
               navigate('/onboarding/barrister/setup');
             }}
           />

@@ -60,3 +60,9 @@ Impact and implications of this decision.
 | ID | Title | Status |
 |---|---|---|
 | APP-001 | Cataloguing Approach | Accepted |
+| APP-002 | Authority List Usage Types (To Be Read / Referred To) | Accepted |
+| APP-003 | Search & List-Building Workflow | Accepted |
+| APP-010 | Redesign Layout — Sidebar | Accepted |
+| APP-011 | Three Search Paths | Accepted |
+| APP-012 | Issue Cards Separation | Accepted |
+| APP-013 | Implementation Priority | Accepted |

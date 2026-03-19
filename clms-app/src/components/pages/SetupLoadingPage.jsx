@@ -3,15 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '../atoms/Icon';
 import { useAppContext } from '../../context/AppContext';
 
-const steps = [
-  { label: 'Connecting to chambers...', icon: 'solar:link-round-linear' },
-  { label: 'Syncing library...', icon: 'solar:book-2-linear' },
-  { label: 'Setting up workspace...', icon: 'solar:widget-2-linear' },
-];
+const stepsByRole = {
+  clerk: [
+    { label: 'Creating your library...', icon: 'solar:library-linear' },
+    { label: 'Importing catalogue...', icon: 'solar:book-2-linear' },
+    { label: 'Setting up workspace...', icon: 'solar:widget-2-linear' },
+  ],
+  barrister: [
+    { label: 'Connecting to chambers...', icon: 'solar:link-round-linear' },
+    { label: 'Syncing library...', icon: 'solar:book-2-linear' },
+    { label: 'Setting up workspace...', icon: 'solar:widget-2-linear' },
+  ],
+};
 
 export default function SetupLoadingPage() {
   const navigate = useNavigate();
-  const { onboarding } = useAppContext();
+  const { onboarding, role } = useAppContext();
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
@@ -22,13 +29,15 @@ export default function SetupLoadingPage() {
     timers.push(setTimeout(() => setCurrentStep(3), 4500));
     timers.push(
       setTimeout(() => {
-        navigate('/app/search?role=barrister&mode=joined', { replace: true });
+        const dest = '/app/dashboard';
+        navigate(`${dest}?role=${role}&mode=joined`, { replace: true });
       }, 5000),
     );
 
     return () => timers.forEach(clearTimeout);
   }, [navigate]);
 
+  const steps = stepsByRole[role] || stepsByRole.barrister;
   const progress = Math.min((currentStep / steps.length) * 100, 100);
 
   return (
