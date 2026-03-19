@@ -427,7 +427,8 @@ function ListHeader({ list, editing, onSave, partGroups = [], onCourtChange }) {
     statusTimer.current = setTimeout(() => setSaveStatus(null), 2000);
   };
 
-  const [showFiling, setShowFiling] = useState(false);
+  const hasFilingData = !!(list.filedOnBehalf || list.otherPartyName || list.preparedBy || list.filingDate || list.signatoryCapacity || list.registryCity || list.division);
+  const [showFiling, setShowFiling] = useState(hasFilingData);
 
   const titleWidth = `${Math.min(Math.max((name || '').length + 2, 30), 50)}ch`;
   const referenceWidth = `${Math.min(Math.max((caseRef || '').length + 2, 20), 36)}ch`;
@@ -447,8 +448,6 @@ function ListHeader({ list, editing, onSave, partGroups = [], onCourtChange }) {
   const onEnter = (e) => { if (e.key === 'Enter') e.target.blur(); };
   const selectSave = (setter) => (e) => { setter(e.target.value); setTimeout(saveIfChanged, 0); };
 
-  // Auto-expand if any filing field has data
-  const hasFilingData = filedOnBehalf || otherPartyName || preparedBy || filingDate || signatoryCapacity || registryCity || division;
 
   return (
     <div className="animate-fade-in space-y-2">
@@ -479,12 +478,12 @@ function ListHeader({ list, editing, onSave, partGroups = [], onCourtChange }) {
           {getCourtOptions().map((opt) => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
         </Select>
         <button type="button" onClick={() => setShowFiling((v) => !v)} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-secondary">
-          <Icon name={showFiling || hasFilingData ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'} size={14} />
+          <Icon name={showFiling ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'} size={14} />
           Filing details
         </button>
       </div>
       {/* Collapsible: Filing details */}
-      {(showFiling || hasFilingData) && (
+      {showFiling && (
         <div className="space-y-2 animate-fade-in">
           <div className="flex flex-wrap items-center gap-2">
             <input type="text" value={registryCity} onChange={(e) => setRegistryCity(e.target.value)} onBlur={saveIfChanged} onKeyDown={onEnter} placeholder={court.defaultRegistry || 'Registry city'} className={`w-28 ${inputCls}`} />
