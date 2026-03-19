@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../atoms/Button';
+import PersonaToggle from '../atoms/PersonaToggle';
 import FormField from '../molecules/FormField';
 import { authContent } from '../../mocks/authContent';
 
@@ -35,6 +36,10 @@ export default function SignUpForm({ role, onRoleChange, onSubmit }) {
       <FormField required label="Name" placeholder="James Smith" value={form.name} onChange={handleChange('name')} autoFocus />
       <FormField required label="Email" type="email" placeholder="james@chambers.com" value={form.email} onChange={handleChange('email')} />
       <FormField required label="Password" type="password" placeholder="••••••••" value={form.password} onChange={handleChange('password')} />
+      <div>
+        <p className="mb-1.5 block text-sm font-medium text-text-secondary">I am a</p>
+        <PersonaToggle value={role} onChange={onRoleChange} className="w-full" />
+      </div>
       <div className="pt-2">
         <Button type="submit" className={`w-full ${!isValid ? 'opacity-40' : ''}`} variant="primary" loading={loading} disabled={!isValid}>
           {loading ? 'Creating account...' : 'Create Account'}

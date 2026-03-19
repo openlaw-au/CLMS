@@ -142,18 +142,6 @@ export default function BarristerDashboardPage() {
           <p className="mt-3 font-serif text-xl leading-tight text-white/84 md:text-2xl">
             Search authorities, organise your research, and export court-ready citations.
           </p>
-          {isSolo && (
-            <div className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-white/18 bg-white/12 px-4 py-3 text-sm text-white/90 backdrop-blur">
-              <Icon name="solar:buildings-2-linear" size={16} className="text-white/85" />
-              <div>
-                <p className="font-medium">You are in solo mode</p>
-                <p className="text-xs text-white/70">Join chambers to unlock shared catalogue and loan workflow.</p>
-              </div>
-              <Button size="sm" variant="secondary" className="!border-white/20 !bg-white !text-slate-900 hover:!bg-white/90" onClick={() => navigate('/onboarding/barrister/lookup')}>
-                Join Chambers
-              </Button>
-            </div>
-          )}
         </ContentLoader>
       </section>
 
