@@ -4,6 +4,8 @@ import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
 import Skeleton from '../../atoms/Skeleton';
 import ContentLoader from '../../atoms/ContentLoader';
+import MetricGrid from '../../molecules/MetricGrid';
+import DashboardHero from '../../organisms/DashboardHero';
 import { useAppContext } from '../../../context/AppContext';
 import { getLoans } from '../../../services/loansService';
 import { getLists } from '../../../services/authorityListsService';
@@ -12,14 +14,12 @@ import { lookupBookByTitle, getBorrowerName } from '../../../utils/bookLookup';
 export default function BarristerDashboardPage() {
   const navigate = useNavigate();
   const { onboarding } = useAppContext();
-  const isSolo = onboarding.mode === 'solo';
   const firstName = onboarding.name?.trim().split(/\s+/)[0] || 'Counsel';
 
   const [loans, setLoans] = useState([]);
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dismissedAlerts, setDismissedAlerts] = useState(new Set());
-  const [alertsCollapsed, setAlertsCollapsed] = useState(false);
 
   useEffect(() => {
     // TODO(api): Replace with GET /api/loans?borrower=me - fetch all borrower loans
@@ -95,7 +95,7 @@ export default function BarristerDashboardPage() {
       detail: overdueLoans.length > 0 ? `${overdueLoans.length} overdue` : 'No overdue',
       icon: 'solar:notebook-bookmark-linear',
       to: '/app/loans',
-      iconBg: totalActive > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500',
+      iconBg: totalActive > 0 ? 'info' : 'neutral',
     },
     {
       label: 'Due Soon',
@@ -103,7 +103,7 @@ export default function BarristerDashboardPage() {
       detail: dueSoon.length > 0 ? 'Due within 7 days' : 'Nothing due soon',
       icon: 'solar:calendar-linear',
       to: '/app/loans',
-      iconBg: dueSoon.length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400',
+      iconBg: dueSoon.length > 0 ? 'amber' : 'neutral',
     },
     {
       label: 'Research Blockers',
@@ -111,7 +111,7 @@ export default function BarristerDashboardPage() {
       detail: visibleAlerts.length > 0 ? 'Pinpoints or loan blockers' : 'No active blockers',
       icon: 'solar:danger-triangle-linear',
       to: '/app/authorities',
-      iconBg: visibleAlerts.length > 0 ? 'bg-red-50 text-red-600' : 'bg-emerald-100 text-emerald-600',
+      iconBg: visibleAlerts.length > 0 ? 'red' : 'emerald',
     },
     {
       label: 'Authority Lists',
@@ -119,72 +119,20 @@ export default function BarristerDashboardPage() {
       detail: `${totalListItems} entries in progress`,
       icon: 'solar:list-check-linear',
       to: '/app/authorities',
-      iconBg: lists.length > 0 ? 'bg-orange-100 text-orange-700' : 'bg-slate-200 text-slate-500',
+      iconBg: lists.length > 0 ? 'brand' : 'neutral',
     },
   ];
 
-  const metricCardClass = 'min-h-[160px] rounded-[28px] border border-white/35 bg-[linear-gradient(180deg,rgba(255,255,255,0.48),rgba(255,255,255,0.88))] p-6 backdrop-blur-xl shadow-[0_20px_50px_rgba(124,45,18,0.15)]';
-
   return (
     <div className="animate-page-in">
-      {/* Hero */}
-      <section className="relative flex min-h-[240px] flex-col justify-center rounded-b-[40px] px-1 pb-24 pt-16 text-white md:min-h-[260px] md:px-0 md:pb-28 md:pt-20">
-        <ContentLoader
-          loading={loading}
-          skeleton={
-            <>
-              <Skeleton dark className="h-10 w-48 rounded-lg md:w-56" />
-              <Skeleton dark className="mt-3 h-6 w-72 rounded-lg md:w-96" />
-            </>
-          }
-        >
-          <h1 className="font-serif text-4xl leading-none tracking-tight md:text-5xl">Hi, {firstName}.</h1>
-          <p className="mt-3 font-serif text-xl leading-tight text-white/84 md:text-2xl">
-            Search authorities, organise your research, and export court-ready citations.
-          </p>
-        </ContentLoader>
-      </section>
+      <DashboardHero
+        greeting={`Hi, ${firstName}.`}
+        loading={loading}
+        subtitle="Search authorities, organise your research, and export court-ready citations."
+      />
 
-      {/* Metric cards — containers always visible, content cross-fades */}
       <div className="relative z-[1] -mt-[56px] md:-mt-[60px]">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {[0, 1, 2, 3].map((i) => {
-            const metric = !loading ? dashboardMetrics[i] : null;
-            return (
-              <div
-                key={i}
-                role={metric ? 'button' : undefined}
-                tabIndex={metric ? 0 : undefined}
-                onClick={metric ? () => navigate(metric.to) : undefined}
-                onKeyDown={metric ? (e) => { if (e.key === 'Enter') navigate(metric.to); } : undefined}
-                className={`${metricCardClass} text-left ${metric ? 'cursor-pointer transition-colors hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.58),rgba(255,255,255,0.92))]' : ''}`}
-              >
-                <ContentLoader
-                  loading={loading}
-                  skeleton={
-                    <>
-                      <div className="flex items-center justify-between">
-                        <Skeleton className="h-11 w-11 rounded-2xl" />
-                        <Skeleton className="h-8 w-12 rounded-lg" />
-                      </div>
-                      <Skeleton className="mt-4 h-3 w-20 rounded" />
-                      <Skeleton className="mt-2 h-3 w-28 rounded" />
-                    </>
-                  }
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] ${metric?.iconBg || ''}`}>
-                      {metric && <Icon name={metric.icon} size={18} />}
-                    </span>
-                    <p className="text-3xl font-bold leading-none tracking-tight text-slate-950">{metric?.value}</p>
-                  </div>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{metric?.label}</p>
-                  <p className="mt-1 text-sm text-slate-600">{metric?.detail}</p>
-                </ContentLoader>
-              </div>
-            );
-          })}
-        </div>
+        <MetricGrid metrics={dashboardMetrics} loading={loading} />
       </div>
 
       {/* Bottom cards — containers always visible */}
@@ -207,13 +155,14 @@ export default function BarristerDashboardPage() {
                 <Icon name="solar:list-check-linear" size={22} className="text-brand" />
                 <h2 className="font-serif text-section-title text-text">Recent Authority Lists</h2>
               </div>
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="secondary"
                 onClick={() => navigate('/app/authorities')}
-                className="shrink-0 whitespace-nowrap rounded-full border border-slate-300 px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-slate-50"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
               >
                 {lists.length > 0 ? 'View all' : 'Create'}
-              </button>
+              </Button>
             </div>
             {lists.length > 0 ? (
               <div className="mt-3 space-y-1.5">
@@ -264,7 +213,6 @@ export default function BarristerDashboardPage() {
             <ContentLoader
               loading={loading}
               className="flex flex-1 flex-col min-h-0"
-              childClassName="flex flex-1 flex-col min-h-0"
               skeleton={
                 <>
                   <Skeleton className="h-5 w-24 rounded-lg" />

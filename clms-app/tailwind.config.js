@@ -35,6 +35,10 @@ export default {
         info: 'var(--color-info)',
         danger: 'var(--color-danger)',
       },
+      borderRadius: {
+        'metric-card': 'var(--radius-metric-card)',
+        hero: 'var(--radius-hero)',
+      },
       fontSize: {
         'page-title': ['var(--font-size-page)', { lineHeight: '1.25' }],
         'section-title': ['var(--font-size-section)', { lineHeight: '1.33' }],
@@ -45,6 +49,8 @@ export default {
         sans: ['Inter', 'sans-serif'],
       },
       boxShadow: {
+        metric: 'var(--shadow-metric)',
+        'metric-loading': 'var(--shadow-metric-loading)',
         soft: '0 10px 30px rgba(15, 23, 42, 0.08)',
       },
     },

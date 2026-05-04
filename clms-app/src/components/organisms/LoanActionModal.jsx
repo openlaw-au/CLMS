@@ -29,7 +29,7 @@ export default function LoanActionModal({ loan, onDeny, onClose }) {
         </div>
         <div className="mt-4 flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button variant="danger" onClick={handleDeny}>Deny</Button>
+          <Button variant="danger-solid" onClick={handleDeny}>Deny</Button>
         </div>
       </div>
     </>

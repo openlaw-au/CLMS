@@ -4,15 +4,14 @@ import Select from '../../atoms/Select';
 import Skeleton from '../../atoms/Skeleton';
 import ContentLoader from '../../atoms/ContentLoader';
 import BookCard from '../../molecules/BookCard';
-import StatusPillBar from '../../molecules/StatusPillBar';
 import CategoryDropdown from '../../molecules/CategoryDropdown';
+import SegmentedTabs from '../../molecules/SegmentedTabs';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import { getLoans, requestLoan, requestReturn } from '../../../services/loansService';
 import { getBooks } from '../../../services/booksService';
 import { getLists, addItem } from '../../../services/authorityListsService';
 import { formatShortDate } from '../../../utils/dateFormatters';
-
 
 const BOOK_GRID = 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 book-grid-wide';
 
@@ -56,9 +55,6 @@ export default function BarristerLoansPage() {
   const myActiveLoanBookIds = useMemo(() => new Set(
     loans.filter((l) => (l.status === 'active' || l.status === 'overdue') && l.borrower === userName).map((l) => l.bookId)
   ), [loans, userName]);
-  const activeLoanBookIds = useMemo(() => new Set(
-    loans.filter((l) => l.status === 'active' || l.status === 'overdue').map((l) => l.bookId)
-  ), [loans]);
   const pendingLoanBookIds = useMemo(() => new Set(
     loans.filter((l) => l.status === 'pending' && l.borrower === userName).map((l) => l.bookId)
   ), [loans, userName]);
@@ -86,16 +82,6 @@ export default function BarristerLoansPage() {
     });
   };
 
-  const sortBooks = (list) => {
-    const sorted = [...list];
-    switch (librarySort) {
-      case 'author': return sorted.sort((a, b) => a.author.localeCompare(b.author));
-      case 'area': return sorted.sort((a, b) => (a.practiceArea || '').localeCompare(b.practiceArea || ''));
-      case 'publisher': return sorted.sort((a, b) => a.publisher.localeCompare(b.publisher));
-      default: return sorted.sort((a, b) => a.title.localeCompare(b.title));
-    }
-  };
-
   // Unified displayed books
   const displayedBooks = useMemo(() => {
     let result;
@@ -114,7 +100,13 @@ export default function BarristerLoansPage() {
       );
     }
 
-    return sortBooks(result);
+    const sorted = [...result];
+    switch (librarySort) {
+      case 'author': return sorted.sort((a, b) => a.author.localeCompare(b.author));
+      case 'area': return sorted.sort((a, b) => (a.practiceArea || '').localeCompare(b.practiceArea || ''));
+      case 'publisher': return sorted.sort((a, b) => a.publisher.localeCompare(b.publisher));
+      default: return sorted.sort((a, b) => a.title.localeCompare(b.title));
+    }
   }, [statusFilter, books, availableBooks, onLoanBooks, myBooks, selectedAreas, libraryQuery, librarySort]);
 
   const handleRequestLoan = async (bookId) => {
@@ -173,10 +165,10 @@ export default function BarristerLoansPage() {
   const overdueBooks = useMemo(() => myBooks.filter(isOverdue), [myBooks]);
   const hasOverdue = overdueBooks.length > 0;
   const pills = [
-    { key: 'all', label: 'All', count: books.length, icon: 'solar:book-2-linear' },
-    { key: 'available', label: 'Available', count: availableBooks.length, icon: 'solar:check-circle-linear' },
-    { key: 'on-loan', label: 'On Loan', count: onLoanBooks.length, icon: 'solar:clock-circle-linear' },
-    { key: 'my-books', label: 'My Books', count: myBooks.length, icon: 'solar:book-bookmark-linear', badge: hasOverdue },
+    { key: 'all', label: 'All', count: books.length, icon: 'solar:book-2-linear', activeAccent: 'brand' },
+    { key: 'available', label: 'Available', count: availableBooks.length, icon: 'solar:check-circle-linear', activeAccent: 'brand' },
+    { key: 'on-loan', label: 'On Loan', count: onLoanBooks.length, icon: 'solar:clock-circle-linear', activeAccent: 'brand' },
+    { key: 'my-books', label: 'My Books', count: myBooks.length, icon: 'solar:book-bookmark-linear', activeAccent: 'brand', badge: hasOverdue },
   ];
 
   return (
@@ -257,7 +249,7 @@ export default function BarristerLoansPage() {
             </div>
 
             {/* Status pills */}
-            <StatusPillBar
+            <SegmentedTabs
               items={pills}
               value={statusFilter}
               onChange={setStatusFilter}

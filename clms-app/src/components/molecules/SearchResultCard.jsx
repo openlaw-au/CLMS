@@ -50,9 +50,16 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
                   Added
                 </span>
               ) : (
-                <button type="button" onClick={handleListAction} className="shrink-0 rounded-lg bg-brand/10 p-2 text-brand transition-colors hover:bg-brand/20">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleListAction}
+                  aria-label="Add to authority list"
+                  className="h-8 w-8 shrink-0 rounded-lg p-0"
+                >
                   <Icon name="solar:add-circle-bold" size={20} />
-                </button>
+                </Button>
               )
             )}
           </div>
@@ -105,13 +112,16 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
                 Added
               </span>
             ) : (
-              <button
+              <Button
                 type="button"
+                size="sm"
+                variant="secondary"
                 onClick={handleListAction}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand transition-colors hover:bg-brand/20"
+                aria-label="Add to authority list"
+                className="h-8 w-8 shrink-0 rounded-lg p-0"
               >
                 <Icon name="solar:add-circle-bold" size={18} />
-              </button>
+              </Button>
             )
           ) : (
             <Button
@@ -160,9 +170,16 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
                 Added
               </span>
             ) : (
-              <button type="button" onClick={handleListAction} className="shrink-0 rounded-lg bg-brand/10 p-2 text-brand transition-colors hover:bg-brand/20">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={handleListAction}
+                aria-label="Add to authority list"
+                className="h-8 w-8 shrink-0 rounded-lg p-0"
+              >
                 <Icon name="solar:add-circle-bold" size={20} />
-              </button>
+              </Button>
             )
           )}
         </div>
@@ -250,13 +267,16 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
               Added
             </span>
           ) : (
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="secondary"
               onClick={handleListAction}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand transition-colors hover:bg-brand/20"
+              aria-label="Add to authority list"
+              className="h-8 w-8 shrink-0 rounded-lg p-0"
             >
               <Icon name="solar:add-circle-bold" size={18} />
-            </button>
+            </Button>
           )
         ) : (
           <Button

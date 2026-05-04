@@ -317,13 +317,14 @@ export default function BarristerSearchPage() {
       {mode === 'solo' && !firstVisit && (
         <div className="mt-4 flex items-center justify-between rounded-xl border border-brand/30 bg-brand/10 p-3 text-sm text-brand">
           <span>JADE only mode. Join chambers to unlock shared library.</span>
-          <button
-            type="button"
+          <Button
+            size="sm"
+            variant="primary"
             onClick={() => navigate('/onboarding/barrister/lookup')}
-            className="ml-3 shrink-0 rounded-full bg-brand px-3 py-1 text-xs font-medium text-white hover:bg-brand-hover"
+            className="ml-3 shrink-0 px-3 py-1 text-xs"
           >
             Join Chambers
-          </button>
+          </Button>
         </div>
       )}
 
@@ -341,14 +342,15 @@ export default function BarristerSearchPage() {
       {!hasQuery && !searching && (
         <div className="mt-4 flex flex-wrap gap-2">
           {suggestedBarristerQueries.map((q) => (
-            <button
+            <Button
               key={q}
-              type="button"
+              size="sm"
+              variant="secondary"
               onClick={() => setQuery(q)}
-              className="rounded-full border border-border/70 bg-slate-50 px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-slate-100 hover:text-text"
+              className="px-3 py-1.5 text-xs"
             >
               {q}
-            </button>
+            </Button>
           ))}
         </div>
       )}

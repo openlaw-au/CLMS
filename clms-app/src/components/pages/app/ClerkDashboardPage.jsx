@@ -4,6 +4,9 @@ import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
 import Skeleton from '../../atoms/Skeleton';
 import ContentLoader from '../../atoms/ContentLoader';
+import MetricGrid from '../../molecules/MetricGrid';
+import SummaryCard from '../../molecules/SummaryCard';
+import DashboardHero from '../../organisms/DashboardHero';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import { getLoans } from '../../../services/loansService';
@@ -19,7 +22,6 @@ export default function ClerkDashboardPage() {
   const navigate = useNavigate();
   const { onboarding } = useAppContext();
   const { addToast } = useToast();
-  const firstVisit = onboarding.firstVisit !== false;
   const firstName = onboarding.name?.trim().split(/\s+/)[0] || 'Clerk';
 
   const [loading, setLoading] = useState(true);
@@ -57,148 +59,57 @@ export default function ClerkDashboardPage() {
   const pendingQueue = useMemo(() => queue.filter((entry) => entry.status === 'pending'), [queue]);
 
   const locationCount = onboarding.locations.filter((l) => l.name.trim()).length;
-  const inviteCount = onboarding.invites.filter((i) => i.email.trim()).length;
   const dashboardMetrics = [
     {
       label: 'Books in Catalogue',
       value: books.length,
       detail: `${enrichedCount} enriched`,
       icon: 'solar:book-2-linear',
-      iconBg: books.length > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500',
+      to: '/app/catalogue',
+      iconBg: books.length > 0 ? 'info' : 'neutral',
     },
     {
       label: 'Pending Requests',
       value: pendingLoans.length,
       detail: pendingLoans.length > 0 ? 'Needs review today' : 'All clear',
       icon: 'solar:inbox-linear',
-      iconBg: pendingLoans.length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-600',
+      to: '/app/loans',
+      iconBg: pendingLoans.length > 0 ? 'amber' : 'emerald',
     },
     {
       label: 'Overdue Books',
       value: overdueLoans.length,
       detail: overdueLoans.length > 0 ? 'Follow-up required' : 'No overdue items',
       icon: 'solar:danger-triangle-linear',
-      iconBg: overdueLoans.length > 0 ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-600',
+      to: '/app/loans',
+      iconBg: overdueLoans.length > 0 ? 'red' : 'emerald',
     },
     {
       label: 'Catalogue Coverage',
       value: `${enrichedPct}%`,
       detail: `${locationCount} locations live`,
       icon: 'solar:chart-2-linear',
-      iconBg: enrichedPct >= 80 ? 'bg-emerald-100 text-emerald-600' : enrichedPct >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700',
+      to: '/app/catalogue',
+      iconBg: enrichedPct >= 80 ? 'emerald' : enrichedPct >= 50 ? 'amber' : 'red',
     },
   ];
+
+  const loanSnapshotRows = [
+    { label: 'Active', value: activeLoans.length, icon: 'solar:book-bookmark-linear', tone: 'emerald' },
+    { label: 'Pending', value: pendingLoans.length, icon: 'solar:hourglass-linear', tone: 'amber' },
+    { label: 'Overdue', value: overdueLoans.length, icon: 'solar:alarm-linear', tone: 'red' },
+  ];
+
   return (
     <div className="animate-page-in">
-      {/* Hero section — container always visible */}
-      <section className="relative flex min-h-[252px] flex-col justify-center rounded-b-[40px] px-1 pb-24 pt-8 text-white md:min-h-[276px] md:px-0 md:pb-28 md:pt-10">
-        <ContentLoader
-          loading={loading}
-          skeleton={
-            <>
-              <Skeleton dark className="h-10 w-48 rounded-lg md:w-56" />
-              <Skeleton dark className="mt-3 h-6 w-72 rounded-lg md:w-96" />
-            </>
-          }
-        >
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-3xl">
-              <h1 className="font-serif text-4xl leading-none tracking-tight md:text-5xl">Hi, {firstName}.</h1>
-              <p
-                className="mt-3 max-w-[30ch] font-serif text-xl leading-tight text-white/84 md:max-w-[32ch] md:text-2xl"
-                style={{ textWrap: 'balance' }}
-              >
-                Manage catalogue health, requests, and chambers operations in one place.
-              </p>
-            </div>
+      <DashboardHero
+        greeting={`Hi, ${firstName}.`}
+        loading={loading}
+        subtitle="Manage catalogue health, requests, and chambers operations in one place."
+      />
 
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => navigate('/app/catalogue')}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/12 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/18"
-              >
-                <Icon name="solar:add-circle-linear" size={16} />
-                Add Book
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/app/catalogue')}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-white/90"
-              >
-                <Icon name="solar:upload-linear" size={16} />
-                Import CSV
-              </button>
-            </div>
-          </div>
-
-          {firstVisit && (
-            <div className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-emerald-200/30 bg-emerald-400/12 px-4 py-3 text-sm text-white/90 backdrop-blur">
-              <Icon name="solar:check-circle-bold" size={16} className="text-emerald-200" />
-              <div>
-                <p className="font-medium">Setup synced</p>
-                <p className="text-xs text-white/70">
-                  {locationCount} locations live. {inviteCount} invites ready.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="relative mt-6 max-w-2xl md:hidden">
-            <Icon
-              name="solar:magnifer-linear"
-              size={18}
-              className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-white/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.08)]"
-            />
-            <input
-              type="text"
-              placeholder="Search catalogue, ISBNs, borrowers, locations..."
-              onFocus={() => navigate('/app/catalogue')}
-              className="relative z-0 w-full rounded-[24px] border border-white/18 bg-white/12 py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/65 shadow-[0_18px_40px_rgba(124,45,18,0.18)] backdrop-blur outline-none transition-colors focus:border-white/28 focus:bg-white/16"
-            />
-          </div>
-        </ContentLoader>
-      </section>
-
-      {/* Metric cards — containers always visible */}
-      <div className="relative z-[1] -mt-[80px] md:-mt-[84px]">
-        <ContentLoader
-          loading={loading}
-          className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
-          skeleton={
-            <>
-              {[0, 1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="min-h-[160px] rounded-[28px] border border-white/35 bg-[linear-gradient(180deg,rgba(255,255,255,0.26),rgba(255,255,255,0.84))] p-4 shadow-[0_20px_50px_rgba(124,45,18,0.18)] backdrop-blur-xl"
-                >
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-11 w-11 rounded-2xl" />
-                    <Skeleton className="h-8 w-12 rounded-lg" />
-                  </div>
-                  <Skeleton className="mt-4 h-3 w-20 rounded" />
-                  <Skeleton className="mt-2 h-3 w-28 rounded" />
-                </div>
-              ))}
-            </>
-          }
-        >
-          {dashboardMetrics.map((metric) => (
-            <article
-              key={metric.label}
-              className="min-h-[160px] rounded-[28px] border border-white/35 bg-[linear-gradient(180deg,rgba(255,255,255,0.26),rgba(255,255,255,0.84))] p-4 shadow-[0_20px_50px_rgba(124,45,18,0.18)] backdrop-blur-xl"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] ${metric.iconBg}`}>
-                  <Icon name={metric.icon} size={18} />
-                </span>
-                <p className="text-3xl font-semibold leading-none text-slate-950">{metric.value}</p>
-              </div>
-              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{metric.label}</p>
-              <p className="mt-1 text-sm text-slate-600">{metric.detail}</p>
-            </article>
-          ))}
-        </ContentLoader>
+      <div className="relative z-[1] -mt-[56px] md:-mt-[60px]">
+        <MetricGrid metrics={dashboardMetrics} loading={loading} />
       </div>
 
       {/* Overview label */}
@@ -476,36 +387,7 @@ export default function ClerkDashboardPage() {
             </ContentLoader>
           </section>
 
-          {/* Loan snapshot */}
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-            <ContentLoader
-              loading={loading}
-              skeleton={
-                <>
-                  <Skeleton className="h-5 w-36 rounded-lg" />
-                  <div className="mt-3 space-y-2">
-                    {[0, 1, 2].map((j) => <Skeleton key={j} className="h-10 w-full rounded-xl" />)}
-                  </div>
-                </>
-              }
-            >
-              <h2 className="font-serif text-card-title text-text">Loan Snapshot</h2>
-              <div className="mt-3 space-y-2 text-sm">
-                <div className="flex items-center justify-between text-text-secondary">
-                  <span>Active</span>
-                  <span className="font-medium text-text">{activeLoans.length}</span>
-                </div>
-                <div className="flex items-center justify-between text-text-secondary">
-                  <span>Pending</span>
-                  <span className="font-medium text-text">{pendingLoans.length}</span>
-                </div>
-                <div className="flex items-center justify-between text-text-secondary">
-                  <span>Overdue</span>
-                  <span className="font-medium text-text">{overdueLoans.length}</span>
-                </div>
-              </div>
-            </ContentLoader>
-          </section>
+          <SummaryCard title="Loan Snapshot" rows={loanSnapshotRows} loading={loading} />
         </div>
       </div>
     </div>

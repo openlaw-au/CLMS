@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import Icon from '../atoms/Icon';
+import Button from '../atoms/Button';
 import { MOCK_ISBN_RESULTS, getMockBooksForPaste } from '../../mocks/isbnResults';
 import { startPolling } from '../../services/scanSync';
 
@@ -318,14 +319,15 @@ export default function IsbnLookupFlow({ mode, addedBooks, onAddBooks, onRemoveB
             rows={4}
             className="w-full rounded-xl border border-border bg-white px-4 py-3 font-mono text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
           />
-          <button
-            type="button"
+          <Button
+            size="sm"
+            variant="secondary"
             onClick={handleLookup}
             disabled={!pasteText.trim()}
-            className="w-full rounded-xl border border-brand bg-white px-4 py-2.5 text-sm font-medium text-brand transition-colors hover:bg-orange-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full rounded-xl px-4 py-2.5 disabled:cursor-not-allowed"
           >
             Look up
-          </button>
+          </Button>
         </div>
       )}
 
@@ -377,22 +379,24 @@ export default function IsbnLookupFlow({ mode, addedBooks, onAddBooks, onRemoveB
                     <p className="text-sm text-amber-700">
                       All {dupCount} book{dupCount !== 1 ? 's are' : ' is'} already in your list.
                     </p>
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="secondary"
                       onClick={handlePasteReset}
-                      className="w-full rounded-xl border border-brand bg-white px-4 py-2.5 text-sm font-medium text-brand transition-colors hover:bg-orange-50"
+                      className="w-full rounded-xl px-4 py-2.5"
                     >
                       Try different ISBNs
-                    </button>
+                    </Button>
                   </div>
                 ) : (
-                  <button
-                    type="button"
+                  <Button
+                    size="sm"
+                    variant="secondary"
                     onClick={handleAddPasteResults}
-                    className="w-full rounded-xl border border-brand bg-white px-4 py-2.5 text-sm font-medium text-brand transition-colors hover:bg-orange-50"
+                    className="w-full rounded-xl px-4 py-2.5"
                   >
                     Add {pasteResults.length - dupCount} new book{pasteResults.length - dupCount !== 1 ? 's' : ''} to library
-                  </button>
+                  </Button>
                 )}
               </>
             );
@@ -413,13 +417,14 @@ export default function IsbnLookupFlow({ mode, addedBooks, onAddBooks, onRemoveB
               </p>
             </div>
           </div>
-          <button
-            type="button"
+          <Button
+            size="sm"
+            variant="secondary"
             onClick={handlePasteReset}
-            className="w-full rounded-xl border border-brand bg-white px-4 py-2.5 text-sm font-medium text-brand transition-colors hover:bg-orange-50"
+            className="w-full rounded-xl px-4 py-2.5"
           >
             Paste more ISBNs
-          </button>
+          </Button>
         </div>
       )}
 
@@ -499,14 +504,15 @@ function ScannedBooksList({
               {duplicates.map((d) => `"${d.title}" (x${d.count})`).join(', ')}
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            size="sm"
+            variant="secondary"
             onClick={onConsolidate}
             disabled={isConsolidating}
-            className="shrink-0 rounded-full border border-brand bg-white px-5 py-2 text-sm font-medium text-brand transition-colors hover:bg-orange-50 disabled:opacity-50"
+            className="shrink-0"
           >
             Consolidate
-          </button>
+          </Button>
         </div>
       )}
 
@@ -553,13 +559,14 @@ function ScannedBooksList({
                   >
                     Cancel
                   </button>
-                  <button
-                    type="button"
+                  <Button
+                    size="sm"
+                    variant="primary"
                     onClick={onSaveEdit}
-                    className="rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-hover"
+                    className="rounded-lg px-3 py-1.5 text-xs"
                   >
                     Save
-                  </button>
+                  </Button>
                 </div>
               </div>
             );

@@ -6,6 +6,7 @@ import Button from '../../atoms/Button';
 import PageHeader from '../../molecules/PageHeader';
 import Badge from '../../atoms/Badge';
 import FilterPillBar from '../../molecules/FilterPillBar';
+import SegmentedTabs from '../../molecules/SegmentedTabs';
 import { useToast } from '../../../context/ToastContext';
 import { searchAll } from '../../../services/searchService';
 import { getBooks } from '../../../services/booksService';
@@ -249,14 +250,15 @@ export default function ClerkSearchPage() {
             <p className="mt-1 text-xs text-text-secondary">Search books, JADE cases, and legislation in one place.</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {SUGGESTED_QUERIES.map((q) => (
-                <button
+                <Button
                   key={q}
-                  type="button"
+                  size="sm"
+                  variant="secondary"
                   onClick={() => setQuery(q)}
-                  className="rounded-full border border-border/70 bg-slate-50 px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-slate-100 hover:text-text"
+                  className="px-3 py-1.5 text-xs"
                 >
                   {q}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -345,21 +347,11 @@ export default function ClerkSearchPage() {
       {/* Source tabs */}
       {hasQuery && (
         <div className="mt-4 flex flex-wrap gap-2 rounded-xl border border-border/70 bg-white px-3 py-2">
-          {SOURCE_TABS.map((tab) => {
-            const active = source === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setFilters((prev) => ({ ...prev, source: tab.key }))}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  active ? 'bg-brand text-white' : 'bg-slate-100 text-text-secondary hover:bg-slate-200'
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+          <SegmentedTabs
+            items={SOURCE_TABS}
+            onChange={(nextSource) => setFilters((prev) => ({ ...prev, source: nextSource }))}
+            value={source}
+          />
           <span className="ml-auto self-center text-xs text-text-muted">
             {totalResults} {totalResults === 1 ? 'result' : 'results'}
           </span>

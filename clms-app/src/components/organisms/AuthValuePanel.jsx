@@ -5,7 +5,7 @@ import { authContent } from '../../mocks/authContent';
 function MobileBarristerPreview() {
   return (
     <div className="relative mx-auto mt-8 max-w-sm">
-      <div className="overflow-hidden rounded-[28px] border border-white/80 bg-white/92 shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
+      <div className="overflow-hidden rounded-metric-card border border-white/80 bg-white/92 shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
         <div className="flex items-center gap-1.5 border-b border-slate-200 bg-white px-4 py-3">
           <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -73,7 +73,7 @@ function MobileClerkPreview() {
 
   return (
     <div className="relative mx-auto mt-8 max-w-sm">
-      <div className="overflow-hidden rounded-[28px] border border-white/80 bg-white/92 shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
+      <div className="overflow-hidden rounded-metric-card border border-white/80 bg-white/92 shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
         <div className="flex items-center gap-1.5 border-b border-slate-200 bg-white px-4 py-3">
           <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />

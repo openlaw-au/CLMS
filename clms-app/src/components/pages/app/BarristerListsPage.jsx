@@ -217,13 +217,15 @@ function AGLCPreviewInline({ list, onScrollToItem }) {
             {allIssues.join(' · ')}
           </p>
           {firstProblemItem && onScrollToItem && (
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="secondary"
               onClick={() => onScrollToItem(firstProblemItem.id)}
-              className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-200"
+              className="px-2.5 py-1 text-xs text-red-600 hover:!text-red-700"
             >
+              <Icon name="solar:danger-triangle-linear" size={13} />
               Fix issues
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -1653,13 +1655,14 @@ export default function BarristerListsPage() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="secondary"
                       onClick={(e) => { e.stopPropagation(); handleRequestLoan(book); }}
-                      className="shrink-0 whitespace-nowrap rounded-full border border-brand px-3 py-1.5 text-xs font-medium text-brand transition-colors hover:bg-brand/5"
+                      className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
                     >
                       Request Loan
-                    </button>
+                    </Button>
                   );
                 }
                 return returnRequested ? (
@@ -1677,13 +1680,14 @@ export default function BarristerListsPage() {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    type="button"
+                  <Button
+                    size="sm"
+                    variant="secondary"
                     onClick={(e) => { e.stopPropagation(); handleRequestReturn(book); }}
-                    className="shrink-0 whitespace-nowrap rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-subtle"
+                    className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
                   >
                     Request Return
-                  </button>
+                  </Button>
                 );
               })()}
             </div>
@@ -1781,14 +1785,15 @@ export default function BarristerListsPage() {
           {!searchHasQuery && !isSearchLoading && (
             <div className="mt-3 flex flex-wrap gap-2">
               {suggestedBarristerQueries.map((q) => (
-                <button
+                <Button
                   key={q}
-                  type="button"
+                  size="sm"
+                  variant="secondary"
                   onClick={() => setSearchQuery(q)}
-                  className="rounded-full border border-border/70 bg-surface-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-subtle hover:text-text"
+                  className="px-3 py-1.5 text-xs"
                 >
                   {q}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -2313,14 +2318,15 @@ export default function BarristerListsPage() {
                         <p className="mb-2 text-xs text-text-muted">Try searching:</p>
                         <div className="flex flex-wrap gap-1.5">
                           {suggestedBarristerQueries.slice(0, 4).map((q) => (
-                            <button
+                            <Button
                               key={q}
-                              type="button"
+                              size="sm"
+                              variant="secondary"
                               onClick={() => { setInlineQuery(q); setFocusedIssue('__ungrouped'); }}
-                              className="rounded-full border border-border bg-surface-subtle/80 px-2.5 py-1 text-xs text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-brand"
+                              className="px-2.5 py-1 text-xs"
                             >
                               {q}
-                            </button>
+                            </Button>
                           ))}
                         </div>
                       </div>
@@ -2356,8 +2362,9 @@ export default function BarristerListsPage() {
                     {problemItems.length} {problemItems.length === 1 ? 'issue' : 'issues'} remaining
                   </p>
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
+                    <Button
+                      size="sm"
+                      variant="secondary"
                       onClick={async () => {
                         // Blur active input so it saves first
                         const active = document.activeElement;
@@ -2370,17 +2377,19 @@ export default function BarristerListsPage() {
                         // Pick the first problem item (list is already in Part order)
                         handleFixIssues(fresh[0].id);
                       }}
-                      className="rounded-full bg-red-100 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-200"
+                      className="px-3 py-1.5 text-xs text-red-600 hover:!text-red-700"
                     >
+                      <Icon name="solar:danger-triangle-linear" size={13} />
                       Next issue
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
                       onClick={() => setShowFixBar(false)}
-                      className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-subtle"
+                      className="px-3 py-1.5 text-xs"
                     >
                       Done
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -2468,7 +2477,7 @@ export default function BarristerListsPage() {
                   <Icon name="solar:copy-linear" size={16} />
                   Duplicate
                 </Button>
-                <Button size="sm" variant="secondary" onClick={handleBulkDelete} disabled={selectedCards.size === 0} className="!text-danger !border-slate-300">
+                <Button size="sm" variant="danger" onClick={handleBulkDelete} disabled={selectedCards.size === 0}>
                   <Icon name="solar:trash-bin-trash-linear" size={16} />
                   Delete
                 </Button>

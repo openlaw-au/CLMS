@@ -1,4 +1,5 @@
 import Icon from '../atoms/Icon';
+import Button from '../atoms/Button';
 import { formatShortDate } from '../../utils/dateFormatters';
 
 const PUBLISHER_BADGE = 'bg-surface-subtle text-text-secondary';
@@ -27,6 +28,7 @@ export default function BookCard({ book, alreadyBorrowed, pendingLoan, onLoan, o
               type="button"
               onClick={onAddToList}
               title="Add to authority list"
+              aria-label="Add to authority list"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-brand/10 hover:text-brand"
             >
               <Icon name="solar:add-circle-linear" size={18} />
@@ -89,13 +91,14 @@ export default function BookCard({ book, alreadyBorrowed, pendingLoan, onLoan, o
                 Borrowed
               </span>
             ) : onRequestReturn ? (
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="secondary"
                 onClick={() => onRequestReturn(book.id)}
-                className="w-full rounded-full border border-border bg-white py-2 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-subtle"
+                className="w-full text-xs"
               >
                 Request Return
-              </button>
+              </Button>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
                 <Icon name="solar:clock-circle-linear" size={12} />
@@ -118,14 +121,15 @@ export default function BookCard({ book, alreadyBorrowed, pendingLoan, onLoan, o
               Borrowed
             </span>
           ) : (
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="primary"
               onClick={() => onRequest(book.id)}
               disabled={requesting}
-              className="w-full rounded-full bg-brand/10 py-2 text-xs font-medium text-brand transition-colors hover:bg-brand/15 disabled:opacity-50"
+              className="w-full text-xs"
             >
               Request Loan
-            </button>
+            </Button>
           )}
         </div>
       </div>

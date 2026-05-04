@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import Icon from '../atoms/Icon';
+import Button from '../atoms/Button';
 import { MOCK_ISBN_RESULTS } from '../../mocks/isbnResults';
 import { pushScannedBook, touchScanSession } from '../../services/scanSync';
 
@@ -305,13 +306,14 @@ export default function ScanPage() {
               <p className="text-sm font-semibold text-white">Camera access required</p>
               <p className="mt-1 text-xs text-white/50">{errorMsg}</p>
             </div>
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="primary"
               onClick={handleRetry}
-              className="rounded-xl bg-brand px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
+              className="rounded-xl px-6 py-2.5"
             >
               Try again
-            </button>
+            </Button>
           </div>
         )}
 

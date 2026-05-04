@@ -227,7 +227,7 @@ export default function AppShell({ role, children }) {
   const headerClassName = hasHeroGradient
     ? headerCondensed
       ? 'border-b border-border/60 bg-white/88 py-3 shadow-[0_12px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'
-      : 'border-b border-white/18 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] py-3 shadow-[0_12px_32px_rgba(124,45,18,0.08)] backdrop-blur-xl'
+      : 'border-b border-white/18 bg-shell-header-glass py-3 shadow-[0_12px_32px_rgba(124,45,18,0.08)] backdrop-blur-xl'
     : 'border-b border-border/60 bg-white py-3';
   const quickActionClassName = isBarristerQuickAction
     ? 'hidden !px-3.5 !py-2 !text-xs lg:inline-flex'

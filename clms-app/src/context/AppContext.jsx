@@ -5,6 +5,7 @@ const AppContext = createContext(null);
 
 const ONBOARDING_KEY = 'clms-onboarding';
 const ROLE_KEY = 'clms-role';
+const CHAMBERS_SETTINGS_KEY = 'clms.chambersSettings';
 const createInitialOnboarding = () => ({
   name: '',
   email: '',
@@ -21,6 +22,11 @@ const createInitialOnboarding = () => ({
   firstVisit: true,
   celebrationShown: false,
 });
+const createInitialChambersSettings = () => ({
+  defaultLoanDays: 14,
+  reminderDaysBefore: 3,
+  includeLocationInReminders: true,
+});
 
 const readJson = (key, fallback) => {
   try {
@@ -36,6 +42,9 @@ export function AppProvider({ children }) {
   const [onboarding, setOnboarding] = useState(() =>
     readJson(ONBOARDING_KEY, createInitialOnboarding()),
   );
+  const [chambersSettings, setChambersSettings] = useState(() =>
+    readJson(CHAMBERS_SETTINGS_KEY, createInitialChambersSettings()),
+  );
 
   useEffect(() => {
     localStorage.setItem(ROLE_KEY, role);
@@ -44,6 +53,10 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem(ONBOARDING_KEY, JSON.stringify(onboarding));
   }, [onboarding]);
+
+  useEffect(() => {
+    localStorage.setItem(CHAMBERS_SETTINGS_KEY, JSON.stringify(chambersSettings));
+  }, [chambersSettings]);
 
   const setRole = useCallback((nextRole) => {
     localStorage.setItem(ROLE_KEY, nextRole);
@@ -54,6 +67,14 @@ export function AppProvider({ children }) {
     setOnboarding((prev) => {
       const next = { ...prev, ...patch };
       localStorage.setItem(ONBOARDING_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const updateChambersSettings = useCallback((patch) => {
+    setChambersSettings((prev) => {
+      const next = { ...prev, ...patch };
+      localStorage.setItem(CHAMBERS_SETTINGS_KEY, JSON.stringify(next));
       return next;
     });
   }, []);
@@ -76,9 +97,11 @@ export function AppProvider({ children }) {
 
   const resetSession = useCallback((nextRole = role) => {
     localStorage.removeItem(ONBOARDING_KEY);
+    localStorage.removeItem(CHAMBERS_SETTINGS_KEY);
     localStorage.setItem(ROLE_KEY, nextRole);
     setRoleState(nextRole);
     setOnboarding(createInitialOnboarding());
+    setChambersSettings(createInitialChambersSettings());
   }, [role]);
 
   const value = useMemo(
@@ -87,11 +110,23 @@ export function AppProvider({ children }) {
       setRole,
       onboarding,
       updateOnboarding,
+      chambersSettings,
+      updateChambersSettings,
       clearFirstVisit,
       markCelebrationShown,
       resetSession,
     }),
-    [clearFirstVisit, markCelebrationShown, onboarding, resetSession, role, setRole, updateOnboarding],
+    [
+      chambersSettings,
+      clearFirstVisit,
+      markCelebrationShown,
+      onboarding,
+      resetSession,
+      role,
+      setRole,
+      updateChambersSettings,
+      updateOnboarding,
+    ],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -315,13 +315,14 @@ export default function ClerkAuthoritiesPage() {
                                 <Icon name="solar:check-circle-linear" size={14} /> Added
                               </span>
                             ) : (
-                              <button
-                                type="button"
+                              <Button
+                                size="sm"
+                                variant="secondary"
                                 onClick={() => handleInlineAdd(book, 'book')}
-                                className="shrink-0 rounded-lg bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/20"
+                                className="shrink-0 rounded-lg px-2.5 py-1 text-xs"
                               >
                                 + Add
-                              </button>
+                              </Button>
                             )}
                           </div>
                         );
@@ -342,13 +343,14 @@ export default function ClerkAuthoritiesPage() {
                                 <Icon name="solar:check-circle-linear" size={14} /> Added
                               </span>
                             ) : (
-                              <button
-                                type="button"
+                              <Button
+                                size="sm"
+                                variant="secondary"
                                 onClick={() => handleInlineAdd(j, 'jade')}
-                                className="shrink-0 rounded-lg bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/20"
+                                className="shrink-0 rounded-lg px-2.5 py-1 text-xs"
                               >
                                 + Add
-                              </button>
+                              </Button>
                             )}
                           </div>
                         );
@@ -399,15 +401,16 @@ export default function ClerkAuthoritiesPage() {
                           </button>
                         </form>
                       ) : item.pageRange ? (
-                        <button
-                          type="button"
+                        <Button
+                          size="sm"
+                          variant="secondary"
                           onClick={() => startEdit(item)}
-                          className="group inline-flex items-center gap-1.5 rounded-lg bg-brand/5 px-2.5 py-1 text-sm font-medium text-brand transition-colors hover:bg-brand/10"
+                          className="group inline-flex rounded-lg px-2.5 py-1 text-sm"
                         >
                           <Icon name="solar:pin-bold" size={13} />
                           {item.pageRange}
                           <Icon name="solar:pen-2-linear" size={12} className="text-brand/50 transition-opacity group-hover:text-brand" />
-                        </button>
+                        </Button>
                       ) : (
                         <button
                           type="button"

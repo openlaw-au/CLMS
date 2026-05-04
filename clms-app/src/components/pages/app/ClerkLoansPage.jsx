@@ -1,48 +1,67 @@
 import { useEffect, useState } from 'react';
 import Icon from '../../atoms/Icon';
 import Button from '../../atoms/Button';
-import Badge from '../../atoms/Badge';
 import Skeleton from '../../atoms/Skeleton';
 import ContentLoader from '../../atoms/ContentLoader';
 import LoanCard from '../../molecules/LoanCard';
 import PageHeader from '../../molecules/PageHeader';
+import SegmentedTabs from '../../molecules/SegmentedTabs';
+import SummaryCard from '../../molecules/SummaryCard';
 import LoanActionModal from '../../organisms/LoanActionModal';
+import NewLoanModal from '../../organisms/NewLoanModal';
+import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
-import { getLoans, approveLoan, denyLoan, sendReminder } from '../../../services/loansService';
-import { formatDueDate } from '../../../utils/dateFormatters';
+import { getLoans, approveLoan, denyLoan, sendReminder, returnLoan, renewLoan } from '../../../services/loansService';
+import { getRecallRequests, recallRequest, dismissRecallRequest } from '../../../services/recallRequestsService';
+import { formatShortDate } from '../../../utils/dateFormatters';
 
 export default function ClerkLoansPage() {
+  const { chambersSettings } = useAppContext();
   const { addToast } = useToast();
   const [loans, setLoans] = useState([]);
+  const [recallRequests, setRecallRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('pending');
   const [denyTarget, setDenyTarget] = useState(null);
+  const [showNewLoan, setShowNewLoan] = useState(false);
 
-  const refresh = () => getLoans().then(setLoans);
+  const refreshLoans = () => getLoans().then(setLoans);
+  const refreshRecalls = () => getRecallRequests().then(setRecallRequests);
 
   useEffect(() => {
     // TODO(api): Replace with GET /api/loans — fetch all loans for clerk management
     const min = new Promise((r) => setTimeout(r, 400));
-    Promise.all([getLoans(), min]).then(([l]) => {
+    Promise.all([getLoans(), getRecallRequests(), min]).then(([l, recalls]) => {
       setLoans(l);
+      setRecallRequests(recalls);
       setLoading(false);
     });
   }, []);
 
   const pending = loans.filter((l) => l.status === 'pending');
+  const recalls = recallRequests;
   const active = loans.filter((l) => l.status === 'active');
   const overdue = loans.filter((l) => l.status === 'overdue');
   const returned = loans.filter((l) => l.status === 'returned');
   const denied = loans.filter((l) => l.status === 'denied');
 
   const tabs = [
-    { key: 'pending', label: 'Pending', count: pending.length },
-    { key: 'active', label: 'Active', count: active.length },
-    { key: 'overdue', label: 'Overdue', count: overdue.length },
-    { key: 'history', label: 'History', count: returned.length + denied.length },
+    { key: 'pending', label: 'Pending', count: pending.length, tone: 'amber' },
+    { key: 'recalls', label: 'Recalls', count: recalls.length, tone: 'amber' },
+    { key: 'active', label: 'Active', count: active.length, tone: 'emerald' },
+    { key: 'overdue', label: 'Overdue', count: overdue.length, tone: 'red' },
+    { key: 'history', label: 'History', count: returned.length + denied.length, tone: 'neutral' },
   ];
 
-  const getFiltered = () => {
+  const summaryRows = [
+    { label: 'Pending', value: pending.length, icon: 'solar:hourglass-linear', tone: 'amber' },
+    { label: 'Overdue', value: overdue.length, icon: 'solar:alarm-linear', tone: 'red' },
+    { label: 'Active', value: active.length, icon: 'solar:book-bookmark-linear', tone: 'emerald' },
+    { label: 'Returned', value: returned.length, icon: 'solar:round-arrow-left-linear', tone: 'neutral' },
+    { label: 'Total loans recorded', value: loans.length, icon: 'solar:chart-2-linear', tone: 'brand' },
+  ];
+
+  const getFilteredLoans = () => {
     if (tab === 'pending') return pending;
     if (tab === 'active') return active;
     if (tab === 'overdue') return overdue;
@@ -51,9 +70,9 @@ export default function ClerkLoansPage() {
 
   const handleApprove = async (id) => {
     // TODO(api): Replace with PATCH /api/loans/:id/approve — approve pending loan
-    await approveLoan(id);
+    await approveLoan(id, chambersSettings?.defaultLoanDays ?? 14);
     addToast({ message: 'Approved · Borrower notified', type: 'success' });
-    await refresh();
+    await refreshLoans();
   };
 
   const handleDeny = async (id, reason) => {
@@ -61,7 +80,7 @@ export default function ClerkLoansPage() {
     await denyLoan(id, reason);
     addToast({ message: 'Denied · Borrower notified', type: 'success' });
     setDenyTarget(null);
-    await refresh();
+    await refreshLoans();
   };
 
   const handleRemind = async (id) => {
@@ -69,10 +88,44 @@ export default function ClerkLoansPage() {
     // TODO(api): Replace with POST /api/loans/:id/reminder — send overdue reminder
     await sendReminder(id);
     addToast({ message: `Reminder sent to ${loan?.borrower || 'borrower'}`, type: 'success' });
-    await refresh();
+    await refreshLoans();
   };
 
-  const filtered = getFiltered();
+  const handleReturn = async (id) => {
+    // TODO(api): Replace with PATCH /api/loans/:id/return — mark loan as returned
+    await returnLoan(id);
+    addToast({ message: 'Marked returned', type: 'success' });
+    await refreshLoans();
+  };
+
+  const handleExtend = async (id) => {
+    // TODO(api): Replace with PATCH /api/loans/:id/renew — extend loan by 7 days
+    const loan = await renewLoan(id);
+    const dueMessage = loan?.dueDate ? ` New due ${formatShortDate(loan.dueDate)}.` : '';
+    addToast({ message: `Extended by 7 days.${dueMessage}`, type: 'success' });
+    await refreshLoans();
+  };
+
+  const handleRecall = async (id) => {
+    const request = recallRequests.find((item) => item.id === id);
+    await recallRequest(id);
+    addToast({ message: `Recall sent to ${request?.currentBorrower || 'borrower'}`, type: 'success' });
+    await refreshRecalls();
+  };
+
+  const handleDismissRecall = async (id) => {
+    await dismissRecallRequest(id);
+    addToast({ message: 'Dismissed', type: 'success' });
+    await refreshRecalls();
+  };
+
+  const filteredLoans = getFilteredLoans();
+  const isRecallsTab = tab === 'recalls';
+
+  const handleLoanCreated = async () => {
+    await refreshLoans();
+    setTab('active');
+  };
 
   return (
     <div className="animate-page-in">
@@ -80,48 +133,34 @@ export default function ClerkLoansPage() {
       <ContentLoader
         loading={loading}
         skeleton={
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div>
               <Skeleton className="h-7 w-32 rounded-lg" />
               <Skeleton className="mt-2 h-4 w-48 rounded" />
             </div>
+            <Skeleton className="h-9 w-28 rounded-xl" />
           </div>
         }
       >
-        <PageHeader title="Loan Management" subtitle="Approve requests, track overdue items, and manage loans." />
+        <PageHeader title="Loan Management" subtitle="Approve requests, track overdue items, and manage loans.">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowNewLoan(true)}
+          >
+            + New Loan
+          </Button>
+        </PageHeader>
       </ContentLoader>
 
-      {/* Tabs — container always visible */}
-      <div className="mt-5 flex gap-1 rounded-xl bg-slate-100 p-1">
-        <ContentLoader
+      <div className="mt-5">
+        <SegmentedTabs
+          fullWidth
+          items={tabs}
           loading={loading}
-          className="flex w-full gap-1"
-          skeleton={
-            <>
-              {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-9 flex-1 rounded-lg" />)}
-            </>
-          }
-        >
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 flex-1 justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                tab === t.key ? 'bg-white text-text shadow-sm' : 'text-text-secondary hover:text-text'
-              }`}
-            >
-              {t.label}
-              {t.count > 0 && (
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  t.key === 'overdue' ? 'bg-red-100 text-red-600' : t.key === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-slate-200 text-text-muted'
-                }`}>
-                  {t.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </ContentLoader>
+          onChange={setTab}
+          value={tab}
+        />
       </div>
 
       {/* Main content grid — containers always visible */}
@@ -148,21 +187,55 @@ export default function ClerkLoansPage() {
                 </div>
               }
             >
-              {filtered.length > 0 ? (
-                <div className="divide-y divide-border/40">
-                  {filtered.map((loan) => (
-                    <LoanCard
-                      key={loan.id}
-                      loan={loan}
-                      role="clerk"
-                      onApprove={handleApprove}
-                      onDeny={(loan) => setDenyTarget(loan)}
-                      onRemind={handleRemind}
-                    />
-                  ))}
-                </div>
+              {isRecallsTab ? (
+                recalls.length > 0 ? (
+                  <div className="divide-y divide-border/40">
+                    {recalls.map((request) => (
+                      <div key={request.id} className="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-3">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50">
+                            <Icon name="solar:hand-shake-linear" size={18} className="text-amber-600" />
+                          </span>
+                          <div>
+                            <p className="font-medium text-text">{request.bookTitle}</p>
+                            <p className="mt-1 text-sm text-text-secondary">
+                              {request.requesterName} requested · current borrower {request.currentBorrower} · due {request.dueDate ? formatShortDate(request.dueDate) : 'No due date'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="primary" size="sm" onClick={() => handleRecall(request.id)}>
+                            Recall
+                          </Button>
+                          <Button variant="secondary" size="sm" onClick={() => handleDismissRecall(request.id)}>
+                            Dismiss
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-text-muted">No incoming recalls.</p>
+                )
               ) : (
-                <p className="text-sm text-text-muted">No {tab} loans.</p>
+                filteredLoans.length > 0 ? (
+                  <div className="divide-y divide-border/40">
+                    {filteredLoans.map((loan) => (
+                      <LoanCard
+                        key={loan.id}
+                        loan={loan}
+                        role="clerk"
+                        onApprove={handleApprove}
+                        onDeny={(loan) => setDenyTarget(loan)}
+                        onRemind={handleRemind}
+                        onReturn={handleReturn}
+                        onExtend={handleExtend}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-text-muted">No {tab} loans.</p>
+                )
               )}
             </ContentLoader>
           </div>
@@ -170,70 +243,7 @@ export default function ClerkLoansPage() {
 
         {/* Sidebar — containers always visible */}
         <div className="space-y-4">
-          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-            <ContentLoader
-              loading={loading}
-              skeleton={
-                <>
-                  <Skeleton className="h-5 w-24 rounded-lg" />
-                  <div className="mt-4 space-y-3">
-                    {[0, 1, 2, 3].map((j) => (
-                      <div key={j} className="flex items-center gap-3">
-                        <Skeleton className="h-9 w-9 rounded-xl" />
-                        <Skeleton className="h-4 flex-1 rounded" />
-                        <Skeleton className="h-6 w-8 rounded" />
-                      </div>
-                    ))}
-                  </div>
-                </>
-              }
-            >
-              <h2 className="text-sm font-semibold text-text">Summary</h2>
-              <div className="mt-4 space-y-3">
-                {[
-                  ['Pending', pending.length, 'solar:hourglass-linear', 'bg-amber-50', 'text-amber-500'],
-                  ['Overdue', overdue.length, 'solar:alarm-linear', 'bg-red-50', 'text-red-500'],
-                  ['Active', active.length, 'solar:book-bookmark-linear', 'bg-emerald-50', 'text-emerald-500'],
-                  ['Returned', returned.length, 'solar:round-arrow-left-linear', 'bg-slate-100', 'text-text-secondary'],
-                ].map(([label, count, icon, bg, color]) => (
-                  <div key={label} className="flex items-center gap-3">
-                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${bg}`}>
-                      <Icon name={icon} size={18} className={color} />
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-sm text-text-secondary">{label}</p>
-                    </div>
-                    <p className={`text-lg font-bold ${count > 0 ? color : 'text-text'}`}>{count}</p>
-                  </div>
-                ))}
-              </div>
-            </ContentLoader>
-          </div>
-
-          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-            <ContentLoader
-              loading={loading}
-              skeleton={
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-10 w-10 rounded-xl" />
-                  <div>
-                    <Skeleton className="h-6 w-12 rounded" />
-                    <Skeleton className="mt-1 h-3 w-28 rounded" />
-                  </div>
-                </div>
-              }
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
-                  <Icon name="solar:chart-2-linear" size={20} className="text-brand" />
-                </span>
-                <div>
-                  <p className="text-2xl font-bold text-text">{loans.length}</p>
-                  <p className="text-xs text-text-muted">Total loans recorded</p>
-                </div>
-              </div>
-            </ContentLoader>
-          </div>
+          <SummaryCard title="Summary" rows={summaryRows} loading={loading} />
         </div>
       </div>
 
@@ -243,6 +253,13 @@ export default function ClerkLoansPage() {
           loan={denyTarget}
           onDeny={handleDeny}
           onClose={() => setDenyTarget(null)}
+        />
+      )}
+
+      {showNewLoan && (
+        <NewLoanModal
+          onClose={() => setShowNewLoan(false)}
+          onCreated={handleLoanCreated}
         />
       )}
     </div>

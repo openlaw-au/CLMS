@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Icon from '../atoms/Icon';
+import Button from '../atoms/Button';
 
 export default function FooterSection({ role = 'barrister' }) {
   return (
@@ -15,10 +16,10 @@ export default function FooterSection({ role = 'barrister' }) {
               <Link to={`/signup?role=${role}`} className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-hover">
                 Get Started
               </Link>
-              <button type="button" className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white">
+              <Button type="button" size="sm" variant="secondary" className="px-4 py-2 text-sm">
                 <Icon name="solar:calendar-linear" size={14} />
                 <span>Book a Walkthrough</span>
-              </button>
+              </Button>
             </div>
           </div>
 

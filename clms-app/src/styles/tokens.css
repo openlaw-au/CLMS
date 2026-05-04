@@ -43,5 +43,54 @@
 
   --radius-pill: 9999px;
   --radius-card: 1rem;
+  --radius-metric-card: 28px;
+  --radius-hero: 40px;
   --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-metric: 0 20px 50px rgba(124, 45, 18, 0.15);
+  --shadow-metric-loading: 0 20px 50px rgba(124, 45, 18, 0.18);
+  --shadow-metric-icon-inset: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+
+  --gradient-metric: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.88));
+  --gradient-metric-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.92));
+  --gradient-shell-header: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
+
+  --color-metric-border: rgba(255, 255, 255, 0.35);
+  --color-hero-subtitle: rgba(255, 255, 255, 0.84);
+
+  --tone-amber-bg: #fef3c7;
+  --tone-amber-fg: #b45309;
+  --tone-red-bg: #fef2f2;
+  --tone-red-fg: #dc2626;
+  --tone-emerald-bg: #d1fae5;
+  --tone-emerald-fg: #059669;
+  --tone-neutral-bg: #e2e8f0;
+  --tone-neutral-fg: var(--color-text-muted);
+  --tone-brand-bg: rgb(var(--color-primary-rgb) / 0.1);
+  --tone-brand-fg: var(--color-primary);
+}
+
+@layer utilities {
+  .bg-metric {
+    background-image: var(--gradient-metric);
+  }
+
+  .bg-metric-hover:hover {
+    background-image: var(--gradient-metric-hover);
+  }
+
+  .bg-shell-header-glass {
+    background-image: var(--gradient-shell-header);
+  }
+
+  .border-metric {
+    border-color: var(--color-metric-border);
+  }
+
+  .text-hero-subtitle {
+    color: var(--color-hero-subtitle);
+  }
+
+  .shadow-metric-icon {
+    box-shadow: var(--shadow-metric-icon-inset);
+  }
 }

@@ -45,7 +45,7 @@ export default function LoanCard({ loan, role, onApprove, onDeny, onRemind, onRe
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {loan.status === 'pending' && (
             approveState === 'approved' ? (
               <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 transition-all duration-300">
@@ -58,11 +58,18 @@ export default function LoanCard({ loan, role, onApprove, onDeny, onRemind, onRe
               </>
             )
           )}
-          {loan.status === 'overdue' && (
-            <Button size="sm" variant="secondary" onClick={() => onRemind?.(loan.id)}>Send Reminder</Button>
-          )}
           {loan.status === 'active' && (
-            <Badge variant="status">Active</Badge>
+            <>
+              <Button size="sm" variant="secondary" onClick={() => onReturn?.(loan.id)}>Mark Returned</Button>
+              <Button size="sm" variant="secondary" onClick={() => onExtend?.(loan.id)}>Extend</Button>
+            </>
+          )}
+          {loan.status === 'overdue' && (
+            <>
+              <Button size="sm" variant="secondary" onClick={() => onReturn?.(loan.id)}>Mark Returned</Button>
+              <Button size="sm" variant="secondary" onClick={() => onExtend?.(loan.id)}>Extend</Button>
+              <Button size="sm" variant="secondary" onClick={() => onRemind?.(loan.id)}>Send Reminder</Button>
+            </>
           )}
           {severity === 'critical' && loan.status === 'overdue' && (
             <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">Escalated</span>

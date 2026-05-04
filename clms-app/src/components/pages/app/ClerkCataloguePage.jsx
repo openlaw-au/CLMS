@@ -6,9 +6,11 @@ import Badge from '../../atoms/Badge';
 import Skeleton from '../../atoms/Skeleton';
 import ContentLoader from '../../atoms/ContentLoader';
 import PageHeader from '../../molecules/PageHeader';
+import SegmentedTabs from '../../molecules/SegmentedTabs';
 import BookDetailPanel from '../../organisms/BookDetailPanel';
 import AddBookFlow from '../../organisms/AddBookFlow';
 import ImportModal from '../../organisms/ImportModal';
+import IsbnIntakeModal from '../../organisms/IsbnIntakeModal';
 import { useToast } from '../../../context/ToastContext';
 import { getBooks } from '../../../services/booksService';
 import { getQueueItem, linkToExisting, markAddedToCatalogue } from '../../../services/uncataloguedQueueService';
@@ -16,6 +18,11 @@ import { getQueueItem, linkToExisting, markAddedToCatalogue } from '../../../ser
 function isBookEnriched(book) {
   return book.enrichment && Object.values(book.enrichment).some((value) => value && (Array.isArray(value) ? value.length > 0 : true));
 }
+
+const VIEW_MODE_TABS = [
+  { key: 'library', label: 'Card View' },
+  { key: 'table', label: 'Admin Table' },
+];
 
 export default function ClerkCataloguePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -29,6 +36,7 @@ export default function ClerkCataloguePage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showAddBook, setShowAddBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [intakeMode, setIntakeMode] = useState(null);
   const [queueEntry, setQueueEntry] = useState(null);
   const queryParam = searchParams.get('q')?.trim().toLowerCase() || '';
   const queueIdParam = searchParams.get('queueId');
@@ -109,9 +117,9 @@ export default function ClerkCataloguePage() {
   };
 
   const filterTabs = [
-    { key: 'all', label: 'All', count: books.length },
-    { key: 'enriched', label: 'Enriched', count: enrichedCount },
-    { key: 'isbn-only', label: 'ISBN Only', count: books.length - enrichedCount },
+    { key: 'all', label: 'All', count: books.length, tone: 'neutral' },
+    { key: 'enriched', label: 'Enriched', count: enrichedCount, tone: 'emerald' },
+    { key: 'isbn-only', label: 'ISBN Only', count: books.length - enrichedCount, tone: 'amber' },
   ];
   const effectiveViewMode = queueAction === 'link' ? 'library' : viewMode;
   const showResolvedAddFlow = showAddBook || (queueAction === 'add' && !!queueIdParam && !!queueEntry);
@@ -146,6 +154,14 @@ export default function ClerkCataloguePage() {
             <Icon name="solar:upload-linear" size={16} />
             Import CSV
           </Button>
+          <Button size="sm" variant="secondary" onClick={() => setIntakeMode('scan')}>
+            <Icon name="solar:scanner-linear" size={16} />
+            Scan ISBN
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => setIntakeMode('paste')}>
+            <Icon name="solar:clipboard-text-linear" size={16} />
+            Paste ISBNs
+          </Button>
         </PageHeader>
       </ContentLoader>
 
@@ -160,38 +176,18 @@ export default function ClerkCataloguePage() {
           }
         >
           <div className="flex w-full flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setViewMode('library')}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                viewMode === 'library' ? 'bg-brand text-white' : 'bg-slate-100 text-text-secondary hover:bg-slate-200'
-              }`}
-            >
-              Card View
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                viewMode === 'table' ? 'bg-brand text-white' : 'bg-slate-100 text-text-secondary hover:bg-slate-200'
-              }`}
-            >
-              Admin Table
-            </button>
+            <SegmentedTabs
+              items={VIEW_MODE_TABS}
+              onChange={setViewMode}
+              value={viewMode}
+            />
 
-            <div className="ml-auto flex gap-1 rounded-lg bg-slate-100 p-1">
-              {filterTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setFilterTab(tab.key)}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                    filterTab === tab.key ? 'bg-white text-text shadow-sm' : 'text-text-secondary hover:text-text'
-                  }`}
-                >
-                  {tab.label} ({tab.count})
-                </button>
-              ))}
+            <div className="ml-auto">
+              <SegmentedTabs
+                items={filterTabs}
+                onChange={setFilterTab}
+                value={filterTab}
+              />
             </div>
           </div>
         </ContentLoader>
@@ -514,6 +510,14 @@ export default function ClerkCataloguePage() {
       {showImport && (
         <ImportModal
           onClose={() => setShowImport(false)}
+          onImported={() => setRefreshKey((prev) => prev + 1)}
+        />
+      )}
+
+      {intakeMode && (
+        <IsbnIntakeModal
+          mode={intakeMode}
+          onClose={() => setIntakeMode(null)}
           onImported={() => setRefreshKey((prev) => prev + 1)}
         />
       )}

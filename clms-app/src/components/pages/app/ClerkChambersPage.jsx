@@ -6,11 +6,17 @@ import Button from '../../atoms/Button';
 import Skeleton from '../../atoms/Skeleton';
 import ContentLoader from '../../atoms/ContentLoader';
 import PageHeader from '../../molecules/PageHeader';
+import SegmentedTabs from '../../molecules/SegmentedTabs';
 import Badge from '../../atoms/Badge';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
 import { getMembers, inviteMember } from '../../../services/membersService';
 import { getBooks } from '../../../services/booksService';
+
+const chamberTabs = [
+  { key: 'members', label: 'Members' },
+  { key: 'locations', label: 'Locations' },
+];
 
 function buildLocationGroups(locations, books) {
   const groups = {};
@@ -109,14 +115,11 @@ export default function ClerkChambersPage() {
         }
       >
         <PageHeader title="Chambers" subtitle="Manage people and physical library locations in one place.">
-          <Button size="sm" variant={tab === 'members' ? 'primary' : 'secondary'} onClick={() => setTab('members')}>
-            <Icon name="solar:users-group-rounded-linear" size={14} />
-            Members
-          </Button>
-          <Button size="sm" variant={tab === 'locations' ? 'primary' : 'secondary'} onClick={() => setTab('locations')}>
-            <Icon name="solar:map-point-linear" size={14} />
-            Locations
-          </Button>
+          <SegmentedTabs
+            items={chamberTabs}
+            onChange={setTab}
+            value={tab}
+          />
         </PageHeader>
       </ContentLoader>
 

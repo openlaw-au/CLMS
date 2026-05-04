@@ -7,7 +7,7 @@ import { getSuggestions } from '../../services/searchService';
 import { getLists, createList, addItem } from '../../services/authorityListsService';
 import { useToast } from '../../context/ToastContext';
 
-export default function HeaderSearchBar({ placeholder, role, className = '' }) {
+export default function HeaderSearchBar({ placeholder, className = '' }) {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const wrapperRef = useRef(null);
@@ -32,7 +32,7 @@ export default function HeaderSearchBar({ placeholder, role, className = '' }) {
   }, []);
 
   useEffect(() => {
-    if (!query.trim()) { setSuggestions([]); return undefined; }
+    if (!query.trim()) return undefined;
     const timer = setTimeout(() => fetchSuggestions(query), 180);
     return () => clearTimeout(timer);
   }, [query, fetchSuggestions]);
@@ -145,7 +145,13 @@ export default function HeaderSearchBar({ placeholder, role, className = '' }) {
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(event) => { setQuery(event.target.value); setShowSuggestions(true); setActiveIndex(-1); }}
+            onChange={(event) => {
+              const nextQuery = event.target.value;
+              setQuery(nextQuery);
+              if (!nextQuery.trim()) setSuggestions([]);
+              setShowSuggestions(Boolean(nextQuery.trim()));
+              setActiveIndex(-1);
+            }}
             onFocus={() => { if (query.trim()) setShowSuggestions(true); }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
@@ -165,12 +171,14 @@ export default function HeaderSearchBar({ placeholder, role, className = '' }) {
               <Icon name="solar:close-circle-linear" size={14} />
             </button>
           )}
-          <button
+          <Button
             type="submit"
-            className="inline-flex shrink-0 items-center justify-center rounded-full bg-brand px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
+            size="sm"
+            variant="primary"
+            className="shrink-0 px-3.5 py-1.5 text-xs"
           >
             Search
-          </button>
+          </Button>
         </div>
 
         {/* Autosuggest dropdown */}
