@@ -1720,19 +1720,19 @@ export default function BarristerListsPage() {
                   );
                 }
                 return returnRequested ? (
-                  <div className="flex shrink-0 animate-fade-in items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
-                      <Icon name="solar:clock-circle-linear" size={12} />
-                      Return Requested
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleCancelReturn(book); }}
-                      className="text-xs text-text-muted hover:text-text"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                  <Button
+                    size="sm"
+                    variant="recall"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm('Cancel recall request?')) {
+                        handleCancelReturn(book);
+                      }
+                    }}
+                    className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs text-success"
+                  >
+                    <Icon name="solar:check-circle-linear" size={14} /> Requested
+                  </Button>
                 ) : (
                   <Button
                     size="sm"

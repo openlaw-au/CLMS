@@ -105,7 +105,7 @@ export default function BookCard({
           const status = overdue ? { text: 'Overdue', cls: 'bg-danger/10 text-danger' }
             : hasRecallRequestActions ? { text: 'Recall Requested', cls: 'bg-warning/10 text-warning' }
             : hasApproveActions ? { text: 'Loan Requested', cls: 'bg-warning/10 text-warning' }
-            : returnRequested ? { text: 'Return Requested', cls: 'bg-info/10 text-info' }
+            : returnRequested ? { text: 'Recall Requested', cls: 'bg-warning/10 text-warning' }
             : (alreadyBorrowed && onLoan) ? { text: 'Borrowed', cls: 'bg-info/10 text-info' }
             : onLoan ? { text: 'On Loan', cls: 'bg-amber-100 text-amber-700' }
             : pendingLoan ? { text: 'Loan Requested', cls: 'bg-warning/10 text-warning' }
@@ -346,15 +346,18 @@ export default function BookCard({
                 <div className="flex-1 basis-0 min-w-0">
                   {onLoan ? (
                     returnRequested ? (
-                      <div className="flex animate-fade-in items-center gap-2">
-                        <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
-                          <Icon name="solar:clock-circle-linear" size={12} />
-                          Return Requested
-                        </span>
-                        {onCancelReturn && (
-                          <button type="button" onClick={() => onCancelReturn(book.id)} className="text-xs text-text-muted hover:text-text">Cancel</button>
-                        )}
-                      </div>
+                      <Button
+                        size="sm"
+                        variant="recall"
+                        onClick={() => {
+                          if (onCancelReturn && window.confirm('Cancel recall request?')) {
+                            onCancelReturn(book.id);
+                          }
+                        }}
+                        className="w-full text-xs text-success"
+                      >
+                        <Icon name="solar:check-circle-linear" size={14} /> Requested
+                      </Button>
                     ) : alreadyBorrowed ? (
                       <div className="flex w-full items-center">
                         <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
