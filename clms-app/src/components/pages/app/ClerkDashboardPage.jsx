@@ -94,7 +94,9 @@ export default function ClerkDashboardPage() {
 
   const booksById = useMemo(() => new Map(books.map((book) => [book.id, book])), [books]);
   const pendingLoans = useMemo(() => loans.filter((loan) => loan.status === 'pending'), [loans]);
+  const activeLoans = useMemo(() => loans.filter((loan) => loan.status === 'active'), [loans]);
   const overdueLoans = useMemo(() => loans.filter((loan) => loan.status === 'overdue'), [loans]);
+  const availableBooks = useMemo(() => books.filter((book) => book.status === 'available'), [books]);
 
   const enrichedCount = useMemo(() => books.filter(isEnriched).length, [books]);
   const enrichedPct = books.length > 0 ? Math.round((enrichedCount / books.length) * 100) : 0;
@@ -106,12 +108,12 @@ export default function ClerkDashboardPage() {
 
   const dashboardMetrics = [
     {
-      label: 'Books in Library',
-      value: books.length,
-      detail: `${enrichedCount} enriched`,
+      label: 'Available',
+      value: availableBooks.length,
+      detail: books.length > 0 ? `${availableBooks.length} of ${books.length} ready` : 'No books yet',
       icon: 'solar:book-2-linear',
       to: '/app/library',
-      iconBg: books.length > 0 ? 'info' : 'neutral',
+      iconBg: availableBooks.length > 0 ? 'emerald' : 'neutral',
     },
     {
       label: 'Pending Requests',
@@ -122,20 +124,20 @@ export default function ClerkDashboardPage() {
       iconBg: pendingLoans.length > 0 ? 'amber' : 'emerald',
     },
     {
+      label: 'On Loan',
+      value: activeLoans.length,
+      detail: activeLoans.length > 0 ? `${activeLoans.length} books out` : 'Nothing out',
+      icon: 'solar:clock-circle-linear',
+      to: '/app/library?tab=on-loan',
+      iconBg: activeLoans.length > 0 ? 'info' : 'neutral',
+    },
+    {
       label: 'Overdue Books',
       value: overdueLoans.length,
       detail: overdueLoans.length > 0 ? 'Follow-up required' : 'No overdue items',
       icon: 'solar:danger-triangle-linear',
       to: '/app/library?tab=overdue',
       iconBg: overdueLoans.length > 0 ? 'red' : 'emerald',
-    },
-    {
-      label: 'Library Coverage',
-      value: `${enrichedPct}%`,
-      detail: books.length - enrichedCount > 0 ? `${books.length - enrichedCount} books to enrich` : 'All books enriched',
-      icon: 'solar:chart-2-linear',
-      to: '/app/library',
-      iconBg: enrichedPct >= 80 ? 'emerald' : enrichedPct >= 50 ? 'amber' : 'red',
     },
   ];
 

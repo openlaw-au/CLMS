@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import {
+  Activity,
   AlarmClock,
   ArrowLeft,
   ArrowLeftRight,
@@ -157,6 +158,7 @@ const iconMap = {
   'solar:pin-bold': Pin,
   'solar:play-circle-linear': CirclePlay,
   'solar:printer-linear': Printer,
+  'solar:pulse-2-linear': Activity,
   'solar:qr-code-linear': QrCode,
   'solar:restart-linear': RefreshCcw,
   'solar:round-arrow-left-linear': RotateCcw,
