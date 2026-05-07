@@ -680,6 +680,7 @@ export default function BarristerListsPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [bulkBusy, setBulkBusy] = useState(null); // 'duplicate' | 'delete' | null
   const [cancelReturnTarget, setCancelReturnTarget] = useState(null);
+  const [requestReturnTarget, setRequestReturnTarget] = useState(null);
 
   // Card menu + multi-select
   const [cardMenuId, setCardMenuId] = useState(null);
@@ -1737,7 +1738,7 @@ export default function BarristerListsPage() {
                   <Button
                     size="sm"
                     variant="recall"
-                    onClick={(e) => { e.stopPropagation(); handleRequestReturn(book); }}
+                    onClick={(e) => { e.stopPropagation(); setRequestReturnTarget(book); }}
                     className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
                   >
                     Request Return
@@ -2771,6 +2772,18 @@ export default function BarristerListsPage() {
           confirmVariant="danger"
           onConfirm={() => handleCancelReturn(cancelReturnTarget)}
           onClose={() => setCancelReturnTarget(null)}
+        />
+      )}
+
+      {requestReturnTarget && (
+        <ConfirmModal
+          title="Request recall?"
+          body={`Ask the clerk to recall "${requestReturnTarget.title}" from the current borrower.`}
+          confirmLabel="Request recall"
+          cancelLabel="Cancel"
+          confirmVariant="primary"
+          onConfirm={() => handleRequestReturn(requestReturnTarget)}
+          onClose={() => setRequestReturnTarget(null)}
         />
       )}
     </div>

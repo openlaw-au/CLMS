@@ -34,6 +34,7 @@ export default function BookCard({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingCancelReturn, setConfirmingCancelReturn] = useState(false);
+  const [confirmingRequestReturn, setConfirmingRequestReturn] = useState(false);
   const overflowMenuRef = useRef(null);
   const category = book.enrichment?.subject || book.practiceArea;
   const hasApproveActions = typeof onApprove === 'function';
@@ -369,7 +370,7 @@ export default function BookCard({
                       <Button
                         size="sm"
                         variant="recall"
-                        onClick={() => onRequestReturn(book.id)}
+                        onClick={() => setConfirmingRequestReturn(true)}
                         className="w-full text-xs"
                       >
                         Request
@@ -439,6 +440,17 @@ export default function BookCard({
           confirmVariant="danger"
           onConfirm={() => onCancelReturn?.(book.id)}
           onClose={() => setConfirmingCancelReturn(false)}
+        />
+      )}
+      {confirmingRequestReturn && (
+        <ConfirmModal
+          title="Request recall?"
+          body={`Ask the clerk to recall "${book.title}" from the current borrower.`}
+          confirmLabel="Request recall"
+          cancelLabel="Cancel"
+          confirmVariant="primary"
+          onConfirm={() => onRequestReturn?.(book.id)}
+          onClose={() => setConfirmingRequestReturn(false)}
         />
       )}
     </div>
