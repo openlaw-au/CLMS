@@ -348,16 +348,16 @@ export default function BookCard({
                 <div className="flex-1 basis-0 min-w-0">
                   {onLoan ? (
                     returnRequested ? (
-                      <Button
-                        size="sm"
-                        variant="recall"
+                      <button
+                        type="button"
                         onClick={() => {
                           if (onCancelReturn) setConfirmingCancelReturn(true);
                         }}
-                        className="w-full text-xs text-success"
+                        className="inline-flex items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning transition-colors hover:bg-warning/20"
                       >
-                        <Icon name="solar:check-circle-linear" size={14} /> Requested
-                      </Button>
+                        <Icon name="solar:hourglass-linear" size={12} />
+                        Requested
+                      </button>
                     ) : alreadyBorrowed ? (
                       <div className="flex w-full items-center">
                         <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">

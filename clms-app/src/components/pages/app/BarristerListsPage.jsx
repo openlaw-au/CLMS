@@ -1722,17 +1722,17 @@ export default function BarristerListsPage() {
                   );
                 }
                 return returnRequested ? (
-                  <Button
-                    size="sm"
-                    variant="recall"
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setCancelReturnTarget(book);
                     }}
-                    className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs text-success"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning transition-colors hover:bg-warning/20"
                   >
-                    <Icon name="solar:check-circle-linear" size={14} /> Requested
-                  </Button>
+                    <Icon name="solar:hourglass-linear" size={12} />
+                    Requested
+                  </button>
                 ) : (
                   <Button
                     size="sm"
