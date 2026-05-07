@@ -49,7 +49,19 @@ Same change — the existing pill+Cancel combo here:
 ```
 Becomes a single pill button (small, `shrink-0 whitespace-nowrap px-3 py-1.5 text-xs`, with check icon + "Requested" text). Click handler: `e.stopPropagation()`, then `if (window.confirm('Cancel recall request?')) handleCancelReturn(book);`.
 
-### 3. Out of scope
+### 3. Confirm dialog — use project modal, NOT `window.confirm`
+Replace the `window.confirm('Cancel recall request?')` call with the project's standard modal pattern (see `clms-app/src/components/organisms/LoanActionModal.jsx` for the canonical structure: black/30 overlay with `motion-fade`, white centered card with `animate-page-in`, header + body copy + Cancel/Confirm buttons, `MODAL_CLOSE_MS = 200`).
+
+Add a small reusable `clms-app/src/components/molecules/ConfirmModal.jsx`:
+- Props: `title`, `body`, `confirmLabel` (default "Confirm"), `cancelLabel` (default "Cancel"), `confirmVariant` (default `'danger'`), `onConfirm`, `onClose`
+- Same overlay + card animation pattern as LoanActionModal
+- Renders title (font-serif card-title), optional body paragraph, then Cancel + Confirm buttons aligned right
+
+Wire it in:
+- `BookCard.jsx`: add local `confirmingCancel` state. The new "Requested" button toggles it; render `<ConfirmModal>` (title `Cancel recall request?`, confirmLabel `Cancel recall`, cancelLabel `Keep`, confirmVariant `danger`, onConfirm calls `onCancelReturn(book.id)`) when active.
+- `BarristerListsPage.jsx`: lift `cancelReturnTarget` state to the page level (the book whose cancel-confirm modal is open). The new pill button sets it on click; render `<ConfirmModal>` once at page level when `cancelReturnTarget` is set; onConfirm calls `handleCancelReturn(cancelReturnTarget)`.
+
+### 4. Out of scope
 - Do NOT change the `SearchResultCard.jsx` recall button — that one already uses the check + "Recall Requested" pattern.
 - Do NOT change clerk-side recall UI.
 - Do NOT change any data flow / service calls — the `onCancelReturn` / `handleCancelReturn` handlers already exist and continue to be used.

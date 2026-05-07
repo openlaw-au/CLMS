@@ -16,6 +16,7 @@ import { addQueueEntry, dismissQueueItemBySource } from '../../../services/uncat
 import { requestReturn, requestLoan } from '../../../services/loansService';
 import { searchAll } from '../../../services/searchService';
 import ExportPreviewModal from '../../organisms/ExportPreviewModal';
+import ConfirmModal from '../../molecules/ConfirmModal';
 import SearchResultCard from '../../molecules/SearchResultCard';
 import FilterPillBar from '../../molecules/FilterPillBar';
 import AuthorityListCard from '../../molecules/AuthorityListCard';
@@ -678,6 +679,7 @@ export default function BarristerListsPage() {
 
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [bulkBusy, setBulkBusy] = useState(null); // 'duplicate' | 'delete' | null
+  const [cancelReturnTarget, setCancelReturnTarget] = useState(null);
 
   // Card menu + multi-select
   const [cardMenuId, setCardMenuId] = useState(null);
@@ -1725,9 +1727,7 @@ export default function BarristerListsPage() {
                     variant="recall"
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (window.confirm('Cancel recall request?')) {
-                        handleCancelReturn(book);
-                      }
+                      setCancelReturnTarget(book);
                     }}
                     className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs text-success"
                   >
@@ -2760,6 +2760,18 @@ export default function BarristerListsPage() {
 
       {showExportPreview && selected && (
         <ExportPreviewModal list={selected} onClose={() => setShowExportPreview(false)} />
+      )}
+
+      {cancelReturnTarget && (
+        <ConfirmModal
+          title="Cancel recall request?"
+          body="The borrower will keep the book until the original due date."
+          confirmLabel="Cancel recall"
+          cancelLabel="Keep"
+          confirmVariant="danger"
+          onConfirm={() => handleCancelReturn(cancelReturnTarget)}
+          onClose={() => setCancelReturnTarget(null)}
+        />
       )}
     </div>
   );

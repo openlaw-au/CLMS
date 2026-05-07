@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
 import DueDateLine from './DueDateLine';
+import ConfirmModal from './ConfirmModal';
 
 const PUBLISHER_BADGE = 'bg-surface-subtle text-text-secondary';
 
@@ -32,6 +33,7 @@ export default function BookCard({
   requesterName = null,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmingCancelReturn, setConfirmingCancelReturn] = useState(false);
   const overflowMenuRef = useRef(null);
   const category = book.enrichment?.subject || book.practiceArea;
   const hasApproveActions = typeof onApprove === 'function';
@@ -350,9 +352,7 @@ export default function BookCard({
                         size="sm"
                         variant="recall"
                         onClick={() => {
-                          if (onCancelReturn && window.confirm('Cancel recall request?')) {
-                            onCancelReturn(book.id);
-                          }
+                          if (onCancelReturn) setConfirmingCancelReturn(true);
                         }}
                         className="w-full text-xs text-success"
                       >
@@ -430,6 +430,17 @@ export default function BookCard({
           </div>
         )}
       </div>
+      {confirmingCancelReturn && (
+        <ConfirmModal
+          title="Cancel recall request?"
+          body="The borrower will keep the book until the original due date."
+          confirmLabel="Cancel recall"
+          cancelLabel="Keep"
+          confirmVariant="danger"
+          onConfirm={() => onCancelReturn?.(book.id)}
+          onClose={() => setConfirmingCancelReturn(false)}
+        />
+      )}
     </div>
   );
 }
