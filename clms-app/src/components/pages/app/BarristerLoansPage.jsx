@@ -440,8 +440,8 @@ export default function BarristerLoansPage() {
             </div>
 
             <div className="mt-4 flex items-center gap-3 rounded-xl bg-surface-subtle p-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
-                <Icon name="solar:book-2-linear" size={16} className="text-brand" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-200">
+                <Icon name="solar:book-2-linear" size={16} className="text-text-secondary" />
               </span>
               <div className="min-w-0">
                 <p className="truncate font-serif text-sm font-medium text-text">{addToListBook.title}</p>
