@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import Icon from '../atoms/Icon';
+import Button from '../atoms/Button';
 import { useAppContext } from '../../context/AppContext';
 import { useDevContext } from '../../context/DevContext';
+
+const PANEL_CLOSE_MS = 200;
 
 export default function DevPanel() {
   const dev = useDevContext();
   const { role, setRole, onboarding, updateOnboarding } = useAppContext();
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   // Only show in dev mode
   if (!dev || !import.meta.env.DEV) return null;
@@ -55,12 +59,31 @@ export default function DevPanel() {
     window.location.href = '/';
   };
 
+  const requestClose = () => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => {
+      setClosing(false);
+      setOpen(false);
+    }, PANEL_CLOSE_MS);
+  };
+
+  const togglePanel = () => {
+    if (open) {
+      requestClose();
+      return;
+    }
+
+    setClosing(false);
+    setOpen(true);
+  };
+
   return (
     <>
       {/* Floating bubble */}
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={togglePanel}
         className="fixed bottom-5 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-slate-800 text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
         title="Dev Panel"
       >
@@ -70,12 +93,19 @@ export default function DevPanel() {
       {/* Panel */}
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed bottom-20 right-5 z-50 w-72 rounded-2xl bg-white p-4 shadow-xl ring-1 ring-black/10 animate-page-in">
+          <div
+            className={`fixed inset-0 z-40 ${closing ? 'motion-fade-out' : 'motion-fade'}`}
+            onClick={requestClose}
+          />
+          <div className={`fixed bottom-20 right-5 z-50 w-72 rounded-2xl bg-white p-4 shadow-xl ring-1 ring-black/10 ${closing ? 'animate-page-out' : 'animate-page-in'}`}>
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-text">Dev Panel</h3>
-              <button type="button" onClick={() => setOpen(false)} className="rounded p-1 text-text-muted hover:bg-slate-100">
-                <Icon name="solar:close-circle-linear" size={16} />
+              <button
+                type="button"
+                onClick={requestClose}
+                className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text"
+              >
+                <Icon name="solar:close-linear" size={20} />
               </button>
             </div>
 
@@ -134,14 +164,15 @@ export default function DevPanel() {
               </div>
 
               {/* Reset */}
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="danger"
                 onClick={handleResetOnboarding}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                className="w-full rounded-lg px-3 py-1.5 text-xs"
               >
                 <Icon name="solar:restart-linear" size={14} />
                 Reset Onboarding
-              </button>
+              </Button>
             </div>
           </div>
         </>

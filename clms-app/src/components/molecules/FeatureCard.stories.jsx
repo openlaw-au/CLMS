@@ -8,8 +8,8 @@ export default {
   args: {
     icon: 'solar:magnifer-linear',
     title: 'One Search, Every Resource',
-    description: 'CLMS connects physical catalogue and JADE in one place.',
-    checks: ['Books and case law', 'Filter by location', 'JADE integration'],
+    description: 'CLMS connects your physical library and JADE in one place.',
+    checks: ['Books and case law', 'See availability', 'JADE integration'],
   },
 };
 

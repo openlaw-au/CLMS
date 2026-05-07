@@ -7,7 +7,7 @@ export default function TrustSection({ cards }) {
         <div className="mx-auto mb-16 max-w-3xl text-center">
           <h2 className="mb-4 font-serif text-3xl font-medium tracking-tight text-text md:text-4xl">Why Chambers Trust CLMS</h2>
           <p className="text-base text-text-secondary">
-            Built from the ground up for how Australian chambers actually operate, across locations, roles, and professional standards.
+            Built from the ground up for how Australian chambers actually operate, across roles, workflows, and professional standards.
           </p>
         </div>
 

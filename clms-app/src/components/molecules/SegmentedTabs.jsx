@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import BadgeDot from '../atoms/BadgeDot';
 import Icon from '../atoms/Icon';
 import Skeleton from '../atoms/Skeleton';
-import { getToneClasses } from './componentToneClasses';
 
 const ACTIVE_ACCENT_CLASSES = {
   amber: 'bg-amber-500 text-white shadow-sm',
@@ -19,14 +18,6 @@ function getActiveTabClasses(activeAccent) {
   return `${ACTIVE_ACCENT_CLASSES[activeAccent] ?? ACTIVE_ACCENT_CLASSES.brand} font-semibold`;
 }
 
-function getCountBadgeClasses(isActive, activeAccent, toneClasses) {
-  if (isActive && activeAccent) {
-    return 'bg-white/25 text-white';
-  }
-
-  return toneClasses.badge;
-}
-
 /** Props: { items, value, onChange, fullWidth?, loading? }. */
 export default function SegmentedTabs({
   fullWidth = false,
@@ -36,7 +27,7 @@ export default function SegmentedTabs({
   value,
 }) {
   return (
-    <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
+    <div className="flex gap-1 rounded-xl bg-black/5 p-1">
       {loading ? (
         Array.from({ length: items.length || 3 }, (_, index) => (
           <Skeleton
@@ -46,7 +37,6 @@ export default function SegmentedTabs({
         ))
       ) : (
         items.map((item) => {
-          const toneClasses = getToneClasses(item.tone);
           const isActive = value === item.key;
 
           return (
@@ -64,13 +54,18 @@ export default function SegmentedTabs({
                   className="shrink-0 text-current"
                 />
               )}
-              <span className="truncate">{item.label}</span>
-              {typeof item.count === 'number' && (
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${getCountBadgeClasses(isActive, item.activeAccent, toneClasses)}`}>
-                  {item.count}
-                </span>
+              <span className="truncate">
+                {item.label}
+                {typeof item.count === 'number' && (
+                  <span className="ml-1 font-normal opacity-70">({item.count})</span>
+                )}
+              </span>
+              {item.badge && (
+                <BadgeDot
+                  tone={item.badgeTone}
+                  className={`absolute -right-0.5 -top-0.5 ${item.badgeClassName || ''}`}
+                />
               )}
-              {item.badge && <BadgeDot className="absolute -right-0.5 -top-0.5" />}
             </button>
           );
         })
@@ -84,6 +79,8 @@ SegmentedTabs.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
     activeAccent: PropTypes.oneOf(['brand', 'red', 'amber', 'emerald']),
     badge: PropTypes.bool,
+    badgeClassName: PropTypes.string,
+    badgeTone: PropTypes.oneOf(['brand', 'red']),
     count: PropTypes.number,
     icon: PropTypes.string,
     key: PropTypes.string.isRequired,

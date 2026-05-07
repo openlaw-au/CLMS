@@ -786,7 +786,7 @@
 
 /* ══════════════════════════════════════════
    CLERK MOCKUP
-   Catalogue (0-6.5s) → Dashboard (6.7-11.0s)
+   Library (0-6.5s) → Dashboard (6.7-11.0s)
    ══════════════════════════════════════════ */
 
 /* -- New keyframes for RDA enrichment -- */
@@ -844,7 +844,7 @@
   animation: mockup-fade-in 0.3s ease-out 0.2s forwards, mockup-fade-out 0.3s ease-out 1.5s forwards;
 }
 
-/* -- Loading skeleton after Catalogue click (1.5s → 2.8s) -- */
+/* -- Loading skeleton after Library click (1.5s → 2.8s) -- */
 
 .mockup-cat-loading {
   opacity: 0;
@@ -854,7 +854,7 @@
   animation: mockup-fade-in 0.25s ease-out 1.7s forwards, mockup-fade-out 0.3s ease-out 2.8s forwards;
 }
 
-/* -- Phase 1-2: Catalogue — ISBN scan + RDA enrichment -- */
+/* -- Phase 1-2: Library — ISBN scan + RDA enrichment -- */
 
 .mockup-cat-phase {
   pointer-events: none;

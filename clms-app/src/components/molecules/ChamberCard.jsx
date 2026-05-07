@@ -15,10 +15,10 @@ export default function ChamberCard({ chamber, onSelect }) {
         <div>
           <h3 className="text-sm font-semibold text-text">{chamber.name}</h3>
           <p className="mt-1 text-xs text-text-tertiary">
-            {chamber.members} members · {chamber.locations} locations
+            {chamber.members} members
           </p>
         </div>
-        <Button size="sm" onClick={handleJoin} loading={loading}>
+        <Button size="sm" variant="secondary" onClick={handleJoin} loading={loading}>
           {loading ? 'Joining...' : 'Join'}
         </Button>
       </div>

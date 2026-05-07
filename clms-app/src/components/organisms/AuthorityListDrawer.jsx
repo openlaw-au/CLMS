@@ -109,7 +109,7 @@ export default function AuthorityListDrawer({ autoExpandId, refreshKey, onRemove
               <Icon name="solar:list-check-linear" size={16} className="text-text-muted" />
               <span className="text-sm text-text-secondary">Authority Lists (0)</span>
             </div>
-            <Button size="sm" variant="secondary" onClick={() => navigate('/app/authorities')}>
+            <Button size="sm" variant="primary" onClick={() => navigate('/app/authorities')}>
               <Icon name="solar:add-circle-linear" size={14} />
               New List
             </Button>
@@ -160,9 +160,9 @@ export default function AuthorityListDrawer({ autoExpandId, refreshKey, onRemove
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(item.id)}
-                        className="shrink-0 rounded p-1 text-text-muted transition-colors hover:bg-slate-200 hover:text-red-500"
+                        className="shrink-0 rounded-lg p-1.5 text-text-muted transition-colors hover:bg-red-50 hover:text-red-700"
                       >
-                        <Icon name="solar:close-circle-linear" size={14} />
+                        <Icon name="solar:close-linear" size={14} />
                       </button>
                     </div>
                     {/* Pinpoint — always shown for 'read', shown if exists for 'referred' */}

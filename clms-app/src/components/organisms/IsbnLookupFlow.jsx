@@ -355,9 +355,9 @@ export default function IsbnLookupFlow({ mode, addedBooks, onAddBooks, onRemoveB
                         <Icon name={isDup ? 'solar:copy-linear' : 'solar:check-circle-bold'} size={18} className={`shrink-0 ${isDup ? 'text-amber-500' : 'text-emerald-500'}`} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="truncate text-sm font-medium text-text">{book.title}</p>
+                            <p className="truncate font-serif text-sm font-medium text-text">{book.title}</p>
                             {isDup && (
-                              <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                              <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-2xs font-medium text-amber-700">
                                 DUP
                               </span>
                             )}
@@ -606,9 +606,9 @@ function ScannedBooksList({
               {/* Book info */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-2">
-                  <p className="truncate text-sm font-medium text-text">{book.title}</p>
+                  <p className="truncate font-serif text-sm font-medium text-text">{book.title}</p>
                   {isDup && !isConsolidating && (
-                    <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                    <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-2xs font-medium text-amber-700">
                       DUP
                     </span>
                   )}

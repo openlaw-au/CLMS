@@ -33,6 +33,8 @@
   --color-info: #1d4ed8;
   --color-info-light: #2563eb;
   --color-danger: #b91c1c;
+  --color-legislation: #1e3a8a;
+  --color-legislation-rgb: 30 58 138;
 
   /* Typography scale — even px, semantic naming */
   --font-size-page: 2rem;          /* 32px — h1 page titles */
@@ -47,6 +49,7 @@
   --radius-hero: 40px;
   --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
   --shadow-metric: 0 20px 50px rgba(124, 45, 18, 0.15);
+  --shadow-metric-hover: 0 24px 60px rgba(124, 45, 18, 0.22);
   --shadow-metric-loading: 0 20px 50px rgba(124, 45, 18, 0.18);
   --shadow-metric-icon-inset: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 

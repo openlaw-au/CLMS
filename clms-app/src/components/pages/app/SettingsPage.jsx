@@ -30,17 +30,6 @@ function formatReminderTiming(days) {
   return `${days} ${days === 1 ? 'day' : 'days'} before due`;
 }
 
-function getReminderLocation(onboarding) {
-  const firstLocation = onboarding.locations?.find((location) => location.name?.trim());
-
-  if (!firstLocation) {
-    return 'the shelf location on file';
-  }
-
-  const floor = firstLocation.floor?.trim();
-  return floor ? `${firstLocation.name.trim()}, Floor ${floor}` : firstLocation.name.trim();
-}
-
 function SettingsOption({ checked, helper, label, name, onChange, type = 'radio', value }) {
   return (
     <label
@@ -66,7 +55,7 @@ function SettingsOption({ checked, helper, label, name, onChange, type = 'radio'
 
 export default function SettingsPage() {
   const { addToast } = useToast();
-  const { role, onboarding, chambersSettings, updateChambersSettings } = useAppContext();
+  const { role, chambersSettings, updateChambersSettings } = useAppContext();
   const [expanded, setExpanded] = useState(null);
   const saveToastTimerRef = useRef(null);
 
@@ -80,7 +69,7 @@ export default function SettingsPage() {
   const reminderDaysBefore = chambersSettings?.reminderDaysBefore ?? 3;
   const includeLocationInReminders = chambersSettings?.includeLocationInReminders ?? true;
   const reminderPreview = `Your loan of 'Cross on Evidence' is due on 28 Mar.${
-    includeLocationInReminders ? ` Please return to ${getReminderLocation(onboarding)}.` : ''
+    includeLocationInReminders ? ' Please return to the chambers library.' : ''
   }`;
 
   useEffect(() => () => {
@@ -152,7 +141,7 @@ export default function SettingsPage() {
             name="include-location-in-reminders"
             checked={includeLocationInReminders}
             onChange={(event) => handleSettingsChange({ includeLocationInReminders: event.target.checked })}
-            label="Include shelf location in reminder"
+            label="Include return guidance in reminder"
           />
 
           <div className="rounded-xl border border-border/70 bg-slate-50/60 p-3">

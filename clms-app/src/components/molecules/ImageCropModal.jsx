@@ -79,10 +79,10 @@ export default function ImageCropModal({ imageSrc, onConfirm, onCancel }) {
         </div>
 
         <div className="mt-5 flex items-center justify-end gap-3">
-          <Button variant="ghost" size="sm" onClick={onCancel} className="rounded-xl">
+          <Button variant="secondary" size="sm" onClick={onCancel} className="rounded-xl">
             Cancel
           </Button>
-          <Button size="sm" onClick={handleConfirm}>
+          <Button size="sm" variant="secondary" onClick={handleConfirm}>
             Confirm
           </Button>
         </div>

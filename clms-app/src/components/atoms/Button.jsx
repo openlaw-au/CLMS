@@ -1,8 +1,18 @@
+import PropTypes from 'prop-types';
+
 const variantClasses = {
+  // Filled - creation actions only
   primary: 'bg-brand text-white hover:bg-brand-hover shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',
-  secondary: 'bg-slate-100 text-text hover:bg-slate-200',
-  ghost: 'text-text-secondary hover:bg-slate-100',
+
+  // Soft-tinted - semantic
+  approve: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+  recall: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
   danger: 'bg-red-50 text-red-700 hover:bg-red-100',
+
+  // Soft-tinted - neutral
+  secondary: 'bg-slate-100 text-text hover:bg-slate-200',
+
+  ghost: 'text-text-secondary hover:bg-slate-100',
   'danger-solid': 'bg-red-600 text-white hover:bg-red-700 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]',
 };
 
@@ -34,7 +44,7 @@ export default function Button({
     <button
       type={type}
       disabled={loading || props.disabled}
-      className={`flex items-center justify-center gap-2 rounded-full font-medium transition-all ${variantClasses[variant]} ${sizeClasses[size]} ${loading ? 'opacity-70 pointer-events-none' : ''} ${className}`}
+      className={`flex items-center justify-center gap-2 rounded-full font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${loading ? 'opacity-70 pointer-events-none' : ''} ${className}`}
       {...props}
     >
       {loading ? <Spinner /> : null}
@@ -42,3 +52,12 @@ export default function Button({
     </button>
   );
 }
+
+Button.propTypes = {
+  children: PropTypes.node.isRequired,
+  className: PropTypes.string,
+  loading: PropTypes.bool,
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  type: PropTypes.oneOf(['button', 'submit', 'reset']),
+  variant: PropTypes.oneOf(['primary', 'approve', 'recall', 'danger', 'secondary', 'ghost', 'danger-solid']),
+};

@@ -15,6 +15,8 @@ export default function WizardStep({
   hideBack = false,
 }) {
   const [loading, setLoading] = useState(false);
+  const isSkipAction = typeof nextLabel === 'string' && nextLabel.toLowerCase().startsWith('skip');
+  const nextVariant = isSkipAction || step < total ? 'secondary' : 'primary';
 
   const handleNext = () => {
     setLoading(true);
@@ -30,12 +32,12 @@ export default function WizardStep({
       <div className="mt-5">{children}</div>
       <div className="mt-6 flex items-center justify-between">
         {hideBack ? <span /> : (
-          <Button variant="ghost" size="sm" onClick={onBack} className="rounded-xl">
+          <Button variant="secondary" size="sm" onClick={onBack} className="rounded-xl">
             &larr; Back
           </Button>
         )}
         {!hideNext && (
-          <Button onClick={handleNext} disabled={disableNext} loading={loading} className={disableNext ? 'opacity-40' : ''}>
+          <Button variant={nextVariant} onClick={handleNext} disabled={disableNext} loading={loading} className={disableNext ? 'opacity-40' : ''}>
             {nextLabel}
           </Button>
         )}

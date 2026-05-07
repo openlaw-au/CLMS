@@ -36,9 +36,7 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
       return (
         <article className="rounded-xl border border-border p-3.5 transition-colors hover:border-border hover:bg-surface-subtle/50">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-success/10">
-              <Icon name="solar:scale-linear" size={18} className="text-success" />
-            </span>
+            <Icon name="solar:scale-linear" size={18} className="shrink-0 text-success" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-text">{item.title}</p>
               <p className="mt-0.5 text-xs text-text-secondary">{item.citation} {item.court ? `· ${item.court}` : ''} · {item.year}</p>
@@ -83,7 +81,7 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-purple-600">JADE</span>
           <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-            item.type === 'case' ? 'bg-surface-subtle text-success' : 'bg-surface-subtle text-purple-600'
+            item.type === 'case' ? 'bg-surface-subtle text-success' : 'bg-surface-subtle text-legislation'
           }`}>
             {item.type === 'case' ? 'Case Law' : 'Legislation'}
           </span>
@@ -126,9 +124,8 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
           ) : (
             <Button
               size="sm"
-              variant="secondary"
+              variant={addedToList ? 'danger' : 'secondary'}
               onClick={handleListAction}
-              className={addedToList ? 'text-danger hover:!text-danger' : ''}
             >
               {addedToList ? (
                 <><Icon name="solar:trash-bin-trash-linear" size={14} /> Remove from List</>
@@ -145,20 +142,18 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
   // Book result
   const isOnLoan = item.status === 'on-loan';
   const statusBadge = loanState === 'requested' ? 'Pending' : isOnLoan ? 'On Loan' : 'Available';
-  const badgeVariant = loanState === 'requested' ? 'default' : isOnLoan ? 'warning' : 'status';
+  const badgeVariant = loanState === 'requested' ? 'default' : isOnLoan ? 'amber' : 'status';
 
   if (compact) {
     return (
       <article className="rounded-xl border border-border p-3.5 transition-colors hover:border-border hover:bg-surface-subtle/50">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10">
-            <Icon name="solar:book-2-linear" size={18} className="text-brand" />
-          </span>
+          <Icon name="solar:book-2-linear" size={18} className={`shrink-0 ${isOnLoan ? 'text-amber-700' : 'text-brand'}`} />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-text">{item.title}</p>
             <div className="mt-0.5 flex items-center gap-2">
               <p className="text-xs text-text-secondary">{item.author} · {item.edition} Ed</p>
-              <span className={`rounded-md px-1.5 py-0.5 text-xs font-medium ${isOnLoan ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'}`}>
+              <span className={`rounded-md px-1.5 py-0.5 text-xs font-medium ${isOnLoan ? 'bg-amber-100 text-amber-700' : 'bg-success/10 text-success'}`}>
                 {isOnLoan ? 'On Loan' : 'Available'}
               </span>
             </div>
@@ -192,7 +187,7 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <Icon name="solar:book-2-linear" size={16} className="shrink-0 text-brand" />
+            <Icon name="solar:book-2-linear" size={16} className={`shrink-0 ${isOnLoan ? 'text-amber-700' : 'text-brand'}`} />
             <p className="text-sm font-semibold text-text">{item.title}</p>
           </div>
           <p className="mt-0.5 text-xs text-text-secondary">
@@ -216,9 +211,6 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
 
       <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
         <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-brand">Book</span>
-        <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
-          {item.location}, Flr {item.floor}
-        </span>
         {item.enrichment?.subject && (
           <span className="rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
             {item.enrichment.subject}
@@ -234,7 +226,7 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
         {isOnLoan ? (
           <Button
             size="sm"
-            variant={returnState === 'requested' ? 'secondary' : 'primary'}
+            variant="recall"
             onClick={handleRequestReturn}
             disabled={returnState === 'requested'}
             className={`transition-all duration-300 ${returnState === 'requested' ? 'text-success' : ''}`}
@@ -248,7 +240,7 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
         ) : (
           <Button
             size="sm"
-            variant={loanState === 'requested' ? 'secondary' : 'primary'}
+            variant="recall"
             onClick={handleRequestLoan}
             disabled={loanState === 'requested'}
             className={`transition-all duration-300 ${loanState === 'requested' ? 'text-success' : ''}`}
@@ -281,9 +273,8 @@ export default function SearchResultCard({ item, type, onRequestLoan, onAddToLis
         ) : (
           <Button
             size="sm"
-            variant="secondary"
+            variant={addedToList ? 'danger' : 'secondary'}
             onClick={handleListAction}
-            className={addedToList ? 'text-danger hover:!text-danger' : ''}
           >
             {addedToList ? (
               <><Icon name="solar:trash-bin-trash-linear" size={14} /> Remove from List</>

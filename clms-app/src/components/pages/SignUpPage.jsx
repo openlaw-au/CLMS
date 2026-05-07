@@ -37,7 +37,6 @@ export default function SignUpPage() {
             password: form.password,
             chambersName: '',
             chambersAddress: '',
-            locations: [{ name: '', floor: '' }],
             invites: [{ email: '', role: 'barrister' }],
             chambersFound: null,
             mode: 'joined',

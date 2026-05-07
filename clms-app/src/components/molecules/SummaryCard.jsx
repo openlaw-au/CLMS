@@ -3,11 +3,12 @@ import ContentLoader from '../atoms/ContentLoader';
 import Icon from '../atoms/Icon';
 import Skeleton from '../atoms/Skeleton';
 import { getToneClasses } from './componentToneClasses';
+import SectionCard from './SectionCard';
 
 /** Props: { title, rows, loading? }. */
 export default function SummaryCard({ loading = false, rows, title }) {
   return (
-    <article className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+    <SectionCard as="article">
       <ContentLoader
         loading={loading}
         skeleton={
@@ -46,7 +47,7 @@ export default function SummaryCard({ loading = false, rows, title }) {
           })}
         </ul>
       </ContentLoader>
-    </article>
+    </SectionCard>
   );
 }
 

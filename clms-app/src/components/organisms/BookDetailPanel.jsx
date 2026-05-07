@@ -20,8 +20,11 @@ const RESOURCE_TYPE_OPTIONS = [
   'Monograph', 'Looseleaf', 'Commentary', 'Casebook', 'Textbook', 'Practice Guide', 'Journal', 'Dictionary',
 ];
 
+const PANEL_CLOSE_MS = 240;
+
 export default function BookDetailPanel({ book, onClose, onSaved }) {
   const { addToast } = useToast();
+  const [closing, setClosing] = useState(false);
 
   const [subject, setSubject] = useState('');
   const [jurisdictions, setJurisdictions] = useState([]);
@@ -45,14 +48,21 @@ export default function BookDetailPanel({ book, onClose, onSaved }) {
       setTags([]);
       setNotes('');
     }
+    setClosing(false);
   }, [book]);
+
+  const requestClose = () => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => onClose(), PANEL_CLOSE_MS);
+  };
 
   const handleSave = async () => {
     // TODO(api): Replace with PATCH /api/books/:id/enrichment — save enrichment
     await enrichBook(book.id, { subject: subject || null, jurisdiction: jurisdictions, resourceType: resourceType || null, tags, notes });
     addToast({ message: `${book.title} enriched`, type: 'success' });
     onSaved?.();
-    onClose();
+    requestClose();
   };
 
   const handleDelete = async () => {
@@ -60,7 +70,7 @@ export default function BookDetailPanel({ book, onClose, onSaved }) {
     await deleteBook(book.id);
     addToast({ message: `${book.title} removed`, type: 'info' });
     onSaved?.();
-    onClose();
+    requestClose();
   };
 
   const toggleJurisdiction = (j) => {
@@ -85,10 +95,13 @@ export default function BookDetailPanel({ book, onClose, onSaved }) {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
+      <div
+        className={`fixed inset-0 z-40 bg-black/20 ${closing ? 'motion-fade-out' : 'motion-fade'}`}
+        onClick={requestClose}
+      />
 
       {/* Panel */}
-      <div className="fixed right-0 top-0 z-50 h-screen w-[400px] animate-slide-in-panel overflow-y-auto bg-white shadow-xl">
+      <div className={`fixed right-0 top-0 z-50 h-screen w-[400px] overflow-y-auto bg-white shadow-xl ${closing ? 'animate-slide-out-right' : 'animate-slide-in-panel'}`}>
         <div className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between">
@@ -103,10 +116,10 @@ export default function BookDetailPanel({ book, onClose, onSaved }) {
             </div>
             <button
               type="button"
-              onClick={onClose}
-              className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text"
+              onClick={requestClose}
+              className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text"
             >
-              <Icon name="solar:close-circle-linear" size={20} />
+              <Icon name="solar:close-linear" size={20} />
             </button>
           </div>
 
@@ -215,13 +228,9 @@ export default function BookDetailPanel({ book, onClose, onSaved }) {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-xs text-text-secondary">Status:</span>
-              <Badge variant={book.status === 'available' ? 'status' : 'default'}>
+              <Badge variant={book.status === 'available' ? 'status' : 'amber'}>
                 {book.status === 'available' ? 'Available' : 'On Loan'}
               </Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-text-secondary">Location:</span>
-              <span className="text-xs text-text">{book.location}, Floor {book.floor}</span>
             </div>
           </div>
 

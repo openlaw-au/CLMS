@@ -14,6 +14,16 @@ function formatDateValue(date) {
   return `${year}-${month}-${day}`;
 }
 
+function getLoanStatusForDueDate(dateStr) {
+  if (!dateStr) return 'active';
+
+  const due = new Date(`${dateStr}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return due < today ? 'overdue' : 'active';
+}
+
 function setBookOnLoan(bookId, borrowerName, dueDate) {
   const book = booksMock.find((item) => item.id === bookId);
   if (book) {
@@ -73,6 +83,7 @@ export async function returnLoan(id) {
       book.status = 'available';
       book.borrower = null;
       book.dueDate = null;
+      book.extended = false;
     }
   }
   return loan;
@@ -129,9 +140,22 @@ export async function renewLoan(id) {
   await delay(200);
   const loan = loansMock.find((l) => l.id === id);
   if (loan && loan.dueDate) {
-    const due = new Date(loan.dueDate);
-    due.setDate(due.getDate() + 7);
-    loan.dueDate = formatDateValue(due);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentDue = new Date(`${loan.dueDate}T00:00:00`);
+    const base = currentDue > today ? currentDue : today;
+    base.setDate(base.getDate() + 7);
+    loan.dueDate = formatDateValue(base);
+    loan.status = getLoanStatusForDueDate(loan.dueDate);
+    loan.extended = true;
+
+    const book = booksMock.find((item) => item.id === loan.bookId);
+    if (book) {
+      book.status = 'on-loan';
+      book.borrower = loan.borrower;
+      book.dueDate = loan.dueDate;
+      book.extended = true;
+    }
   }
   return loan;
 }
@@ -149,6 +173,7 @@ export async function createActiveLoan(bookId, borrowerName, dueDate) {
     borrowerRole: member?.role || 'member',
     dateBorrowed: formatDateValue(new Date()),
     dueDate,
+    extended: false,
     returnedDate: null,
     status: 'active',
   };

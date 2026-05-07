@@ -55,7 +55,7 @@ export default function FilterPillBar({ filters, onChange }) {
         value={filters.subject}
         onChange={(v) => onChange({ ...filters, subject: v })}
         disabled={subjectOptions.length === 0}
-        disabledMessage="Filters available when your clerk enriches the catalogue"
+        disabledMessage="Filters available when your clerk enriches the library"
       />
       <FilterPill
         label="Jurisdiction"
@@ -63,7 +63,7 @@ export default function FilterPillBar({ filters, onChange }) {
         value={filters.jurisdiction}
         onChange={(v) => onChange({ ...filters, jurisdiction: v })}
         disabled={jurisdictionOptions.length === 0}
-        disabledMessage="Filters available when your clerk enriches the catalogue"
+        disabledMessage="Filters available when your clerk enriches the library"
       />
       <FilterPill
         label="Type"

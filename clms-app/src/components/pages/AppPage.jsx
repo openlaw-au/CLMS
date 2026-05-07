@@ -8,11 +8,8 @@ import BarristerDashboardPage from './app/BarristerDashboardPage';
 import BarristerListsPage from './app/BarristerListsPage';
 import BarristerLoansPage from './app/BarristerLoansPage';
 import ClerkDashboardPage from './app/ClerkDashboardPage';
-import ClerkCataloguePage from './app/ClerkCataloguePage';
-import ClerkLoansPage from './app/ClerkLoansPage';
-import ClerkAuthoritiesPage from './app/ClerkAuthoritiesPage';
 import ClerkChambersPage from './app/ClerkChambersPage';
-import ClerkReportsPage from './app/ClerkReportsPage';
+import ClerkLibraryPage from './app/ClerkLibraryPage';
 import SettingsPage from './app/SettingsPage';
 
 const BARRISTER_PAGES = {
@@ -25,16 +22,11 @@ const BARRISTER_PAGES = {
 
 const CLERK_PAGES = {
   dashboard: ClerkDashboardPage,
-  catalogue: ClerkCataloguePage,
-  library: ClerkCataloguePage,
-  loans: ClerkLoansPage,
-  authorities: ClerkAuthoritiesPage,
-  lists: ClerkAuthoritiesPage,
+  catalogue: ClerkLibraryPage,
+  library: ClerkLibraryPage,
+  loans: ClerkLibraryPage,
   chambers: ClerkChambersPage,
   members: ClerkChambersPage,
-  locations: ClerkChambersPage,
-  insights: ClerkReportsPage,
-  reports: ClerkReportsPage,
   settings: SettingsPage,
 };
 
@@ -74,10 +66,11 @@ export default function AppPage() {
   const pages = activeRole === 'clerk' ? CLERK_PAGES : BARRISTER_PAGES;
   const defaultSection = 'dashboard';
   const section = params.section || defaultSection;
-  const PageComponent = pages[section] || pages[defaultSection];
+  const resolvedSection = pages[section] ? section : defaultSection;
+  const PageComponent = pages[resolvedSection];
 
   return (
-    <AppShell role={activeRole}>
+    <AppShell role={activeRole} activeSection={resolvedSection}>
       <PageComponent />
     </AppShell>
   );

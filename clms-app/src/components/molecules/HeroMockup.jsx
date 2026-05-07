@@ -102,7 +102,7 @@ function BarristerMockup() {
       <div key={cycle} className={fading ? 'opacity-0 transition-opacity duration-500' : ''}>
         <div className="relative z-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
           <BrowserChrome>
-            <span className="ml-3 text-[10px] font-medium text-slate-400">clms.app/search</span>
+            <span className="ml-3 text-2xs font-medium text-slate-400">clms.app/search</span>
           </BrowserChrome>
 
           <div className="min-h-[380px] bg-white p-4">
@@ -150,18 +150,17 @@ function BarristerMockup() {
               {/* Real results */}
               <div className="mockup-results space-y-2.5">
 
-              {/* Result 1: Physical book with location */}
+              {/* Result 1: Physical book with live status */}
               <div className="mockup-result relative rounded-xl border border-slate-100 bg-slate-50 p-3">
                 <span className="mockup-available-badge absolute right-3 top-3 inline-flex h-5 items-center rounded-full bg-black/8 px-2 text-[9px] font-medium leading-none text-slate-600">Available</span>
                 <span className="mockup-status-requested absolute right-3 top-3 inline-flex h-5 items-center rounded-full bg-black/8 px-2 text-[9px] font-medium leading-none text-slate-600">Requested</span>
                 <div className="text-[11px] font-semibold text-text">Cross on Evidence</div>
-                <div className="mt-0.5 text-[10px] text-slate-400">J.D. Heydon · 5th Edition</div>
+                <div className="mt-0.5 text-2xs text-slate-400">J.D. Heydon · 5th Edition</div>
                 <div className="mt-1.5 flex items-center justify-between">
                   <div className="flex items-center gap-1">
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">Book</span>
-                    <span className="inline-flex items-center gap-0.5 rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">
-                      <Icon name="solar:map-point-linear" size={9} className="shrink-0" />
-                      East, Flr 5
+                    <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-medium text-emerald-700">
+                      Available
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -198,9 +197,9 @@ function BarristerMockup() {
                 <div className="mb-1">
                   <div className="text-[11px] font-semibold text-text">Evidence Act 1995 (Cth)</div>
                 </div>
-                <div className="text-[10px] text-slate-400">Federal legislation · Current version</div>
+                <div className="text-2xs text-slate-400">Federal legislation · Current version</div>
                 <div className="mt-2 flex items-center gap-1.5">
-                  <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[9px] font-medium text-purple-600">Legislation</span>
+                  <span className="rounded bg-legislation/5 px-1.5 py-0.5 text-[9px] font-medium text-legislation">Legislation</span>
                   <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">Federal</span>
                 </div>
               </div>
@@ -210,7 +209,7 @@ function BarristerMockup() {
             {/* Authority List panel — payoff: search result → court-ready list */}
             <div className="mockup-authority-panel mt-3 rounded-xl border border-blue-200 bg-blue-50/50 p-3">
               <div className="mb-2 flex items-center">
-                <span className="text-[10px] font-semibold text-blue-600">Authority List</span>
+                <span className="text-2xs font-semibold text-blue-600">Authority List</span>
                 <span className="ml-auto text-[9px] text-slate-400">AGLC4</span>
               </div>
               <div className="flex items-center gap-2">
@@ -268,7 +267,7 @@ function ClerkMockup() {
       <div key={cycle} className={fading ? 'opacity-0 transition-opacity duration-500' : ''}>
       <div className="relative z-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <BrowserChrome>
-          <span className="ml-3 text-[10px] font-medium text-slate-400">clms.app</span>
+          <span className="ml-3 text-2xs font-medium text-slate-400">clms.app</span>
         </BrowserChrome>
 
         <div className={`flex min-h-[380px]`}>
@@ -281,7 +280,7 @@ function ClerkMockup() {
                   </div>
                   <div className="mockup-nav-cat relative flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-2.5 py-1.5 text-[11px] font-medium text-slate-500">
                     <Icon name="solar:book-2-linear" size={14} />
-                    <span>Catalogue</span>
+                    <span>Library</span>
                     <span className="mockup-cursor-nav-cat pointer-events-none absolute inset-0 z-10 m-auto h-8 w-8 rounded-full" />
                   </div>
                   <div className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-500">
@@ -301,7 +300,7 @@ function ClerkMockup() {
             {/* ── Phase 0: Dashboard welcome — static skeleton ── */}
             <div className="mockup-dash-welcome pointer-events-none absolute inset-0 z-15 p-4">
               <div className="mb-1 font-serif text-sm font-semibold text-text">Hi, John</div>
-              <div className="mb-3 text-[10px] text-slate-400">Your library at a glance</div>
+              <div className="mb-3 text-2xs text-slate-400">Your library at a glance</div>
               <div className="mb-3 grid grid-cols-3 gap-2">
                 <div className="flex flex-col items-center rounded-xl bg-slate-50 p-2">
                   <div className="h-4 w-6 rounded bg-slate-200/70" />
@@ -328,7 +327,7 @@ function ClerkMockup() {
               </div>
             </div>
 
-            {/* Loading skeleton after Catalogue nav click */}
+            {/* Loading skeleton after Library nav click */}
             <div className="mockup-cat-loading pointer-events-none absolute inset-0 z-20 p-4">
               <div className="mb-2 h-3.5 w-28 animate-pulse rounded bg-slate-200/70" />
               <div className="mb-3 h-8 w-full animate-pulse rounded-lg bg-slate-100" />
@@ -352,10 +351,10 @@ function ClerkMockup() {
               </div>
             </div>
 
-            {/* ── Phase 1-2: Catalogue — ISBN scan + RDA enrichment ── */}
+            {/* ── Phase 1-2: Library — ISBN scan + RDA enrichment ── */}
             <div className="mockup-cat-phase pointer-events-none absolute inset-0 z-10 p-4">
               <div className="mockup-dash-header">
-                <div className="mb-2 font-serif text-sm font-semibold text-text">Add to Catalogue</div>
+                <div className="mb-2 font-serif text-sm font-semibold text-text">Add to Library</div>
                 {/* Method tabs — reusing persona-toggle / hero-tab styles */}
                 <div className="persona-toggle mockup-compact mb-3">
                   <span className="hero-tab mockup-compact active">
@@ -400,7 +399,7 @@ function ClerkMockup() {
                     </span>
                   </div>
                 </div>
-                <div className="text-[10px] text-slate-400">J.D. Heydon · 5th Edition · LexisNexis</div>
+                <div className="text-2xs text-slate-400">J.D. Heydon · 5th Edition · LexisNexis</div>
 
                 {/* RDA enrichment — step-by-step clerk interaction */}
                 <div className="mt-2 space-y-1">
@@ -475,7 +474,7 @@ function ClerkMockup() {
 
               <div className="mockup-catalogue-toast absolute left-4 right-4 top-3 z-30 flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 shadow-sm">
                 <Icon name="solar:check-circle-bold" size={11} className="shrink-0 text-emerald-500" />
-                <span className="truncate text-[9px] font-medium text-emerald-700">Cross on Evidence added to catalogue</span>
+                <span className="truncate text-[9px] font-medium text-emerald-700">Cross on Evidence added to library</span>
                 <span className="text-[9px] text-emerald-600/70">Synced</span>
               </div>
             </div>
@@ -484,7 +483,7 @@ function ClerkMockup() {
             <div className="mockup-dash-phase pointer-events-none absolute inset-0 p-4">
               <div className="mockup-dash-title">
                 <div className="mb-1 font-serif text-sm font-semibold text-text">Dashboard</div>
-                <div className="mb-3 text-[10px] text-slate-400">Action required</div>
+                <div className="mb-3 text-2xs text-slate-400">Action required</div>
               </div>
 
               {/* Actionable stats — problems first, not vanity metrics */}
@@ -522,7 +521,7 @@ function ClerkMockup() {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-[9px] font-bold text-blue-600">J</div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[10px] font-medium text-text">
+                    <div className="truncate text-2xs font-medium text-text">
                       James requested <span className="text-brand">Cross on Evidence</span>
                     </div>
                     <div className="text-[9px] text-slate-400">just now</div>
@@ -550,7 +549,7 @@ function ClerkMockup() {
                 <div className="flex items-center gap-2">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-[9px] font-bold text-red-500">S</div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[10px] font-medium text-text">
+                    <div className="truncate text-2xs font-medium text-text">
                       Sarah — <span className="text-slate-500">Uniform Evidence Law</span>
                     </div>
                     <div className="flex items-center gap-1 text-[9px] text-emerald-600">

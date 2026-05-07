@@ -17,7 +17,7 @@ export default function ReviewCard({ quote, name, chamber, initials, tone = 'bra
           <p className="text-[9px] text-text-muted">{chamber}</p>
         </div>
       </div>
-      <p className="text-[10px] leading-relaxed text-slate-600">"{quote}"</p>
+      <p className="text-2xs leading-relaxed text-slate-600">"{quote}"</p>
     </article>
   );
 }

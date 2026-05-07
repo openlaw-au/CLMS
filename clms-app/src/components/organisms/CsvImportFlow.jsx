@@ -5,8 +5,8 @@ import DropZone from '../molecules/DropZone';
 
 // TODO(api): POST /api/books/import — upload CSV or Excel file, return parsed columns + row count
 
-const MOCK_CSV_COLUMNS = ['Book Title', 'Author Name', 'ISBN Number', 'Shelf Location', 'Purchase Date', 'Price'];
-const TARGET_FIELDS = ['Title', 'Author', 'ISBN', 'Location'];
+const MOCK_CSV_COLUMNS = ['Book Title', 'Author Name', 'ISBN Number', 'Publisher', 'Purchase Date', 'Price'];
+const TARGET_FIELDS = ['Title', 'Author', 'ISBN'];
 const SKIP_VALUE = 'skip';
 const MOCK_IMPORT_COUNT = 247;
 
@@ -16,16 +16,15 @@ function autoMatchField(csvColumn) {
   if (col.includes('title')) return 'Title';
   if (col.includes('author')) return 'Author';
   if (col.includes('isbn')) return 'ISBN';
-  if (col.includes('location') || col.includes('shelf')) return 'Location';
   return SKIP_VALUE;
 }
 
 const CsvImportFlow = forwardRef(function CsvImportFlow({ onImported, onPhaseChange }, ref) {
   const [phase, _setPhase] = useState('idle'); // idle | uploading | mapping | done
-  const setPhase = (next) => {
+  const setPhase = useCallback((next) => {
     _setPhase(next);
     onPhaseChange?.(next);
-  };
+  }, [onPhaseChange]);
   const [fileName, setFileName] = useState('');
   const [progress, setProgress] = useState(0);
   const [mapping, setMapping] = useState(() =>
@@ -46,7 +45,7 @@ const CsvImportFlow = forwardRef(function CsvImportFlow({ onImported, onPhaseCha
       }
       setProgress(Math.round(current));
     }, 120);
-  }, []);
+  }, [setPhase]);
 
   const handleFile = useCallback(
     (file) => {
@@ -62,7 +61,7 @@ const CsvImportFlow = forwardRef(function CsvImportFlow({ onImported, onPhaseCha
       setPhase('done');
       onImported(MOCK_IMPORT_COUNT);
     }, 300);
-  }, [onImported]);
+  }, [onImported, setPhase]);
 
   useImperativeHandle(ref, () => ({
     doImport: handleImport,
@@ -116,7 +115,7 @@ const CsvImportFlow = forwardRef(function CsvImportFlow({ onImported, onPhaseCha
       >
         <p className="text-base font-semibold text-text">Column mapping</p>
         <p className="mt-1 mb-5 text-sm text-text-secondary">
-          CLMS needs 4 fields: Title, Author, ISBN, and Location. We matched what we could. Adjust or skip the rest.
+          CLMS needs 3 fields: Title, Author, and ISBN. We matched what we could. Adjust or skip the rest.
         </p>
         <div className="mb-2 flex items-center gap-3 text-[11px] uppercase tracking-wide text-text-muted">
           <span className="w-36 shrink-0">Your CSV</span>
@@ -163,7 +162,7 @@ const CsvImportFlow = forwardRef(function CsvImportFlow({ onImported, onPhaseCha
           {MOCK_IMPORT_COUNT} books imported
         </p>
         <p className="mt-0.5 text-xs text-emerald-600">
-          You can manage them in the Catalogue later.
+          You can manage them in the Library later.
         </p>
       </div>
     </div>

@@ -34,7 +34,7 @@ export default function LoginForm({ role, onRoleChange, onSubmit }) {
         <button type="button" className="text-sm text-brand hover:text-brand-hover">Forgot password?</button>
       </div>
       <div className="pt-2">
-        <Button type="submit" className={`w-full ${!isValid ? 'opacity-40' : ''}`} variant="primary" loading={loading} disabled={!isValid}>
+        <Button type="submit" className={`w-full ${!isValid ? 'opacity-40' : ''}`} variant="secondary" loading={loading} disabled={!isValid}>
           {loading ? 'Signing in...' : 'Sign In'}
         </Button>
       </div>

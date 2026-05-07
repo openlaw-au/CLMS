@@ -18,12 +18,15 @@ import { searchAll } from '../../../services/searchService';
 import ExportPreviewModal from '../../organisms/ExportPreviewModal';
 import SearchResultCard from '../../molecules/SearchResultCard';
 import FilterPillBar from '../../molecules/FilterPillBar';
+import AuthorityListCard from '../../molecules/AuthorityListCard';
 import { getCourtStructure, getCourtOptions, derivePart } from '../../../utils/courtStructures';
 import { lookupBookByTitle, getBorrowerName } from '../../../utils/bookLookup';
 import { formatLegislation, formatBook, generateAGLCPlainText } from '../../../utils/aglcFormatter';
 import { suggestedBarristerQueries } from '../../../mocks/barristerQueries';
 import { membersMock } from '../../../mocks/members';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+
+const MODAL_CLOSE_MS = 200;
 
 const hasPinpointData = (item) => {
   if (item.type === 'legislation') return !!(item.pageRange || item.citation);
@@ -337,15 +340,15 @@ function EditorStats({ list }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
-      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-success">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-emerald-700">
         <Icon name="solar:scale-linear" size={12} />
         Cases: {cases}
       </span>
-      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-purple-600">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-legislation">
         <Icon name="solar:document-text-linear" size={12} />
         Legislation: {legislation}
       </span>
-      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-brand">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-subtle px-2.5 py-1 font-medium text-orange-700">
         <Icon name="solar:book-2-linear" size={12} />
         Books: {books}
       </span>
@@ -566,9 +569,16 @@ function CreateListModal({ onConfirm, onCancel }) {
   const [name, setName] = useState('');
   const [caseRef, setCaseRef] = useState('');
   const [court, setCourt] = useState('vic');
+  const [closing, setClosing] = useState(false);
   const nameRef = useRef(null);
 
   useEffect(() => { nameRef.current?.focus(); }, []);
+
+  const requestClose = () => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => onCancel(), MODAL_CLOSE_MS);
+  };
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -576,12 +586,22 @@ function CreateListModal({ onConfirm, onCancel }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 transition-opacity duration-200" onClick={onCancel}>
-      <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-black/5 animate-page-in" onClick={(e) => e.stopPropagation()}>
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 ${closing ? 'motion-fade-out' : 'motion-fade'}`}
+      onClick={requestClose}
+    >
+      <div
+        className={`mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-black/5 ${closing ? 'animate-page-out' : 'animate-page-in'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between">
           <h3 className="font-serif text-card-title font-semibold text-text">New Authority List</h3>
-          <button type="button" onClick={onCancel} className="btn-icon h-8 w-8 text-text-muted hover:bg-surface-subtle hover:text-text">
-            <Icon name="solar:close-circle-linear" size={18} />
+          <button
+            type="button"
+            onClick={requestClose}
+            className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text"
+          >
+            <Icon name="solar:close-linear" size={20} />
           </button>
         </div>
 
@@ -615,7 +635,6 @@ function CreateListModal({ onConfirm, onCancel }) {
             </Select>
           </div>
           <div className="flex items-center justify-end gap-2 pt-2">
-            <Button size="sm" variant="secondary" type="button" onClick={onCancel}>Cancel</Button>
             <Button size="sm" variant="primary" type="submit" disabled={!name.trim()}>
               <Icon name="solar:add-circle-linear" size={16} />
               Create List
@@ -709,6 +728,8 @@ export default function BarristerListsPage() {
   const [casualNewName, setCasualNewName] = useState('');
   const [casualNewRef, setCasualNewRef] = useState('');
   const [casualAddedMap, setCasualAddedMap] = useState({});
+  const [closingCasualModal, setClosingCasualModal] = useState(false);
+  const [closingDeleteConfirm, setClosingDeleteConfirm] = useState(false);
 
   // View crossfade: fade-out → swap → fade-in when navigating between overview ↔ editor
   const [viewFading, setViewFading] = useState(false);
@@ -733,6 +754,16 @@ export default function BarristerListsPage() {
       requestAnimationFrame(() => setViewFading(false));
     }, 150);
   }, [setSearchParams]);
+
+  useEffect(() => {
+    if (!pendingItem) return;
+    setClosingCasualModal(false);
+  }, [pendingItem]);
+
+  useEffect(() => {
+    if (!deleteConfirmId) return;
+    setClosingDeleteConfirm(false);
+  }, [deleteConfirmId]);
 
   useEffect(() => {
     window.localStorage.setItem('clms-authority-editor-width', String(editorPaneWidth));
@@ -1015,6 +1046,29 @@ export default function BarristerListsPage() {
     setPendingItem(null);
     setCasualShowNewList(false);
     await refreshLists();
+  };
+
+  const resetCasualModalState = () => {
+    setPendingItem(null);
+    setCasualShowNewList(false);
+    setCasualNewName('');
+    setCasualNewRef('');
+    setClosingCasualModal(false);
+  };
+
+  const requestCloseCasualModal = () => {
+    if (closingCasualModal) return;
+    setClosingCasualModal(true);
+    setTimeout(resetCasualModalState, MODAL_CLOSE_MS);
+  };
+
+  const requestCloseDeleteConfirm = () => {
+    if (closingDeleteConfirm) return;
+    setClosingDeleteConfirm(true);
+    setTimeout(() => {
+      setDeleteConfirmId(null);
+      setClosingDeleteConfirm(false);
+    }, MODAL_CLOSE_MS);
   };
 
   const handleCasualRemove = async (item, type, entry) => {
@@ -1478,12 +1532,12 @@ export default function BarristerListsPage() {
     const typeIcon = item.type === 'case' ? 'solar:scale-linear'
       : item.type === 'legislation' ? 'solar:document-text-linear'
       : 'solar:book-2-linear';
-    const typeColor = item.type === 'case' ? 'text-success'
-      : item.type === 'legislation' ? 'text-purple-600'
-      : 'text-brand';
-    const typeBadgeCls = item.type === 'case' ? 'bg-surface-subtle text-success'
-      : item.type === 'legislation' ? 'bg-surface-subtle text-purple-600'
-      : 'bg-surface-subtle text-brand';
+    const typeColor = item.type === 'case' ? 'text-emerald-700'
+      : item.type === 'legislation' ? 'text-legislation'
+      : 'text-orange-700';
+    const typeBadgeCls = item.type === 'case' ? 'bg-surface-subtle text-emerald-700'
+      : item.type === 'legislation' ? 'bg-surface-subtle text-legislation'
+      : 'bg-surface-subtle text-orange-700';
     const typeLabel = item.type === 'case' ? 'Case'
       : item.type === 'legislation' ? 'Legislation' : 'Book';
 
@@ -1527,9 +1581,9 @@ export default function BarristerListsPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(item.id)}
-                      className="shrink-0 rounded-lg p-1.5 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger"
+                      className="shrink-0 rounded-lg p-1.5 text-text-muted transition-colors hover:bg-red-50 hover:text-red-700"
                     >
-                      <Icon name="solar:close-circle-linear" size={16} />
+                      <Icon name="solar:close-linear" size={16} />
                     </button>
                   )}
                 </div>
@@ -1657,7 +1711,7 @@ export default function BarristerListsPage() {
                   ) : (
                     <Button
                       size="sm"
-                      variant="secondary"
+                      variant="recall"
                       onClick={(e) => { e.stopPropagation(); handleRequestLoan(book); }}
                       className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
                     >
@@ -1682,7 +1736,7 @@ export default function BarristerListsPage() {
                 ) : (
                   <Button
                     size="sm"
-                    variant="secondary"
+                    variant="recall"
                     onClick={(e) => { e.stopPropagation(); handleRequestReturn(book); }}
                     className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
                   >
@@ -1763,7 +1817,7 @@ export default function BarristerListsPage() {
               </div>
             </div>
             {selected && (
-              <Button size="sm" variant="primary" onClick={exitSearchMode}>
+              <Button size="sm" variant="secondary" onClick={exitSearchMode}>
                 <Icon name="solar:check-circle-linear" size={14} />
                 Done
               </Button>
@@ -1915,7 +1969,7 @@ export default function BarristerListsPage() {
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-2">
                       {editMode ? (
-                        <Button size="sm" variant="primary" onClick={() => setEditMode(false)}>
+                        <Button size="sm" variant="secondary" onClick={() => setEditMode(false)}>
                           <Icon name="solar:check-circle-linear" size={16} />
                           Done
                         </Button>
@@ -1954,7 +2008,7 @@ export default function BarristerListsPage() {
                     <Icon name="solar:copy-linear" size={16} />
                     Copy
                   </Button>
-                  <Button size="sm" variant="primary" onClick={() => setShowExportPreview(true)}>
+                  <Button size="sm" variant="secondary" onClick={() => setShowExportPreview(true)}>
                     <Icon name="solar:upload-linear" size={16} />
                     Export
                   </Button>
@@ -1997,7 +2051,7 @@ export default function BarristerListsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <div className={`flex items-center gap-2 ${mobileView === 'preview' ? 'hidden' : ''}`}>
                       {editMode ? (
-                        <Button size="sm" variant="primary" onClick={() => setEditMode(false)}>
+                        <Button size="sm" variant="secondary" onClick={() => setEditMode(false)}>
                           <Icon name="solar:check-circle-linear" size={16} />
                           Done
                         </Button>
@@ -2083,7 +2137,7 @@ export default function BarristerListsPage() {
                                       onClick={(e) => e.stopPropagation()}
                                       className="flex-1 rounded border border-border bg-white px-2 py-1 font-serif text-sm font-semibold text-text transition-colors focus:border-brand/40 focus:outline-none focus:ring-2 focus:ring-brand/20"
                                     />
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveIssue(group.issue); }} className="rounded p-1 text-text-muted hover:bg-danger/10 hover:text-danger" title="Remove section">
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveIssue(group.issue); }} className="rounded p-1 text-text-muted transition-colors hover:bg-red-50 hover:text-red-700" title="Remove section">
                                       <Icon name="solar:trash-bin-trash-linear" size={13} />
                                     </button>
                                   </>
@@ -2109,7 +2163,7 @@ export default function BarristerListsPage() {
                                   const cloneItem = group.items.find((i) => i.id === rubric.draggableId);
                                   if (!cloneItem) return <div ref={cloneProvided.innerRef} {...cloneProvided.draggableProps} {...cloneProvided.dragHandleProps} />;
                                   const cloneIcon = cloneItem.type === 'case' ? 'solar:document-text-linear' : cloneItem.type === 'legislation' ? 'solar:bill-list-linear' : 'solar:book-2-linear';
-                                  const cloneBadge = cloneItem.type === 'case' ? 'bg-surface-subtle text-success' : cloneItem.type === 'legislation' ? 'bg-surface-subtle text-purple-600' : 'bg-surface-subtle text-brand';
+                                  const cloneBadge = cloneItem.type === 'case' ? 'bg-surface-subtle text-emerald-700' : cloneItem.type === 'legislation' ? 'bg-surface-subtle text-legislation' : 'bg-surface-subtle text-orange-700';
                                   return (
                                     <article
                                       ref={cloneProvided.innerRef}
@@ -2119,7 +2173,7 @@ export default function BarristerListsPage() {
                                     >
                                       <div className="flex items-center gap-2">
                                         <Icon name="solar:hamburger-menu-linear" size={16} className="text-text-muted/50" />
-                                        <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase ${cloneBadge}`}>
+                                        <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-2xs font-bold uppercase ${cloneBadge}`}>
                                           <Icon name={cloneIcon} size={12} />
                                           {cloneItem.type}
                                         </span>
@@ -2172,7 +2226,7 @@ export default function BarristerListsPage() {
                                 </div>
 
                                 {isFocused && showInlineResults && (
-                                  <div className="absolute left-4 right-4 z-10 mt-1 overflow-hidden rounded-xl border border-border bg-white shadow-lg ring-1 ring-black/5">
+                                  <div className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-xl border border-border/60 bg-white py-1 shadow-lg">
                                     {inlineLoading && (
                                       <div className="p-3 text-center text-xs text-text-muted animate-pulse">Searching...</div>
                                     )}
@@ -2182,12 +2236,12 @@ export default function BarristerListsPage() {
                                         <div
                                           key={`${type}-${item.id}`}
                                           onClick={(e) => { e.stopPropagation(); if (!isAdded) handleInlineAdd(item, type); }}
-                                          className={`flex items-center gap-2 border-b border-border-light px-3 py-2.5 last:border-b-0 transition-colors ${isAdded ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-brand/5'}`}
+                                          className={`flex items-center gap-2 border-b border-border-light px-3 py-2 last:border-b-0 transition-colors ${isAdded ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-brand/5'}`}
                                         >
                                           <span className={`rounded-md px-1.5 py-0.5 text-xs font-bold uppercase ${
-                                            (type === 'jade' ? item.type : 'book') === 'case' ? 'bg-surface-subtle text-success'
-                                            : (type === 'jade' ? item.type : 'book') === 'legislation' ? 'bg-surface-subtle text-purple-600'
-                                            : 'bg-surface-subtle text-brand'
+                                            (type === 'jade' ? item.type : 'book') === 'case' ? 'bg-surface-subtle text-emerald-700'
+                                            : (type === 'jade' ? item.type : 'book') === 'legislation' ? 'bg-surface-subtle text-legislation'
+                                            : 'bg-surface-subtle text-orange-700'
                                           }`}>
                                             {type === 'jade' ? item.type : 'Book'}
                                           </span>
@@ -2218,7 +2272,7 @@ export default function BarristerListsPage() {
                                     {!inlineLoading && inlineQuery.trim().length >= 2 && (
                                       <div
                                         onClick={(e) => { e.stopPropagation(); handleInlineAdd({ title: inlineQuery.trim(), citation: null, id: `manual-${Date.now()}`, uncatalogued: true }, 'book'); }}
-                                        className="cursor-pointer border-t border-border-light bg-surface-subtle/80 px-3 py-2.5 text-center text-xs text-text-muted transition-colors hover:bg-surface-subtle hover:text-brand"
+                                        className="cursor-pointer border-t border-border-light bg-surface-subtle/80 px-3 py-2 text-center text-xs text-text-muted transition-colors hover:bg-surface-subtle hover:text-brand"
                                       >
                                         + Add "{inlineQuery}" as uncatalogued book
                                       </div>
@@ -2258,7 +2312,7 @@ export default function BarristerListsPage() {
                       </div>
 
                       {showInlineResults && (
-                        <div className="absolute left-5 right-5 z-10 mt-1 overflow-hidden rounded-xl border border-border bg-white shadow-lg ring-1 ring-black/5">
+                        <div className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-xl border border-border/60 bg-white py-1 shadow-lg">
                           {inlineLoading && (
                             <div className="p-3 text-center text-xs text-text-muted animate-pulse">Searching...</div>
                           )}
@@ -2268,12 +2322,12 @@ export default function BarristerListsPage() {
                               <div
                                 key={`${type}-${item.id}`}
                                 onClick={(e) => { e.stopPropagation(); if (!isAdded) handleInlineAdd(item, type); }}
-                                className={`flex items-center gap-2 border-b border-border-light px-3 py-2.5 last:border-b-0 transition-colors ${isAdded ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-brand/5'}`}
+                                className={`flex items-center gap-2 border-b border-border-light px-3 py-2 last:border-b-0 transition-colors ${isAdded ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-brand/5'}`}
                               >
                                 <span className={`rounded-md px-1.5 py-0.5 text-xs font-bold uppercase ${
-                                  (type === 'jade' ? item.type : 'book') === 'case' ? 'bg-surface-subtle text-success'
-                                  : (type === 'jade' ? item.type : 'book') === 'legislation' ? 'bg-surface-subtle text-purple-600'
-                                  : 'bg-surface-subtle text-brand'
+                                  (type === 'jade' ? item.type : 'book') === 'case' ? 'bg-surface-subtle text-emerald-700'
+                                  : (type === 'jade' ? item.type : 'book') === 'legislation' ? 'bg-surface-subtle text-legislation'
+                                  : 'bg-surface-subtle text-orange-700'
                                 }`}>
                                   {type === 'jade' ? item.type : 'Book'}
                                 </span>
@@ -2304,7 +2358,7 @@ export default function BarristerListsPage() {
                           {!inlineLoading && inlineQuery.trim().length >= 2 && (
                             <div
                               onClick={() => { handleInlineAdd({ title: inlineQuery.trim(), citation: null, id: `manual-${Date.now()}`, uncatalogued: true }, 'book'); }}
-                              className="cursor-pointer border-t border-border-light bg-surface-subtle/80 px-3 py-2.5 text-center text-xs text-text-muted transition-colors hover:bg-surface-subtle hover:text-brand"
+                              className="cursor-pointer border-t border-border-light bg-surface-subtle/80 px-3 py-2 text-center text-xs text-text-muted transition-colors hover:bg-surface-subtle hover:text-brand"
                             >
                               + Add "{inlineQuery}" as uncatalogued book
                             </div>
@@ -2518,101 +2572,26 @@ export default function BarristerListsPage() {
         ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
           {lists.map((list) => {
-            const cases = list.items.filter((i) => i.type === 'case').length;
-            const legislation = list.items.filter((i) => i.type === 'legislation').length;
-            const books = list.items.filter((i) => i.type === 'book').length;
-            const courtLabel = getCourtStructure(list.courtStructure).label;
             const isCardSelected = selectedCards.has(list.id);
 
             return (
-              <article
+              <AuthorityListCard
                 key={list.id}
+                list={list}
                 onClick={() => {
                   if (selectMode) { toggleCardSelect(list.id); return; }
                   syncSelectedList(list);
                 }}
-                className={`relative cursor-pointer rounded-xl bg-white p-5 shadow-sm ring-1 transition-all hover:shadow-md ${
-                  isCardSelected ? 'ring-2 ring-brand bg-brand/5' : 'ring-black/5 hover:ring-black/10'
-                }`}
-              >
-                {/* Three-dot menu */}
-                {!selectMode && (
-                  <div className="absolute right-3 top-3">
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); setCardMenuId(cardMenuId === list.id ? null : list.id); }}
-                      className="btn-icon h-8 w-8 text-text-muted hover:bg-surface-subtle hover:text-text"
-                    >
-                      <Icon name="solar:menu-dots-bold" size={16} />
-                    </button>
-                    {cardMenuId === list.id && (
-                      <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl border border-border bg-white shadow-lg ring-1 ring-black/5 animate-fade-in">
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); handleDuplicate(list.id); }}
-                          className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-text transition-colors hover:bg-surface-subtle"
-                        >
-                          <Icon name="solar:copy-linear" size={15} />
-                          Duplicate
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); setCardMenuId(null); setDeleteConfirmId(list.id); }}
-                          className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-danger transition-colors hover:bg-danger/5"
-                        >
-                          <Icon name="solar:trash-bin-trash-linear" size={15} />
-                          Remove
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className={selectMode ? '' : 'pr-8'}>
-                  <h3 className="flex items-center gap-2 font-serif text-card-title font-semibold text-text">
-                    {selectMode && (
-                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                        isCardSelected ? 'border-brand bg-brand text-white' : 'border-border bg-white'
-                      }`}>
-                        {isCardSelected && <Icon name="solar:check-linear" size={12} />}
-                      </span>
-                    )}
-                    <Icon name="solar:folder-open-linear" size={18} className="shrink-0 text-brand" />
-                    <span className="truncate">{list.name}</span>
-                  </h3>
-                  <p className="mt-1 h-4 truncate text-xs text-text-muted">{list.caseRef || ''}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {cases > 0 && (
-                      <span className="rounded-md bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
-                        {cases} {cases === 1 ? 'case' : 'cases'}
-                      </span>
-                    )}
-                    {legislation > 0 && (
-                      <span className="rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
-                        {legislation} legislation
-                      </span>
-                    )}
-                    {books > 0 && (
-                      <span className="rounded-md bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                        {books} {books === 1 ? 'book' : 'books'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-muted">
-                      {courtLabel}
-                    </span>
-                    {(list.issues?.length > 0) && (
-                      <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-muted">
-                        {list.issues.length} {list.issues.length === 1 ? 'issue' : 'issues'}
-                      </span>
-                    )}
-                    {list.createdAt && (
-                      <span className="text-xs text-text-muted">{list.createdAt}</span>
-                    )}
-                  </div>
-                </div>
-              </article>
+                selected={isCardSelected}
+                selectable={selectMode}
+                onMenuOpen={() => setCardMenuId(cardMenuId === list.id ? null : list.id)}
+                menuOpen={cardMenuId === list.id}
+                onDuplicate={() => handleDuplicate(list.id)}
+                onDelete={() => {
+                  setCardMenuId(null);
+                  setDeleteConfirmId(list.id);
+                }}
+              />
             );
           })}
           {lists.length === 0 && !isNewDraft && (
@@ -2626,6 +2605,7 @@ export default function BarristerListsPage() {
               </p>
               <Button
                 className="mt-4"
+                variant="primary"
                 onClick={handleQuickCreate}
               >
                 <Icon name="solar:add-circle-linear" size={16} />
@@ -2655,12 +2635,19 @@ export default function BarristerListsPage() {
 
       {/* Casual list picker modal — shown when adding from search without active list */}
       {!selected && pendingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 transition-opacity duration-200" onClick={() => setPendingItem(null)}>
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 animate-page-in" onClick={(e) => e.stopPropagation()}>
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 ${closingCasualModal ? 'motion-fade-out' : 'motion-fade'}`}
+          onClick={requestCloseCasualModal}
+        >
+          <div className={`mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 ${closingCasualModal ? 'animate-page-out' : 'animate-page-in'}`} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="font-serif text-card-title text-text">Add to List</h3>
-              <button type="button" onClick={() => setPendingItem(null)} className="btn-icon h-8 w-8 text-text-muted hover:bg-surface-subtle hover:text-text">
-                <Icon name="solar:close-circle-linear" size={18} />
+              <button
+                type="button"
+                onClick={requestCloseCasualModal}
+                className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text"
+              >
+                <Icon name="solar:close-linear" size={20} />
               </button>
             </div>
             <p className="mt-1 text-sm text-text-secondary">{pendingItem.item.title}</p>
@@ -2730,8 +2717,11 @@ export default function BarristerListsPage() {
 
       {/* Delete confirmation dialog */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setDeleteConfirmId(null)}>
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 animate-page-in" onClick={(e) => e.stopPropagation()}>
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 ${closingDeleteConfirm ? 'motion-fade-out' : 'motion-fade'}`}
+          onClick={requestCloseDeleteConfirm}
+        >
+          <div className={`mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 ${closingDeleteConfirm ? 'animate-page-out' : 'animate-page-in'}`} onClick={(e) => e.stopPropagation()}>
             <h3 className="font-serif text-card-title text-text">
               {deleteConfirmId === '__bulk' ? `Delete ${selectedCards.size} ${selectedCards.size === 1 ? 'List' : 'Lists'}?` : 'Delete List?'}
             </h3>
@@ -2754,12 +2744,11 @@ export default function BarristerListsPage() {
                 : 'This will permanently remove the list and all its entries. This cannot be undone.'}
             </p>
             <div className="mt-4 flex justify-end gap-2">
-              <Button size="sm" variant="secondary" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
+              <Button size="sm" variant="secondary" onClick={requestCloseDeleteConfirm}>Cancel</Button>
               <Button
                 size="sm"
-                variant="primary"
+                variant="danger-solid"
                 onClick={() => deleteConfirmId === '__bulk' ? confirmBulkDelete() : handleDelete(deleteConfirmId)}
-                className="!bg-danger hover:!bg-danger/90"
                 loading={bulkBusy === 'delete'}
               >
                 Delete

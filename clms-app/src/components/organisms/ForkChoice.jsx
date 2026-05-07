@@ -31,7 +31,7 @@ function NotFoundView({ onStartSolo, onContinueAfterInvite, startingSolo, sent, 
             Your clerk will receive a link to set up your chambers library.
           </p>
           <div className="mt-4">
-            <Button className="w-full" onClick={() => onContinueAfterInvite(email)}>
+            <Button className="w-full" variant="secondary" onClick={() => onContinueAfterInvite(email)}>
               Start with JADE
             </Button>
           </div>
@@ -54,6 +54,7 @@ function NotFoundView({ onStartSolo, onContinueAfterInvite, startingSolo, sent, 
               />
               <Button
                 className={`w-full ${!email.trim() ? 'opacity-40' : ''}`}
+                variant="primary"
                 disabled={!email.trim()}
                 loading={sendingInvite}
                 onClick={() => {

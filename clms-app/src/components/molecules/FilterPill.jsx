@@ -44,7 +44,7 @@ export default function FilterPill({ label, options = [], value, onChange, disab
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-1 min-w-[180px] rounded-xl border border-border bg-white py-1 shadow-lg">
+        <div className="absolute left-0 top-full z-20 mt-1 min-w-[180px] rounded-xl border border-border/60 bg-white py-1 shadow-lg">
           {disabled && disabledMessage ? (
             <p className="px-3 py-2 text-xs text-text-muted">{disabledMessage}</p>
           ) : (

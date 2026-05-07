@@ -1,38 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
 import IsbnLookupFlow from './IsbnLookupFlow';
 import { useToast } from '../../context/ToastContext';
 import { addBook } from '../../services/booksService';
 
-const CLOSE_TRANSITION_MS = 220;
+const CLOSE_TRANSITION_MS = 200;
 const DEFAULT_BOOK_FIELDS = {
   edition: '',
   publisher: '',
-  location: 'Owen Dixon East',
-  floor: '3',
   practiceArea: 'General',
   jurisdiction: 'Federal',
 };
 
 export default function IsbnIntakeModal({ mode, onClose, onImported }) {
   const { addToast } = useToast();
-  const closeTimerRef = useRef(null);
   const [isbnBooks, setIsbnBooks] = useState([]);
   const [phase, setPhase] = useState(mode === 'scan' ? 'qr' : 'idle');
   const [submitting, setSubmitting] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const openTimer = setTimeout(() => {
-      setIsOpen(true);
-    }, 10);
-
-    return () => {
-      clearTimeout(openTimer);
-      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-    };
-  }, []);
+  const [closing, setClosing] = useState(false);
 
   const handleAddIsbnBooks = (newBooks, replace = false) => {
     if (replace) {
@@ -52,11 +38,10 @@ export default function IsbnIntakeModal({ mode, onClose, onImported }) {
   };
 
   const closeModal = ({ force = false } = {}) => {
-    if ((submitting && !force) || closeTimerRef.current) return;
+    if ((submitting && !force) || closing) return;
 
-    setIsOpen(false);
-    closeTimerRef.current = setTimeout(() => {
-      closeTimerRef.current = null;
+    setClosing(true);
+    setTimeout(() => {
       onClose?.();
     }, CLOSE_TRANSITION_MS);
   };
@@ -73,7 +58,7 @@ export default function IsbnIntakeModal({ mode, onClose, onImported }) {
           ...book,
         });
       }
-      addToast({ message: `Added ${isbnBooks.length} books to catalogue`, type: 'success' });
+      addToast({ message: `Added ${isbnBooks.length} books to library`, type: 'success' });
       await onImported?.();
       closeModal({ force: true });
     } finally {
@@ -86,15 +71,11 @@ export default function IsbnIntakeModal({ mode, onClose, onImported }) {
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`fixed inset-0 z-40 bg-black/30 ${closing ? 'motion-fade-out' : 'motion-fade'}`}
         onClick={() => closeModal()}
       />
       <div
-        className={`fixed inset-4 z-50 flex flex-col overflow-hidden rounded-2xl bg-white shadow-xl transition-all duration-300 md:inset-8 lg:inset-16 ${
-          isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-        }`}
+        className={`fixed inset-4 z-50 flex flex-col overflow-hidden rounded-2xl bg-white shadow-xl md:inset-8 lg:inset-16 ${closing ? 'animate-page-out' : 'animate-page-in'}`}
       >
         <div className="flex items-center justify-between border-b border-border/60 px-6 py-4">
           <h2 className="font-serif text-card-title text-text">{title}</h2>
@@ -102,10 +83,10 @@ export default function IsbnIntakeModal({ mode, onClose, onImported }) {
             type="button"
             onClick={() => closeModal()}
             disabled={submitting}
-            className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-slate-100 hover:text-text disabled:opacity-40"
+            className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text disabled:opacity-40"
             aria-label={`Close ${title.toLowerCase()} modal`}
           >
-            <Icon name="solar:close-circle-linear" size={20} />
+            <Icon name="solar:close-linear" size={20} />
           </button>
         </div>
 
@@ -133,7 +114,7 @@ export default function IsbnIntakeModal({ mode, onClose, onImported }) {
                 disabled={phase === 'looking-up'}
                 onClick={handleImport}
               >
-                Add {isbnBooks.length} books to catalogue
+                Add {isbnBooks.length} books to library
               </Button>
             </div>
           </div>

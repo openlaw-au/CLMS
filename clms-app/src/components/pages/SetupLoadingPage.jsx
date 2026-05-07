@@ -6,7 +6,7 @@ import { useAppContext } from '../../context/AppContext';
 const stepsByRole = {
   clerk: [
     { label: 'Creating your library...', icon: 'solar:library-linear' },
-    { label: 'Importing catalogue...', icon: 'solar:book-2-linear' },
+    { label: 'Importing library...', icon: 'solar:book-2-linear' },
     { label: 'Setting up workspace...', icon: 'solar:widget-2-linear' },
   ],
   barrister: [
@@ -35,7 +35,7 @@ export default function SetupLoadingPage() {
     );
 
     return () => timers.forEach(clearTimeout);
-  }, [navigate]);
+  }, [navigate, role]);
 
   const steps = stepsByRole[role] || stepsByRole.barrister;
   const progress = Math.min((currentStep / steps.length) * 100, 100);

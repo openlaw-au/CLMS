@@ -15,6 +15,7 @@ import { membersMock } from '../../../mocks/members';
 import { getLists, addItem, createList, removeItem } from '../../../services/authorityListsService';
 import { addQueueEntry, dismissQueueItemBySource } from '../../../services/uncataloguedQueueService';
 
+const MODAL_CLOSE_MS = 200;
 
 export default function BarristerSearchPage() {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ export default function BarristerSearchPage() {
   const [newListName, setNewListName] = useState('');
   const [newListRef, setNewListRef] = useState('');
   const [addedResultMap, setAddedResultMap] = useState({});
+  const [closingModal, setClosingModal] = useState(false);
 
   const getResultKey = (item, type) => `${type}:${item.id ?? item.title}`;
 
@@ -60,6 +62,11 @@ export default function BarristerSearchPage() {
   useEffect(() => {
     setQuery(queryParam);
   }, [queryParam]);
+
+  useEffect(() => {
+    if (!pendingItem) return;
+    setClosingModal(false);
+  }, [pendingItem]);
 
   const handleSearch = useCallback(async (q) => {
     if (!q || q.trim().length < 2) {
@@ -264,6 +271,20 @@ export default function BarristerSearchPage() {
     setAllLists(freshLists);
   };
 
+  const resetPendingItemState = () => {
+    setPendingItem(null);
+    setShowNewList(false);
+    setNewListName('');
+    setNewListRef('');
+    setClosingModal(false);
+  };
+
+  const requestCloseModal = () => {
+    if (closingModal) return;
+    setClosingModal(true);
+    setTimeout(resetPendingItemState, MODAL_CLOSE_MS);
+  };
+
   return (
     <div className="animate-page-in">
       {/* Focused mode: list context bar (APP-003) */}
@@ -278,7 +299,7 @@ export default function BarristerSearchPage() {
               <p className="text-xs text-text-secondary">{activeList.caseRef} · {activeList.items.length} {activeList.items.length === 1 ? 'entry' : 'entries'}</p>
             </div>
           </div>
-          <Button size="sm" variant="primary" onClick={() => navigate(`/app/authorities?listId=${activeList.id}`)}>
+          <Button size="sm" variant="secondary" onClick={() => navigate(`/app/authorities?listId=${activeList.id}`)}>
             <Icon name="solar:check-circle-linear" size={14} />
             Done
           </Button>
@@ -319,7 +340,7 @@ export default function BarristerSearchPage() {
           <span>JADE only mode. Join chambers to unlock shared library.</span>
           <Button
             size="sm"
-            variant="primary"
+            variant="secondary"
             onClick={() => navigate('/onboarding/barrister/lookup')}
             className="ml-3 shrink-0 px-3 py-1 text-xs"
           >
@@ -431,15 +452,22 @@ export default function BarristerSearchPage() {
 
       {/* List picker popover — casual mode only */}
       {!focusedMode && pendingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 transition-opacity duration-200" onClick={() => setPendingItem(null)}>
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-black/30 ${closingModal ? 'motion-fade-out' : 'motion-fade'}`}
+          onClick={requestCloseModal}
+        >
           <div
-            className="mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 animate-page-in"
+            className={`mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 ${closingModal ? 'animate-page-out' : 'animate-page-in'}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
               <h3 className="font-serif text-card-title text-text">Add to List</h3>
-              <button type="button" onClick={() => setPendingItem(null)} className="rounded-lg p-1 text-text-muted transition-colors hover:bg-slate-100 hover:text-text">
-                <Icon name="solar:close-circle-linear" size={18} />
+              <button
+                type="button"
+                onClick={requestCloseModal}
+                className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text"
+              >
+                <Icon name="solar:close-linear" size={20} />
               </button>
             </div>
             <p className="mt-1 text-xs text-text-secondary">

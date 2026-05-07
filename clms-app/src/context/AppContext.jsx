@@ -13,7 +13,6 @@ const createInitialOnboarding = () => ({
   chambersName: '',
   chambersLogo: null,
   chambersAddress: '',
-  locations: [{ name: '', floor: '' }],
   importedCount: 0,
   invites: [{ email: '', role: 'barrister' }],
   chambersFound: null,
@@ -37,11 +36,20 @@ const readJson = (key, fallback) => {
   }
 };
 
+const readOnboarding = () => {
+  const stored = readJson(ONBOARDING_KEY, createInitialOnboarding());
+
+  if (!stored || typeof stored !== 'object') {
+    return createInitialOnboarding();
+  }
+
+  const { locations: _legacyLocations, ...rest } = stored;
+  return { ...createInitialOnboarding(), ...rest };
+};
+
 export function AppProvider({ children }) {
   const [role, setRoleState] = useState(() => localStorage.getItem(ROLE_KEY) || 'barrister');
-  const [onboarding, setOnboarding] = useState(() =>
-    readJson(ONBOARDING_KEY, createInitialOnboarding()),
-  );
+  const [onboarding, setOnboarding] = useState(readOnboarding);
   const [chambersSettings, setChambersSettings] = useState(() =>
     readJson(CHAMBERS_SETTINGS_KEY, createInitialChambersSettings()),
   );
@@ -65,7 +73,7 @@ export function AppProvider({ children }) {
 
   const updateOnboarding = useCallback((patch) => {
     setOnboarding((prev) => {
-      const next = { ...prev, ...patch };
+      const { locations: _legacyLocations, ...next } = { ...prev, ...patch };
       localStorage.setItem(ONBOARDING_KEY, JSON.stringify(next));
       return next;
     });

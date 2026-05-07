@@ -7,11 +7,14 @@ import { getSuggestions } from '../../services/searchService';
 import { getLists, createList, addItem } from '../../services/authorityListsService';
 import { useToast } from '../../context/ToastContext';
 
-export default function HeaderSearchBar({ placeholder, className = '' }) {
+const MODAL_CLOSE_MS = 200;
+
+export default function HeaderSearchBar({ placeholder, role = 'barrister', className = '' }) {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
+  const isClerk = role === 'clerk';
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -23,6 +26,7 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
   const [showNewList, setShowNewList] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [newListRef, setNewListRef] = useState('');
+  const [closingModal, setClosingModal] = useState(false);
 
   // Autosuggest — debounced fetch
   const fetchSuggestions = useCallback(async (q) => {
@@ -32,10 +36,24 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
   }, []);
 
   useEffect(() => {
+    if (isClerk) return undefined;
     if (!query.trim()) return undefined;
     const timer = setTimeout(() => fetchSuggestions(query), 180);
     return () => clearTimeout(timer);
-  }, [query, fetchSuggestions]);
+  }, [fetchSuggestions, isClerk, query]);
+
+  useEffect(() => {
+    if (!isClerk) return;
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setActiveIndex(-1);
+    setPendingItem(null);
+  }, [isClerk]);
+
+  useEffect(() => {
+    if (!pendingItem) return;
+    setClosingModal(false);
+  }, [pendingItem]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -52,6 +70,11 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (isClerk) {
+      const trimmedQuery = query.trim();
+      navigate(trimmedQuery ? `/app/library?q=${encodeURIComponent(trimmedQuery)}` : '/app/library');
+      return;
+    }
     // No navigation — just keep suggestions open or do nothing
     if (activeIndex >= 0 && suggestions[activeIndex]) {
       handleSuggestionSelect(suggestions[activeIndex]);
@@ -113,7 +136,22 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
     navigate(`/app/authorities?listId=${newList.id}`);
   };
 
+  const resetPendingItemState = () => {
+    setPendingItem(null);
+    setShowNewList(false);
+    setNewListName('');
+    setNewListRef('');
+    setClosingModal(false);
+  };
+
+  const requestCloseModal = () => {
+    if (closingModal) return;
+    setClosingModal(true);
+    setTimeout(resetPendingItemState, MODAL_CLOSE_MS);
+  };
+
   const handleKeyDown = (e) => {
+    if (isClerk) return;
     if (!showSuggestions || suggestions.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -149,10 +187,10 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
               const nextQuery = event.target.value;
               setQuery(nextQuery);
               if (!nextQuery.trim()) setSuggestions([]);
-              setShowSuggestions(Boolean(nextQuery.trim()));
+              setShowSuggestions(isClerk ? false : Boolean(nextQuery.trim()));
               setActiveIndex(-1);
             }}
-            onFocus={() => { if (query.trim()) setShowSuggestions(true); }}
+            onFocus={() => { if (!isClerk && query.trim()) setShowSuggestions(true); }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className="min-w-0 flex-1 bg-transparent py-0.5 text-sm text-text placeholder:text-text-muted focus:outline-none"
@@ -182,16 +220,16 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
         </div>
 
         {/* Autosuggest dropdown */}
-        {showSuggestions && suggestions.length > 0 && (
+        {!isClerk && showSuggestions && suggestions.length > 0 && (
           <div
             id="header-search-suggestions"
             role="listbox"
-            className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 rounded-[24px] border border-slate-200 bg-white p-2 shadow-[0_22px_48px_rgba(15,23,42,0.14)] ring-1 ring-black/5"
+            className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 rounded-xl border border-border/60 bg-white py-1 shadow-lg"
           >
             {/* My Lists section */}
             {listSuggestions.length > 0 && (
               <>
-                <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                <p className="px-3 pb-1 pt-1 text-2xs font-semibold uppercase tracking-[0.16em] text-text-muted">
                   My Lists
                 </p>
                 {listSuggestions.map((s, idx) => (
@@ -202,8 +240,8 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
                     aria-selected={idx === activeIndex}
                     onClick={() => handleSuggestionSelect(s)}
                     onMouseEnter={() => setActiveIndex(idx)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors ${
-                      idx === activeIndex ? 'bg-slate-100' : 'hover:bg-slate-50'
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-left transition-colors ${
+                      idx === activeIndex ? 'bg-slate-100' : 'hover:bg-slate-100'
                     }`}
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
@@ -223,7 +261,7 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
             {itemSuggestions.length > 0 && (
               <>
                 {listSuggestions.length > 0 && <div className="my-1.5 border-t border-slate-100" />}
-                <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                <p className="px-3 pb-1 pt-1 text-2xs font-semibold uppercase tracking-[0.16em] text-text-muted">
                   Add to List
                 </p>
                 {itemSuggestions.map((s) => {
@@ -236,12 +274,18 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
                       aria-selected={globalIdx === activeIndex}
                       onClick={() => handleSuggestionSelect(s)}
                       onMouseEnter={() => setActiveIndex(globalIdx)}
-                      className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors ${
-                        globalIdx === activeIndex ? 'bg-slate-100' : 'hover:bg-slate-50'
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-left transition-colors ${
+                        globalIdx === activeIndex ? 'bg-slate-100' : 'hover:bg-slate-100'
                       }`}
                     >
                       <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                        s.type === 'book' ? 'bg-brand/10 text-brand' : s.jadeType === 'legislation' ? 'bg-violet-100 text-violet-600' : 'bg-emerald-100 text-emerald-600'
+                        s.type === 'book'
+                          ? s.status === 'available'
+                            ? 'bg-brand/10 text-brand'
+                            : 'bg-brand/10 text-amber-700'
+                          : s.jadeType === 'legislation'
+                            ? 'bg-legislation/5 text-legislation'
+                            : 'bg-emerald-100 text-emerald-600'
                       }`}>
                         <Icon name={s.icon} size={15} />
                       </span>
@@ -250,14 +294,16 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
                         <p className="truncate text-xs text-text-muted">{s.subtitle}</p>
                       </div>
                       {s.type === 'book' && (
-                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                          s.status === 'available' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-2xs font-medium ${
+                          s.status === 'available' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-100 text-amber-700'
                         }`}>
                           {s.status === 'available' ? 'Available' : 'On loan'}
                         </span>
                       )}
                       {s.type === 'jade' && (
-                        <span className="shrink-0 rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-600">
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-2xs font-medium ${
+                          s.jadeType === 'legislation' ? 'bg-legislation/5 text-legislation' : 'bg-violet-50 text-violet-600'
+                        }`}>
                           JADE
                         </span>
                       )}
@@ -272,13 +318,24 @@ export default function HeaderSearchBar({ placeholder, className = '' }) {
       </form>
 
       {/* Add to List modal — portaled to body to escape header overflow/z-index */}
-      {pendingItem && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 transition-opacity duration-200" onClick={() => { setPendingItem(null); setShowNewList(false); }}>
-          <div className="mx-4 flex w-full max-w-sm flex-col rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 animate-page-in" style={{ maxHeight: 'calc(100vh - 2rem)' }} onClick={(e) => e.stopPropagation()}>
+      {!isClerk && pendingItem && createPortal(
+        <div
+          className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 ${closingModal ? 'motion-fade-out' : 'motion-fade'}`}
+          onClick={requestCloseModal}
+        >
+          <div
+            className={`mx-4 flex w-full max-w-sm flex-col rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black/5 ${closingModal ? 'animate-page-out' : 'animate-page-in'}`}
+            style={{ maxHeight: 'calc(100vh - 2rem)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex shrink-0 items-center justify-between">
               <h3 className="font-serif text-card-title text-text">Add to List</h3>
-              <button type="button" onClick={() => { setPendingItem(null); setShowNewList(false); }} className="rounded-lg p-1 text-text-muted transition-colors hover:bg-slate-100 hover:text-text">
-                <Icon name="solar:close-circle-linear" size={18} />
+              <button
+                type="button"
+                onClick={requestCloseModal}
+                className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text"
+              >
+                <Icon name="solar:close-linear" size={20} />
               </button>
             </div>
             <p className="mt-1 shrink-0 text-sm text-text-secondary">{pendingItem.title}</p>

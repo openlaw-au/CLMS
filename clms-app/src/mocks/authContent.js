@@ -58,14 +58,14 @@ export const authContent = {
       badge: 'Clerk workspace',
       heading: 'Keep the chambers library accurate and moving.',
       description:
-        'Manage catalogue quality, approve requests, and keep barristers working from a reliable shared library.',
+        'Manage library quality, approve requests, and keep barristers working from a reliable shared library.',
       formDescription:
-        'Sign in to manage catalogue coverage, loan approvals, and member activity from one control point.',
+        'Sign in to manage library coverage, loan approvals, and member activity from one control point.',
       highlights: [
         {
           icon: 'solar:book-2-linear',
-          title: 'Catalogue control',
-          body: 'Track stock, locations, and metadata in one system.',
+          title: 'Library control',
+          body: 'Track stock, loan status, and metadata in one system.',
         },
         {
           icon: 'solar:check-square-linear',
@@ -75,7 +75,7 @@ export const authContent = {
         {
           icon: 'solar:chart-2-linear',
           title: 'Operational insight',
-          body: 'See overdue pressure and catalogue health at a glance.',
+          body: 'See overdue pressure and library health at a glance.',
         },
       ],
       metrics: ['Loan approvals', 'Metadata health', 'Chambers visibility'],
@@ -86,17 +86,17 @@ export const authContent = {
       description:
         'Create the chambers workspace, import books, invite members, and give barristers a library they can trust.',
       formDescription:
-        'Create a clerk account to set up the catalogue, import books, and invite barristers into chambers.',
+        'Create a clerk account to set up the library, import books, and invite barristers into chambers.',
       highlights: [
         {
           icon: 'solar:library-linear',
           title: 'Chambers setup',
-          body: 'Name your library, add locations, and start with a clear structure.',
+          body: 'Name your library, import books, and start with a clear structure.',
         },
         {
           icon: 'solar:scanner-linear',
           title: 'Book intake',
-          body: 'Import CSVs or scan ISBNs to build the catalogue faster.',
+          body: 'Import CSVs or scan ISBNs to build the library faster.',
         },
         {
           icon: 'solar:users-group-rounded-linear',

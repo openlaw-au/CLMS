@@ -10,11 +10,13 @@ export default function FooterSection({ role = 'barrister' }) {
           <div className="md:col-span-2">
             <h4 className="mb-3 font-serif text-base font-semibold text-white">Chambers Library Management System</h4>
             <p className="mb-4 max-w-sm text-sm leading-relaxed">
-              Search and cite from anywhere. Catalogue and track every book. One system for barristers and clerks.
+              Search and cite from anywhere. Track every book in your library. One system for barristers and clerks.
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <Link to={`/signup?role=${role}`} className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-hover">
-                Get Started
+              <Link to={`/signup?role=${role}`}>
+                <Button variant="primary" size="sm" className="px-4 py-2 text-sm">
+                  Get Started
+                </Button>
               </Link>
               <Button type="button" size="sm" variant="secondary" className="px-4 py-2 text-sm">
                 <Icon name="solar:calendar-linear" size={14} />

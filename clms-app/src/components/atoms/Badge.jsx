@@ -1,5 +1,6 @@
 const variantClasses = {
   default: 'bg-surface-subtle text-text-secondary',
+  amber: 'bg-amber-100 text-amber-700',
   role: 'bg-surface-subtle text-text-secondary',
   status: 'bg-success/10 text-success',
   info: 'bg-info/10 text-info',

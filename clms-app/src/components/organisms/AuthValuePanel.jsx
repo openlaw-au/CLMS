@@ -10,7 +10,7 @@ function MobileBarristerPreview() {
           <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-          <span className="ml-3 text-[10px] font-medium text-slate-400">clms.app/search</span>
+          <span className="ml-3 text-2xs font-medium text-slate-400">clms.app/search</span>
         </div>
 
         <div className="space-y-3 p-4">
@@ -23,17 +23,17 @@ function MobileBarristerPreview() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-text">Cross on Evidence</p>
-                <p className="mt-1 text-[11px] text-slate-500">J.D. Heydon · 5th Edition · East, Flr 5</p>
+                <p className="mt-1 text-[11px] text-slate-500">J.D. Heydon · 5th Edition · Available now</p>
               </div>
-              <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700">
+              <span className="rounded-full bg-emerald-50 px-2 py-1 text-2xs font-medium text-emerald-700">
                 Available
               </span>
             </div>
             <div className="mt-3 flex gap-2">
-              <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-medium text-blue-600 ring-1 ring-blue-200">
+              <span className="rounded-full bg-white px-2.5 py-1 text-2xs font-medium text-blue-600 ring-1 ring-blue-200">
                 Request loan
               </span>
-              <span className="rounded-full bg-blue-600 px-2.5 py-1 text-[10px] font-medium text-white">
+              <span className="rounded-full bg-blue-600 px-2.5 py-1 text-2xs font-medium text-white">
                 Add to list
               </span>
             </div>
@@ -41,7 +41,7 @@ function MobileBarristerPreview() {
 
           <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-3">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-700">Authority list</p>
+              <p className="text-2xs font-semibold uppercase tracking-[0.16em] text-blue-700">Authority list</p>
               <span className="rounded-full bg-white px-2 py-1 text-[9px] font-medium text-slate-500 ring-1 ring-blue-100">
                 AGLC4
               </span>
@@ -61,7 +61,7 @@ function MobileBarristerPreview() {
       </div>
 
       <div className="absolute -left-4 bottom-8 rounded-[22px] border border-white/90 bg-white/95 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Research flow</p>
+        <p className="text-2xs font-semibold uppercase tracking-[0.16em] text-slate-400">Research flow</p>
         <p className="mt-1.5 text-sm font-semibold text-text">Search - List - Cite</p>
       </div>
     </div>
@@ -78,14 +78,14 @@ function MobileClerkPreview() {
           <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-          <span className="ml-3 text-[10px] font-medium text-slate-400">clms.app/catalogue</span>
+          <span className="ml-3 text-2xs font-medium text-slate-400">clms.app/library</span>
         </div>
 
         <div className="grid grid-cols-[84px_minmax(0,1fr)] gap-3 p-4">
           <div className="rounded-[20px] bg-slate-950 px-3 py-4 text-slate-300">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Workspace</p>
+            <p className="text-2xs font-semibold uppercase tracking-[0.16em] text-slate-500">Workspace</p>
             <div className="mt-3 space-y-2">
-              {['Dashboard', 'Catalogue', 'Loans'].map((item, index) => (
+              {['Dashboard', 'Library', 'Loans'].map((item, index) => (
                 <div
                   key={item}
                   className={`rounded-lg px-2.5 py-1.5 text-[11px] ${index === 1 ? 'bg-brand text-white' : 'text-slate-400'}`}
@@ -111,7 +111,7 @@ function MobileClerkPreview() {
       </div>
 
       <div className="absolute -left-4 bottom-12 w-36 rounded-[22px] border border-white/90 bg-white/95 p-3 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Borrowing trend</p>
+        <p className="text-2xs font-semibold uppercase tracking-[0.16em] text-slate-400">Borrowing trend</p>
         <div className="mt-2 flex h-16 items-end gap-1.5">
           {[20, 32, 26, 42, 34, 48, 30].map((height, index) => (
             <span key={index} className="w-3 rounded-t bg-brand/80" style={{ height }} />

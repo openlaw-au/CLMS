@@ -42,7 +42,7 @@ export default function InviteForm() {
         + Add another
       </button>
       <div className="mt-6 flex items-center justify-between">
-        <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => navigate('/onboarding/clerk/step/3')}>
+        <Button variant="secondary" size="sm" className="rounded-xl" onClick={() => navigate('/onboarding/clerk/step/3')}>
           &larr; Back
         </Button>
         <div className="flex gap-2">

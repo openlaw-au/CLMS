@@ -10,7 +10,7 @@ export const heroContent = {
   clerk: {
     titleLines: ['Scan it. Organise it.', 'Control it.'],
     summary:
-      'gives you real-time inventory across every location, automated overdue reminders, and ISBN scan to catalogue in seconds, not hours.',
+      'gives you real-time library visibility, automated overdue reminders, and ISBN-based book intake in seconds, not hours.',
     cta: 'Get Started',
     secondaryCta: 'Book a Walkthrough',
     secondaryIcon: 'solar:calendar-linear',
@@ -34,10 +34,10 @@ export const featureSets = {
         icon: 'solar:magnifer-linear',
         title: 'One Search, Every Resource',
         description:
-          'Finding a book means checking three locations and sending a message hoping someone replies. CLMS connects your physical catalogue with JADE in one place.',
+          'Finding a book means chasing messages and hoping someone knows whether it is available. CLMS connects your physical library with JADE in one place.',
         checks: [
           'Books, case law, and legislation in one place',
-          'Filter by location and practice area',
+          'See availability and practice area',
           'JADE integration',
         ],
       },
@@ -77,7 +77,7 @@ export const featureSets = {
         title: 'Add Books in Seconds',
         description:
           "A retiring barrister donates fifty books. Without CLMS, that's an afternoon of manual entry. With it, scan the ISBN and everything auto-fills.",
-        checks: ['ISBN auto-cataloguing', 'Multi-location assignment', 'Practice area categorisation'],
+        checks: ['ISBN auto-cataloguing', 'Metadata-ready records', 'Practice area categorisation'],
       },
       {
         id: 'permissions',
@@ -85,7 +85,7 @@ export const featureSets = {
         title: 'Built for Chambers',
         description:
           'Not every member should have the same access. Barristers search and borrow. Clerks manage inventory. CLMS enforces this by role.',
-        checks: ['Role-based permissions', 'Share Authority Lists with colleagues', 'Multi-location structure'],
+        checks: ['Role-based permissions', 'Share Authority Lists with colleagues', 'Shared chambers workspace'],
       },
     ],
   },
@@ -93,31 +93,11 @@ export const featureSets = {
 
 export const trustCards = [
   {
-    id: 'locations',
-    icon: 'solar:buildings-linear',
-    title: 'Multi-Location Management',
-    description:
-      "One catalogue across every location. Know what's where before walking across the building or ordering a duplicate.",
-    metricIcon: 'solar:map-point-linear',
-    metric: '8',
-    metricLabel: 'Locations',
-  },
-  {
-    id: 'collaboration',
-    icon: 'solar:users-group-rounded-linear',
-    title: 'Cross-Chambers Collaboration',
-    description:
-      'Barristers move between chambers. Books follow them. CLMS tracks inter-chamber loans so nothing falls through the cracks when resources cross boundaries.',
-    metricIcon: 'solar:book-2-linear',
-    metric: '2,847',
-    metricLabel: 'Books Cataloged',
-  },
-  {
     id: 'compliance',
     icon: 'solar:shield-check-linear',
     title: 'Legal Compliance',
     description:
-      'Full audit trail on every loan, return, and catalogue change. Citation tracking meets professional standards. When compliance asks, you have the answer.',
+      'Full audit trail on every loan, return, and library update. Citation tracking meets professional standards. When compliance asks, you have the answer.',
     metricIcon: 'solar:transfer-horizontal-linear',
     metric: '23',
     metricLabel: 'Active Loans Tracked',

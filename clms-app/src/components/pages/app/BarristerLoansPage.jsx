@@ -5,6 +5,7 @@ import Skeleton from '../../atoms/Skeleton';
 import ContentLoader from '../../atoms/ContentLoader';
 import BookCard from '../../molecules/BookCard';
 import CategoryDropdown from '../../molecules/CategoryDropdown';
+import EmptyStateMessage from '../../molecules/EmptyStateMessage';
 import SegmentedTabs from '../../molecules/SegmentedTabs';
 import { useAppContext } from '../../../context/AppContext';
 import { useToast } from '../../../context/ToastContext';
@@ -13,7 +14,8 @@ import { getBooks } from '../../../services/booksService';
 import { getLists, addItem } from '../../../services/authorityListsService';
 import { formatShortDate } from '../../../utils/dateFormatters';
 
-const BOOK_GRID = 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 book-grid-wide';
+const BOOK_GRID = 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4';
+const MODAL_CLOSE_MS = 200;
 
 export default function BarristerLoansPage() {
   const { onboarding } = useAppContext();
@@ -32,6 +34,7 @@ export default function BarristerLoansPage() {
   // Add to Authority List modal
   const [authorityLists, setAuthorityLists] = useState([]);
   const [addToListBookId, setAddToListBookId] = useState(null);
+  const [closingAddToListModal, setClosingAddToListModal] = useState(false);
 
   useEffect(() => {
     // TODO(api): Replace with GET /api/loans?borrower=me — fetch all of user's loans
@@ -46,6 +49,16 @@ export default function BarristerLoansPage() {
     });
   }, []);
 
+  useEffect(() => {
+    const handler = async () => {
+      const nextBooks = await getBooks();
+      setBooks(nextBooks);
+    };
+
+    window.addEventListener('books-changed', handler);
+    return () => window.removeEventListener('books-changed', handler);
+  }, []);
+
   const isOverdue = (book) => book.status === 'on-loan' && book.dueDate && new Date(book.dueDate + 'T00:00:00') < new Date();
   const availableBooks = useMemo(() => books.filter((b) => b.status === 'available'), [books]);
   const onLoanBooks = useMemo(() => books.filter((b) => b.status === 'on-loan'), [books]);
@@ -58,6 +71,12 @@ export default function BarristerLoansPage() {
   const pendingLoanBookIds = useMemo(() => new Set(
     loans.filter((l) => l.status === 'pending' && l.borrower === userName).map((l) => l.bookId)
   ), [loans, userName]);
+  const activeLoansByBookId = useMemo(() => new Map(
+    loans
+      .filter((loan) => loan.status === 'active' || loan.status === 'overdue')
+      .map((loan) => [loan.bookId, loan])
+  ), [loans]);
+  const isBookExtended = (book) => book.extended === true || activeLoansByBookId.get(book.id)?.extended === true;
 
   const myBooks = useMemo(() => {
     const myIds = new Set([...myActiveLoanBookIds, ...pendingLoanBookIds, ...requestedBookIds]);
@@ -157,7 +176,25 @@ export default function BarristerLoansPage() {
     });
     const list = authorityLists.find((l) => l.id === listId);
     addToast({ message: `Added to "${list?.name || 'list'}"`, type: 'success' });
-    setAddToListBookId(null);
+    setClosingAddToListModal(true);
+    setTimeout(() => {
+      setAddToListBookId(null);
+      setClosingAddToListModal(false);
+    }, MODAL_CLOSE_MS);
+  };
+
+  const requestCloseAddToListModal = () => {
+    if (closingAddToListModal) return;
+    setClosingAddToListModal(true);
+    setTimeout(() => {
+      setAddToListBookId(null);
+      setClosingAddToListModal(false);
+    }, MODAL_CLOSE_MS);
+  };
+
+  const openAddToListModal = (bookId) => {
+    setClosingAddToListModal(false);
+    setAddToListBookId(bookId);
   };
 
   const addToListBook = addToListBookId ? books.find((b) => b.id === addToListBookId) : null;
@@ -165,10 +202,10 @@ export default function BarristerLoansPage() {
   const overdueBooks = useMemo(() => myBooks.filter(isOverdue), [myBooks]);
   const hasOverdue = overdueBooks.length > 0;
   const pills = [
-    { key: 'all', label: 'All', count: books.length, icon: 'solar:book-2-linear', activeAccent: 'brand' },
-    { key: 'available', label: 'Available', count: availableBooks.length, icon: 'solar:check-circle-linear', activeAccent: 'brand' },
-    { key: 'on-loan', label: 'On Loan', count: onLoanBooks.length, icon: 'solar:clock-circle-linear', activeAccent: 'brand' },
-    { key: 'my-books', label: 'My Books', count: myBooks.length, icon: 'solar:book-bookmark-linear', activeAccent: 'brand', badge: hasOverdue },
+    { key: 'all', label: 'All', count: books.length, icon: 'solar:book-2-linear' },
+    { key: 'available', label: 'Available', count: availableBooks.length, icon: 'solar:check-circle-linear' },
+    { key: 'on-loan', label: 'On Loan', count: onLoanBooks.length, icon: 'solar:clock-circle-linear' },
+    { key: 'my-books', label: 'My Books', count: myBooks.length, icon: 'solar:book-bookmark-linear', badge: hasOverdue },
   ];
 
   return (
@@ -185,7 +222,7 @@ export default function BarristerLoansPage() {
       >
         <h1 className="font-serif text-page-title text-text">Chambers Library</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Browse the catalogue, request loans, and track availability.
+          Browse the library, request loans, and track availability.
         </p>
       </ContentLoader>
 
@@ -249,11 +286,13 @@ export default function BarristerLoansPage() {
             </div>
 
             {/* Status pills */}
-            <SegmentedTabs
-              items={pills}
-              value={statusFilter}
-              onChange={setStatusFilter}
-            />
+            <div className="mt-5">
+              <SegmentedTabs
+                items={pills}
+                value={statusFilter}
+                onChange={setStatusFilter}
+              />
+            </div>
           </div>
         </ContentLoader>
 
@@ -317,6 +356,7 @@ export default function BarristerLoansPage() {
                   book={book}
                   onLoan={book.status === 'on-loan'}
                   overdue={isOverdue(book)}
+                  extended={isBookExtended(book)}
                   alreadyBorrowed={myActiveLoanBookIds.has(book.id)}
                   pendingLoan={pendingLoanBookIds.has(book.id) || requestedBookIds.has(book.id)}
                   returnRequested={returnRequestedIds.has(book.id)}
@@ -325,7 +365,7 @@ export default function BarristerLoansPage() {
                   onRequest={handleRequestLoan}
                   onCancel={requestedBookIds.has(book.id) ? handleCancelRequest : undefined}
                   requesting={requestingId === book.id}
-                  onAddToList={() => setAddToListBookId(book.id)}
+                  onAddToList={() => openAddToListModal(book.id)}
                 />
               );
               return (
@@ -356,6 +396,7 @@ export default function BarristerLoansPage() {
                     book={book}
                     onLoan={book.status === 'on-loan'}
                     overdue={isOverdue(book)}
+                    extended={isBookExtended(book)}
                     alreadyBorrowed={myActiveLoanBookIds.has(book.id)}
                     pendingLoan={pendingLoanBookIds.has(book.id) || requestedBookIds.has(book.id)}
                     returnRequested={returnRequestedIds.has(book.id)}
@@ -364,27 +405,37 @@ export default function BarristerLoansPage() {
                     onRequest={handleRequestLoan}
                     onCancel={requestedBookIds.has(book.id) ? handleCancelRequest : undefined}
                     requesting={requestingId === book.id}
-                    onAddToList={() => setAddToListBookId(book.id)}
+                    onAddToList={() => openAddToListModal(book.id)}
                   />
                 ))}
               </div>
             )
           ) : (
-            <p className="py-8 text-center text-sm text-text-muted">
+            <EmptyStateMessage>
               {libraryQuery ? `No books matching "${libraryQuery}"` : statusFilter === 'my-books' ? 'No borrowed or requested books yet.' : 'No books found'}
-            </p>
+            </EmptyStateMessage>
           )}
         </ContentLoader>
       </section>
 
       {/* Add to Authority List modal */}
       {addToListBook && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setAddToListBookId(null)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-black/5 animate-scale-in" onClick={(e) => e.stopPropagation()}>
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${closingAddToListModal ? 'motion-fade-out' : 'motion-fade'}`}
+          onClick={requestCloseAddToListModal}
+        >
+          <div
+            className={`w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-black/5 ${closingAddToListModal ? 'animate-page-out' : 'animate-page-in'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <h3 className="font-serif text-lg font-semibold text-text">Add to Authority List</h3>
-              <button type="button" onClick={() => setAddToListBookId(null)} className="rounded-full p-1.5 text-text-muted transition-colors hover:bg-surface-subtle hover:text-text">
-                <Icon name="solar:close-circle-linear" size={18} />
+              <button
+                type="button"
+                onClick={requestCloseAddToListModal}
+                className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text"
+              >
+                <Icon name="solar:close-linear" size={20} />
               </button>
             </div>
 

@@ -20,7 +20,7 @@ export default function InviteRow({ value, onChange, onRemove, canRemove }) {
         <option value="clerk">Clerk</option>
       </Select>
       {canRemove ? (
-        <Button variant="ghost" size="sm" className="rounded-xl" onClick={onRemove}>
+        <Button variant="danger" size="sm" className="rounded-xl" onClick={onRemove}>
           <Icon name="solar:trash-bin-minimalistic-linear" size={14} />
           Delete
         </Button>

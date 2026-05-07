@@ -34,12 +34,14 @@ export default {
         warning: 'var(--color-warning)',
         info: 'var(--color-info)',
         danger: 'var(--color-danger)',
+        legislation: 'rgb(var(--color-legislation-rgb) / <alpha-value>)',
       },
       borderRadius: {
         'metric-card': 'var(--radius-metric-card)',
         hero: 'var(--radius-hero)',
       },
       fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '1rem' }],
         'page-title': ['var(--font-size-page)', { lineHeight: '1.25' }],
         'section-title': ['var(--font-size-section)', { lineHeight: '1.33' }],
         'card-title': ['var(--font-size-card-title)', { lineHeight: '1.4' }],
@@ -50,6 +52,7 @@ export default {
       },
       boxShadow: {
         metric: 'var(--shadow-metric)',
+        'metric-hover': 'var(--shadow-metric-hover)',
         'metric-loading': 'var(--shadow-metric-loading)',
         soft: '0 10px 30px rgba(15, 23, 42, 0.08)',
       },

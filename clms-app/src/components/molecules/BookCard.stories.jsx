@@ -6,7 +6,6 @@ const baseBook = {
   author: 'J.D. Heydon',
   edition: '12th',
   publisher: 'LexisNexis Butterworths',
-  location: 'Owen Dixon East',
   practiceArea: 'Evidence',
   status: 'available',
   dueDate: null,
@@ -16,7 +15,7 @@ export default {
   title: 'Molecules/BookCard',
   component: BookCard,
   parameters: { layout: 'centered' },
-  decorators: [(Story) => <div style={{ width: 220 }}><Story /></div>],
+  decorators: [(Story) => <div style={{ width: 220 }}>{Story()}</div>],
   args: { book: baseBook },
 };
 
@@ -57,5 +56,14 @@ export const ReturnRequested = {
     onLoan: true,
     returnRequested: true,
     onCancelReturn: () => {},
+  },
+};
+
+export const ClerkRequest = {
+  args: {
+    book: baseBook,
+    pendingLoan: true,
+    onApprove: () => {},
+    onDeny: () => {},
   },
 };

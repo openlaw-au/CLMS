@@ -1,40 +1,131 @@
+import { useEffect, useRef, useState } from 'react';
 import Icon from '../atoms/Icon';
 import Button from '../atoms/Button';
-import { formatShortDate } from '../../utils/dateFormatters';
+import DueDateLine from './DueDateLine';
 
 const PUBLISHER_BADGE = 'bg-surface-subtle text-text-secondary';
 
-export default function BookCard({ book, alreadyBorrowed, pendingLoan, onLoan, overdue, returnRequested, onRequest, onCancel, onRequestReturn, onCancelReturn, requesting, onAddToList }) {
-  const isBorrowedByMe = alreadyBorrowed && onLoan;
-  const cardBg = overdue ? 'bg-danger/5' : isBorrowedByMe ? 'bg-info/5' : onLoan ? 'bg-surface-subtle' : 'bg-white';
-  const iconBg = overdue ? 'bg-danger/10' : isBorrowedByMe ? 'bg-info/10' : onLoan ? 'bg-surface-muted' : 'bg-brand/10';
-  const iconColor = overdue ? 'text-danger' : isBorrowedByMe ? 'text-info' : onLoan ? 'text-text-muted' : 'text-brand';
+export default function BookCard({
+  book,
+  alreadyBorrowed,
+  pendingLoan,
+  onLoan,
+  overdue,
+  extended = false,
+  returnRequested,
+  onRequest,
+  onCancel,
+  onRequestReturn,
+  onCancelReturn,
+  requesting,
+  onAddToList,
+  onApprove,
+  onDeny,
+  onRecall,
+  onDismissRecall,
+  onMarkReturned,
+  onRemind,
+  onExtend,
+  onLoanOut,
+  onCatalogue,
+  reminded = false,
+  requesterName = null,
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const overflowMenuRef = useRef(null);
+  const category = book.enrichment?.subject || book.practiceArea;
+  const hasApproveActions = typeof onApprove === 'function';
+  const hasRecallRequestActions = typeof onRecall === 'function' && typeof onDismissRecall === 'function';
+  const hasMarkReturnedAction = typeof onMarkReturned === 'function';
+  const hasRemindAction = typeof onRemind === 'function';
+  const hasExtendAction = typeof onExtend === 'function';
+  const hasLoanOutAction = typeof onLoanOut === 'function';
+  const hasCatalogueAction = typeof onCatalogue === 'function';
+  const hasOverflowActions = hasMarkReturnedAction && (hasRemindAction || hasExtendAction);
+  const hasRecallAndReturnActions = hasMarkReturnedAction && typeof onRecall === 'function' && !hasRecallRequestActions && !hasOverflowActions;
+  const hasStandaloneMarkReturnedAction = hasMarkReturnedAction && !hasOverflowActions && !hasRecallAndReturnActions;
+  const hasStandaloneRemindAction = hasRemindAction && !hasMarkReturnedAction && !hasExtendAction;
+  const hasBarristerActions = Boolean(
+    onRequest ||
+    onAddToList ||
+    onRequestReturn ||
+    onCancel ||
+    onCancelReturn ||
+    pendingLoan ||
+    returnRequested ||
+    (alreadyBorrowed && !onLoan)
+  );
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (overflowMenuRef.current && !overflowMenuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [menuOpen]);
+
+  const handleOverflowAction = (action) => {
+    setMenuOpen(false);
+    action?.();
+  };
+
+  const hasAnyAction = (
+    hasApproveActions ||
+    hasRecallRequestActions ||
+    hasOverflowActions ||
+    hasRecallAndReturnActions ||
+    hasStandaloneMarkReturnedAction ||
+    hasLoanOutAction ||
+    hasStandaloneRemindAction ||
+    hasCatalogueAction ||
+    hasBarristerActions
+  );
 
   return (
-    <div className={`flex min-h-[300px] flex-col overflow-hidden rounded-2xl ${cardBg} shadow-sm transition-all duration-300 ${
-      overdue ? 'ring-2 ring-danger/40' : 'ring-1 ring-black/5'
-    }`}>
+    <div className="relative flex flex-col rounded-2xl bg-surface shadow-sm transition-all duration-300 ring-1 ring-black/5">
       <div className="flex flex-1 flex-col p-4">
-        {/* Book icon + title + add-to-list */}
-        <div className="flex items-center gap-2">
-          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
-            <Icon name="solar:book-2-linear" size={16} className={iconColor} />
-          </span>
-          <p className={`min-w-0 flex-1 font-serif text-sm font-medium leading-snug ${onLoan && !overdue ? 'text-text-secondary' : 'text-text'}`}>{book.title}</p>
+        {/* Status pill */}
+        {(() => {
+          const status = overdue ? { text: 'Overdue', cls: 'bg-danger/10 text-danger' }
+            : hasRecallRequestActions ? { text: 'Recall Requested', cls: 'bg-warning/10 text-warning' }
+            : hasApproveActions ? { text: 'Loan Requested', cls: 'bg-warning/10 text-warning' }
+            : returnRequested ? { text: 'Return Requested', cls: 'bg-info/10 text-info' }
+            : (alreadyBorrowed && onLoan) ? { text: 'Borrowed', cls: 'bg-info/10 text-info' }
+            : onLoan ? { text: 'On Loan', cls: 'bg-amber-100 text-amber-700' }
+            : pendingLoan ? { text: 'Loan Requested', cls: 'bg-warning/10 text-warning' }
+            : { text: 'Available', cls: 'bg-success/10 text-success' };
+          return (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium ${status.cls}`}>
+                {status.text}
+              </span>
+              {reminded && (
+                <span className="inline-flex items-center rounded-md bg-info/10 px-2 py-0.5 text-[11px] font-medium text-info">
+                  Reminded
+                </span>
+              )}
+            </div>
+          );
+        })()}
 
-          {/* Add to Authority List */}
-          {onAddToList && (
-            <button
-              type="button"
-              onClick={onAddToList}
-              title="Add to authority list"
-              aria-label="Add to authority list"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-brand/10 hover:text-brand"
-            >
-              <Icon name="solar:add-circle-linear" size={18} />
-            </button>
-          )}
-        </div>
+        {/* Title */}
+        <p className={`mt-1 font-serif text-sm font-medium leading-snug ${onLoan && !overdue ? 'text-text-secondary' : 'text-text'}`}>{book.title}</p>
 
         {/* Author */}
         <div className="mt-2 flex items-center gap-1.5 text-xs text-text-secondary">
@@ -42,96 +133,299 @@ export default function BookCard({ book, alreadyBorrowed, pendingLoan, onLoan, o
           <span className="truncate">{book.author}</span>
         </div>
 
+        {/* Borrower (when on loan and visible) */}
+        {onLoan && book.borrower && !alreadyBorrowed && (
+          <p className="mt-1 truncate text-xs text-text-muted">
+            Borrowed by {book.borrower}
+          </p>
+        )}
+
+        {/* Requester (loan or recall request) */}
+        {requesterName && (
+          <p className="mt-1 truncate text-xs text-text-muted">
+            Requested by {requesterName}
+          </p>
+        )}
+
         {/* Publisher badge */}
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-medium ${PUBLISHER_BADGE}`}>
-            {book.publisher}
-          </span>
+          {book.publisher && (
+            <span className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-medium ${PUBLISHER_BADGE}`}>
+              {book.publisher}
+            </span>
+          )}
           {book.edition && (
             <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-[11px] font-medium text-text-secondary">
               {book.edition} ed
             </span>
           )}
-        </div>
-
-        {/* Meta — pushed to bottom */}
-        <div className="mt-auto pt-3">
-          <div className="flex items-center gap-1 text-[11px] text-text-muted">
-            <Icon name="solar:map-point-linear" size={12} className="shrink-0" />
-            <span className="truncate">{book.location}</span>
-          </div>
-          <div className="mt-0.5 flex items-center gap-1 text-[11px] text-text-muted">
-            <Icon name="solar:tag-linear" size={12} className="shrink-0" />
-            <span className="truncate">{book.practiceArea}</span>
-          </div>
-          {onLoan && book.dueDate && (
-            <div className={`mt-0.5 flex items-center gap-1 text-[11px] ${overdue ? 'font-medium text-danger' : 'text-text-muted'}`}>
-              <Icon name="solar:calendar-linear" size={12} className="shrink-0" />
-              <span>{overdue ? 'Overdue' : 'Due'} {formatShortDate(book.dueDate)}</span>
-            </div>
+          {category && (
+            <span className="rounded-md bg-surface-subtle px-2 py-0.5 text-[11px] font-medium text-text-secondary">
+              {category}
+            </span>
           )}
         </div>
+
+        {onLoan && (
+          <DueDateLine
+            dueDate={book.dueDate}
+            overdue={overdue}
+            extended={extended}
+            className="mt-3"
+          />
+        )}
 
         {/* Action */}
-        <div className="mt-3">
-          {onLoan ? (
-            returnRequested ? (
-              <div className="flex animate-fade-in items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
-                  <Icon name="solar:clock-circle-linear" size={12} />
-                  Return Requested
-                </span>
-                {onCancelReturn && (
-                  <button type="button" onClick={() => onCancelReturn(book.id)} className="text-xs text-text-muted hover:text-text">Cancel</button>
-                )}
+        {hasAnyAction && (
+          <div className="mt-auto flex items-stretch gap-2 pt-3">
+            {hasApproveActions ? (
+              <>
+                <div className="flex-1 basis-0 min-w-0">
+                  <Button
+                    size="sm"
+                    variant="approve"
+                    onClick={onApprove}
+                    className="w-full text-xs"
+                  >
+                    Approve
+                  </Button>
+                </div>
+                <div className="flex-1 basis-0 min-w-0">
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={onDeny}
+                    className="w-full text-xs"
+                  >
+                    Deny
+                  </Button>
+                </div>
+              </>
+            ) : hasRecallRequestActions ? (
+              <>
+                <div className="flex-1 basis-0 min-w-0">
+                  <Button
+                    size="sm"
+                    variant="approve"
+                    onClick={onRecall}
+                    className="w-full text-xs"
+                  >
+                    Mark Resolved
+                  </Button>
+                </div>
+                <div className="flex-1 basis-0 min-w-0">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={onDismissRecall}
+                    className="w-full text-xs"
+                  >
+                    Dismiss
+                  </Button>
+                </div>
+              </>
+            ) : hasOverflowActions ? (
+              <>
+                <div className="flex-1 basis-0 min-w-0">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={onMarkReturned}
+                    className="w-full text-xs"
+                  >
+                    Mark Returned
+                  </Button>
+                </div>
+                <div ref={overflowMenuRef} className="relative flex-1 basis-0 min-w-0">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setMenuOpen((prev) => !prev)}
+                    className="w-full min-w-0 gap-1 text-xs"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpen}
+                  >
+                    More
+                    <Icon name="solar:alt-arrow-down-linear" size={14} />
+                  </Button>
+                  {menuOpen && (
+                    <div className="absolute right-0 top-full z-20 mt-2 w-[180px] overflow-hidden rounded-xl border border-border/60 bg-white py-1 shadow-lg animate-fade-in">
+                      {hasRemindAction ? (
+                        <button
+                          type="button"
+                          onClick={() => handleOverflowAction(onRemind)}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text transition-colors hover:bg-slate-100"
+                        >
+                          <Icon name="solar:bell-linear" size={15} className="text-text-muted" />
+                          Send Reminder
+                        </button>
+                      ) : null}
+                      {hasExtendAction ? (
+                        <button
+                          type="button"
+                          onClick={() => handleOverflowAction(onExtend)}
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text transition-colors hover:bg-slate-100"
+                        >
+                          <Icon name="solar:restart-linear" size={15} className="text-text-muted" />
+                          Extend by 7 days
+                        </button>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : hasRecallAndReturnActions ? (
+              <>
+                <div className="flex-1 basis-0 min-w-0">
+                  <Button
+                    size="sm"
+                    variant="recall"
+                    onClick={onRecall}
+                    className="w-full text-xs"
+                  >
+                    Recall
+                  </Button>
+                </div>
+                <div className="flex-1 basis-0 min-w-0">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={onMarkReturned}
+                    className="w-full text-xs"
+                  >
+                    Mark Returned
+                  </Button>
+                </div>
+              </>
+            ) : hasStandaloneMarkReturnedAction ? (
+              <div className="w-full">
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={onMarkReturned}
+                  className="w-full text-xs"
+                >
+                  Mark Returned
+                </Button>
               </div>
-            ) : alreadyBorrowed ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
-                <Icon name="solar:check-circle-linear" size={12} />
-                Borrowed
-              </span>
-            ) : onRequestReturn ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => onRequestReturn(book.id)}
-                className="w-full text-xs"
-              >
-                Request Return
-              </Button>
+            ) : hasLoanOutAction ? (
+              <div className="w-full">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={onLoanOut}
+                  className="w-full text-xs"
+                >
+                  Loan Out
+                </Button>
+              </div>
+            ) : hasStandaloneRemindAction ? (
+              <div className="w-full">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={onRemind}
+                  className="w-full text-xs"
+                >
+                  Send Reminder
+                </Button>
+              </div>
+            ) : hasCatalogueAction ? (
+              <div className="w-full">
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={onCatalogue}
+                  className="w-full text-xs"
+                >
+                  Library
+                </Button>
+              </div>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-md bg-surface-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
-                <Icon name="solar:clock-circle-linear" size={12} />
-                On Loan
-              </span>
-            )
-          ) : pendingLoan ? (
-            <div className="flex animate-fade-in items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
-                <Icon name="solar:hourglass-linear" size={12} />
-                Loan Requested
-              </span>
-              {onCancel && (
-                <button type="button" onClick={() => onCancel(book.id)} className="text-xs text-text-muted hover:text-text">Cancel</button>
-              )}
-            </div>
-          ) : alreadyBorrowed ? (
-            <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
-              <Icon name="solar:check-circle-linear" size={12} />
-              Borrowed
-            </span>
-          ) : (
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={() => onRequest(book.id)}
-              disabled={requesting}
-              className="w-full text-xs"
-            >
-              Request Loan
-            </Button>
-          )}
-        </div>
+              <>
+                <div className="flex-1 basis-0 min-w-0">
+                  {onLoan ? (
+                    returnRequested ? (
+                      <div className="flex animate-fade-in items-center gap-2">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
+                          <Icon name="solar:clock-circle-linear" size={12} />
+                          Return Requested
+                        </span>
+                        {onCancelReturn && (
+                          <button type="button" onClick={() => onCancelReturn(book.id)} className="text-xs text-text-muted hover:text-text">Cancel</button>
+                        )}
+                      </div>
+                    ) : alreadyBorrowed ? (
+                      <div className="flex w-full items-center">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
+                          <Icon name="solar:check-circle-linear" size={12} />
+                          Borrowed
+                        </span>
+                      </div>
+                    ) : onRequestReturn ? (
+                      <Button
+                        size="sm"
+                        variant="recall"
+                        onClick={() => onRequestReturn(book.id)}
+                        className="w-full text-xs"
+                      >
+                        Request
+                      </Button>
+                    ) : (
+                      <div className="flex w-full items-center">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          <Icon name="solar:clock-circle-linear" size={12} />
+                          On Loan
+                        </span>
+                      </div>
+                    )
+                  ) : pendingLoan ? (
+                    <div className="flex animate-fade-in items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+                        <Icon name="solar:hourglass-linear" size={12} />
+                        Loan Requested
+                      </span>
+                      {onCancel && (
+                        <button type="button" onClick={() => onCancel(book.id)} className="text-xs text-text-muted hover:text-text">Cancel</button>
+                      )}
+                    </div>
+                  ) : alreadyBorrowed ? (
+                    <div className="flex w-full items-center">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
+                        <Icon name="solar:check-circle-linear" size={12} />
+                        Borrowed
+                      </span>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="recall"
+                      onClick={() => onRequest(book.id)}
+                      disabled={requesting}
+                      className="w-full text-xs"
+                    >
+                      Request
+                    </Button>
+                  )}
+                </div>
+                {onAddToList && (
+                  <div className="flex-1 basis-0 min-w-0">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={onAddToList}
+                      title="Add to authority list"
+                      aria-label="Add to authority list"
+                      className="w-full text-xs"
+                    >
+                      + List
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

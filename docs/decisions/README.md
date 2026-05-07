@@ -66,3 +66,6 @@ Impact and implications of this decision.
 | APP-011 | Three Search Paths | Accepted |
 | APP-012 | Issue Cards Separation | Accepted |
 | APP-013 | Implementation Priority | Accepted |
+| APP-014 | Library Scope — Single Chambers, Single Library, Multiple Shelves | Accepted |
+| APP-015 | Drop Location Tracking — Status-Only Visibility | Accepted |
+| APP-016 | Clerk Library Unification — Catalogue + Loans → Library | Accepted |

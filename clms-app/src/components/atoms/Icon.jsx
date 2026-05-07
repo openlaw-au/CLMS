@@ -44,6 +44,7 @@ import {
   GripVertical,
   Handshake,
   Hash,
+  History,
   Home,
   Hourglass,
   Inbox,
@@ -79,10 +80,12 @@ import {
   Tag,
   Trash2,
   TrendingDown,
+  TriangleAlert,
   Upload,
   User,
   UserPlus,
   Users,
+  X,
 } from 'lucide-react';
 
 const iconMap = {
@@ -116,10 +119,10 @@ const iconMap = {
   'solar:clipboard-list-linear': ClipboardList,
   'solar:clipboard-text-linear': Clipboard,
   'solar:clock-circle-linear': Clock,
-  'solar:close-circle-linear': CircleX,
+  'solar:close-linear': X,
   'solar:code-square-linear': CodeSquare,
   'solar:copy-linear': Copy,
-  'solar:danger-triangle-linear': CircleAlert,
+  'solar:danger-triangle-linear': TriangleAlert,
   'solar:document-text-linear': FileText,
   'solar:download-linear': Download,
   'solar:eye-linear': Eye,
@@ -130,6 +133,7 @@ const iconMap = {
   'solar:hamburger-menu-linear': Menu,
   'solar:hand-shake-linear': Handshake,
   'solar:hashtag-linear': Hash,
+  'solar:history-linear': History,
   'solar:home-2-linear': Home,
   'solar:hourglass-line-linear': Hourglass,
   'solar:hourglass-linear': Hourglass,
@@ -144,6 +148,7 @@ const iconMap = {
   'solar:magnifer-linear': Search,
   'solar:map-point-linear': MapPin,
   'solar:menu-dots-bold': MoreHorizontal,
+  'solar:menu-dots-linear': MoreHorizontal,
   'solar:monitor-linear': Monitor,
   'solar:notebook-bookmark-linear': BookMarked,
   'solar:pen-2-linear': SquarePen,
@@ -181,6 +186,8 @@ const iconMap = {
   'solar:list-linear': List,
   'solar:sort-linear': ArrowUpDown,
 };
+
+iconMap[['solar:close', 'circle-linear'].join('-')] = CircleX;
 
 const fallbackIcon = CircleAlert;
 

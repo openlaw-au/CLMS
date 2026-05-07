@@ -308,7 +308,7 @@ export default function ScanPage() {
             </div>
             <Button
               size="sm"
-              variant="primary"
+              variant="secondary"
               onClick={handleRetry}
               className="rounded-xl px-6 py-2.5"
             >
@@ -360,9 +360,9 @@ export default function ScanPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start gap-2">
-                            <p className="truncate text-sm font-medium text-white/90">{book.title}</p>
+                            <p className="truncate font-serif text-sm font-medium text-white/90">{book.title}</p>
                             {isbnCount > 1 && (
-                              <span className="shrink-0 rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400">
+                              <span className="shrink-0 rounded-md bg-amber-500/20 px-1.5 py-0.5 text-2xs font-semibold text-amber-400">
                                 x{isbnCount}
                               </span>
                             )}
@@ -370,7 +370,7 @@ export default function ScanPage() {
                           <p className="text-xs text-white/50">{book.author}</p>
                           <p className="mt-0.5 font-mono text-xs text-white/25">{book.isbn}</p>
                         </div>
-                        <p className="shrink-0 text-[10px] text-white/25">
+                        <p className="shrink-0 text-2xs text-white/25">
                           {new Date(book.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>

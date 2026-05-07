@@ -15,7 +15,21 @@ export const Primary = {};
 export const Secondary = {
   args: {
     variant: 'secondary',
-    children: 'Skip for now',
+    children: 'Import CSV',
+  },
+};
+
+export const Approve = {
+  args: {
+    variant: 'approve',
+    children: 'Approve',
+  },
+};
+
+export const Recall = {
+  args: {
+    variant: 'recall',
+    children: 'Request Recall',
   },
 };
 
@@ -71,11 +85,13 @@ export const Disabled = {
 export const AllVariants = {
   render: () => (
     <div className="flex flex-col gap-3 items-start">
-      <Button variant="primary">Primary — filled brand</Button>
-      <Button variant="secondary">Secondary — neutral slate fill</Button>
-      <Button variant="ghost">Ghost — text only</Button>
-      <Button variant="danger">Danger — soft destructive</Button>
-      <Button variant="danger-solid">Danger Solid — use only for final-confirm step</Button>
+      <Button variant="primary">Save</Button>
+      <Button variant="secondary">Import CSV</Button>
+      <Button variant="approve">Approve</Button>
+      <Button variant="recall">Request Recall</Button>
+      <Button variant="ghost">View Details</Button>
+      <Button variant="danger">Delete</Button>
+      <Button variant="danger-solid">Confirm Delete</Button>
     </div>
   ),
 };

@@ -5,11 +5,15 @@ import Button from '../../atoms/Button';
 import Skeleton from '../../atoms/Skeleton';
 import ContentLoader from '../../atoms/ContentLoader';
 import MetricGrid from '../../molecules/MetricGrid';
+import AuthorityListCard from '../../molecules/AuthorityListCard';
+import SectionCard from '../../molecules/SectionCard';
 import DashboardHero from '../../organisms/DashboardHero';
 import { useAppContext } from '../../../context/AppContext';
 import { getLoans } from '../../../services/loansService';
 import { getLists } from '../../../services/authorityListsService';
 import { lookupBookByTitle, getBorrowerName } from '../../../utils/bookLookup';
+
+const CARD_GRID = 'grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4';
 
 export default function BarristerDashboardPage() {
   const navigate = useNavigate();
@@ -19,7 +23,6 @@ export default function BarristerDashboardPage() {
   const [loans, setLoans] = useState([]);
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dismissedAlerts, setDismissedAlerts] = useState(new Set());
 
   useEffect(() => {
     // TODO(api): Replace with GET /api/loans?borrower=me - fetch all borrower loans
@@ -46,6 +49,10 @@ export default function BarristerDashboardPage() {
   );
 
   const totalListItems = lists.reduce((sum, l) => sum + l.items.length, 0);
+  const sortedLists = useMemo(
+    () => [...lists].sort((a, b) => (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '')),
+    [lists],
+  );
 
   // Actionable alerts
   const alerts = useMemo(() => {
@@ -56,6 +63,7 @@ export default function BarristerDashboardPage() {
         result.push({
           id: `pinpoint-${list.id}`,
           icon: 'solar:pin-bold',
+          kind: 'Pinpoints',
           message: `${missingPinpoints.length} missing ${missingPinpoints.length === 1 ? 'pinpoint' : 'pinpoints'} in "${list.name}"`,
           to: `/app/authorities?listId=${list.id}`,
         });
@@ -65,6 +73,7 @@ export default function BarristerDashboardPage() {
         result.push({
           id: `citation-${list.id}`,
           icon: 'solar:document-text-linear',
+          kind: 'Citations',
           message: `${incompleteCitations.length} incomplete ${incompleteCitations.length === 1 ? 'citation' : 'citations'} in "${list.name}"`,
           to: `/app/authorities?listId=${list.id}`,
         });
@@ -77,6 +86,7 @@ export default function BarristerDashboardPage() {
           result.push({
             id: `onloan-${list.id}-${item.id}`,
             icon: 'solar:book-2-linear',
+            kind: 'On loan',
             message: `"${item.title}" is on loan${borrower ? ` to ${borrower}` : ''}${book.dueDate ? `, due ${book.dueDate}` : ''}`,
             to: `/app/authorities?listId=${list.id}`,
           });
@@ -85,8 +95,7 @@ export default function BarristerDashboardPage() {
     });
     return result;
   }, [lists]);
-
-  const visibleAlerts = alerts.filter((a) => !dismissedAlerts.has(a.id));
+  const visibleAlerts = alerts;
 
   const dashboardMetrics = [
     {
@@ -107,11 +116,11 @@ export default function BarristerDashboardPage() {
     },
     {
       label: 'Research Blockers',
-      value: visibleAlerts.length,
-      detail: visibleAlerts.length > 0 ? 'Pinpoints or loan blockers' : 'No active blockers',
+      value: alerts.length,
+      detail: alerts.length > 0 ? 'Pinpoints or loan blockers' : 'No active blockers',
       icon: 'solar:danger-triangle-linear',
       to: '/app/authorities',
-      iconBg: visibleAlerts.length > 0 ? 'red' : 'emerald',
+      iconBg: alerts.length > 0 ? 'red' : 'emerald',
     },
     {
       label: 'Authority Lists',
@@ -135,133 +144,120 @@ export default function BarristerDashboardPage() {
         <MetricGrid metrics={dashboardMetrics} loading={loading} />
       </div>
 
-      {/* Bottom cards — containers always visible */}
-      <div className="mt-12 grid gap-4 md:grid-cols-2">
-        {/* Authority Lists card */}
-        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
-          <ContentLoader
-            loading={loading}
-            skeleton={
-              <>
+      <SectionCard className="mt-12">
+        <ContentLoader
+          loading={loading}
+          skeleton={
+            <>
+              <div className="flex min-h-[36px] items-center justify-between gap-3">
                 <Skeleton className="h-5 w-40 rounded-lg" />
-                <div className="mt-4 space-y-2">
-                  {[0, 1, 2].map((j) => <Skeleton key={j} className="h-10 w-full rounded-xl" />)}
-                </div>
-              </>
-            }
-          >
-            <div className="flex min-h-[36px] items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Icon name="solar:list-check-linear" size={22} className="text-brand" />
-                <h2 className="font-serif text-section-title text-text">Recent Authority Lists</h2>
+                <Skeleton className="h-8 w-20 rounded-xl" />
               </div>
+              <div className={`mt-4 ${CARD_GRID}`}>
+                {[0, 1, 2, 3].map((index) => (
+                  <div key={index} className="min-h-[148px] overflow-hidden rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+                    <Skeleton className="h-5 w-3/4 rounded" />
+                    <Skeleton className="mt-2 h-4 w-2/5 rounded" />
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Skeleton className="h-5 w-16 rounded-md" />
+                      <Skeleton className="h-5 w-20 rounded-md" />
+                      <Skeleton className="h-5 w-14 rounded-md" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          }
+        >
+          <div className="flex min-h-[36px] items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Icon name="solar:list-check-linear" size={22} className="text-brand" />
+              <h2 className="font-serif text-section-title text-text">Recent Authority Lists</h2>
+            </div>
+            {lists.length > 0 ? (
               <Button
                 size="sm"
                 variant="secondary"
                 onClick={() => navigate('/app/authorities')}
                 className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
               >
-                {lists.length > 0 ? 'View all' : 'Create'}
+                View all
               </Button>
-            </div>
-            {lists.length > 0 ? (
-              <div className="mt-3 space-y-1.5">
-                {[...lists].sort((a, b) => (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '')).slice(0, 5).map((list) => {
-                  const missingPinpoints = list.items.filter((li) => li.usage === 'read' && !li.pageRange).length;
-                  const incompleteCites = list.items.filter((li) => li.type === 'book' && !li.uncatalogued && (!li.author || !li.publisher || !li.year)).length;
-                  const issueCount = missingPinpoints + incompleteCites;
-                  const isReady = list.items.length > 0 && issueCount === 0;
-                  return (
-                    <button
-                      key={list.id}
-                      type="button"
-                      onClick={() => navigate(`/app/authorities?listId=${list.id}`)}
-                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-border/70 bg-slate-50/40 px-3 py-2 text-left transition-colors hover:bg-slate-100"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-text">{list.name}</p>
-                        <p className="mt-0.5 text-[11px] text-text-secondary">{list.items.length} entries · {list.caseRef}</p>
-                      </div>
-                      <div className="shrink-0">
-                        {list.items.length === 0 ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-text-muted">Empty</span>
-                        ) : isReady ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
-                            <Icon name="solar:check-circle-linear" size={11} />
-                            Ready
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-600">
-                            <Icon name="solar:danger-triangle-linear" size={11} />
-                            {issueCount} {issueCount === 1 ? 'issue' : 'issues'}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
             ) : (
-              <p className="mt-3 text-xs text-text-muted">No lists yet. Create one to get started.</p>
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => navigate('/app/authorities')}
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
+              >
+                Create
+              </Button>
             )}
-          </ContentLoader>
-        </section>
-
-        {/* Alerts card — height pinned to left card, scrollable */}
-        <section className="relative rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
-          <div className="absolute inset-0 flex flex-col overflow-hidden rounded-2xl p-5">
-            <ContentLoader
-              loading={loading}
-              className="flex flex-1 flex-col min-h-0"
-              skeleton={
-                <>
-                  <Skeleton className="h-5 w-24 rounded-lg" />
-                  <div className="mt-4 space-y-2">
-                    {[0, 1, 2].map((j) => <Skeleton key={j} className="h-10 w-full rounded-xl" />)}
-                  </div>
-                </>
-              }
-            >
-              <div className="flex min-h-[36px] shrink-0 items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icon name="solar:danger-triangle-linear" size={22} className="text-red-600" />
-                  <h2 className="font-serif text-section-title text-text">
-                    Alerts{visibleAlerts.length > 0 ? ` (${visibleAlerts.length})` : ''}
-                  </h2>
-                </div>
-              </div>
-              {visibleAlerts.length > 0 ? (
-                <div className="thin-scrollbar mt-3 min-h-0 flex-1 space-y-1.5 overflow-y-auto">
-                  {visibleAlerts.map((alert) => (
-                    <button
-                      key={alert.id}
-                      type="button"
-                      onClick={() => navigate(alert.to)}
-                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50/60 px-3 py-2 text-left transition-colors hover:bg-red-100/80"
-                    >
-                      <span className="flex min-w-0 items-center gap-2">
-                        <Icon name={alert.icon} size={13} className="shrink-0 text-red-600" />
-                        <span className="text-xs text-red-800">{alert.message}</span>
-                      </span>
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); setDismissedAlerts((prev) => new Set([...prev, alert.id])); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setDismissedAlerts((prev) => new Set([...prev, alert.id])); } }}
-                        className="shrink-0 rounded-full p-1.5 text-text-muted transition-colors hover:bg-slate-200 hover:text-text"
-                      >
-                        <Icon name="solar:close-circle-linear" size={14} />
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-3 text-xs text-text-muted">No active alerts. You're all clear.</p>
-              )}
-            </ContentLoader>
           </div>
-        </section>
-      </div>
+          {lists.length > 0 ? (
+            <div className={`mt-4 ${CARD_GRID}`}>
+              {sortedLists.slice(0, 4).map((list) => (
+                <AuthorityListCard
+                  key={list.id}
+                  list={list}
+                  compact
+                  onClick={() => navigate(`/app/authorities?listId=${list.id}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-text-muted">No lists yet. Create one to get started.</p>
+          )}
+        </ContentLoader>
+      </SectionCard>
+
+      <SectionCard className="mt-4">
+        <ContentLoader
+          loading={loading}
+          skeleton={
+            <>
+              <div className="flex min-h-[36px] items-center gap-2">
+                <Skeleton className="h-5 w-28 rounded-lg" />
+              </div>
+              <div className={`mt-4 ${CARD_GRID}`}>
+                {[0, 1, 2, 3].map((index) => (
+                  <div key={index} className="min-h-[148px] rounded-2xl border border-red-200/70 bg-red-50/40 p-4">
+                    <Skeleton className="h-9 w-9 rounded-xl" />
+                    <Skeleton className="mt-3 h-4 w-full rounded" />
+                    <Skeleton className="mt-2 h-4 w-4/5 rounded" />
+                  </div>
+                ))}
+              </div>
+            </>
+          }
+        >
+          <div className="flex min-h-[36px] items-center gap-2">
+            <Icon name="solar:danger-triangle-linear" size={22} className="text-red-600" />
+            <h2 className="font-serif text-section-title text-text">
+              Alerts{visibleAlerts.length > 0 ? ` (${visibleAlerts.length})` : ''}
+            </h2>
+          </div>
+          {visibleAlerts.length > 0 ? (
+            <div className={`mt-4 ${CARD_GRID}`}>
+              {visibleAlerts.map((alert) => (
+                <button
+                  key={alert.id}
+                  type="button"
+                  onClick={() => navigate(alert.to)}
+                  className="flex min-h-[148px] flex-col items-start gap-2 rounded-2xl border border-red-200/70 bg-red-50/40 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-red-300 hover:shadow-sm"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-100">
+                    <Icon name={alert.icon} size={16} className="text-red-600" />
+                  </span>
+                  <p className="text-sm font-medium text-text">{alert.message}</p>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-text-muted">No active alerts. You're all clear.</p>
+          )}
+        </ContentLoader>
+      </SectionCard>
     </div>
   );
 }

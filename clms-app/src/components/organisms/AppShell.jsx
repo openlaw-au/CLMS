@@ -5,6 +5,7 @@ import Button from '../atoms/Button';
 import BadgeDot from '../atoms/BadgeDot';
 import Breadcrumb from '../atoms/Breadcrumb';
 import HeaderSearchBar from '../molecules/HeaderSearchBar';
+import AddBookFlow from './AddBookFlow';
 import { useAppContext } from '../../context/AppContext';
 import { getLists } from '../../services/authorityListsService';
 import { getLoans } from '../../services/loansService';
@@ -17,16 +18,13 @@ const navByRole = {
   ],
   clerk: [
     { label: 'Dashboard', slug: 'dashboard', icon: 'solar:home-2-linear' },
-    { label: 'Catalogue', slug: 'catalogue', icon: 'solar:book-2-linear' },
-    { label: 'Loans', slug: 'loans', icon: 'solar:book-bookmark-linear' },
-    { label: 'Authorities', slug: 'authorities', icon: 'solar:list-check-linear' },
+    { label: 'Library', slug: 'library', icon: 'solar:library-linear' },
     { label: 'Chambers', slug: 'chambers', icon: 'solar:buildings-2-linear' },
-    { label: 'Insights', slug: 'insights', icon: 'solar:chart-2-linear' },
     { label: 'Settings', slug: 'settings', icon: 'solar:settings-linear' },
   ],
 };
 
-export default function AppShell({ role, children }) {
+export default function AppShell({ role, activeSection, children }) {
   const { onboarding, resetSession } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,12 +36,14 @@ export default function AppShell({ role, children }) {
   const [sidebarLists, setSidebarLists] = useState([]);
   const [authorityListsExpanded, setAuthorityListsExpanded] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAddBook, setShowAddBook] = useState(false);
   const [notiOpen, setNotiOpen] = useState(false);
   const notiRef = useRef(null);
 
   // Close sidebar and reset viewport on route change
   useEffect(() => {
-    setSidebarOpen(false);
+    const frame = requestAnimationFrame(() => setSidebarOpen(false));
+    return () => cancelAnimationFrame(frame);
   }, [location.pathname, location.search]);
 
   useLayoutEffect(() => {
@@ -89,10 +89,28 @@ export default function AppShell({ role, children }) {
       const notis = [];
       loans.forEach((loan) => {
         if (loan.status === 'overdue') {
-          notis.push({ id: `overdue-${loan.id}`, icon: 'solar:alarm-linear', iconColor: 'text-red-600', bg: 'bg-red-50', message: `"${loan.bookTitle}" is overdue`, detail: `Due ${loan.dueDate}`, to: '/app/loans', time: '2d ago' });
+          notis.push({
+            id: `overdue-${loan.id}`,
+            icon: 'solar:alarm-linear',
+            iconColor: 'text-red-600',
+            bg: 'bg-red-50',
+            message: `"${loan.bookTitle}" is overdue`,
+            detail: `Due ${loan.dueDate}`,
+            to: role === 'clerk' ? '/app/library?tab=overdue' : '/app/loans',
+            time: '2d ago',
+          });
         }
         if (loan.status === 'pending') {
-          notis.push({ id: `pending-${loan.id}`, icon: 'solar:hourglass-linear', iconColor: 'text-amber-600', bg: 'bg-amber-50', message: `Loan request pending`, detail: loan.bookTitle, to: '/app/loans', time: '1d ago' });
+          notis.push({
+            id: `pending-${loan.id}`,
+            icon: 'solar:hourglass-linear',
+            iconColor: 'text-amber-600',
+            bg: 'bg-amber-50',
+            message: 'Loan request pending',
+            detail: loan.bookTitle,
+            to: role === 'clerk' ? '/app/library?tab=requests' : '/app/loans',
+            time: '1d ago',
+          });
         }
       });
       if (notis.length === 0) {
@@ -100,7 +118,7 @@ export default function AppShell({ role, children }) {
       }
       setNotifications(notis);
     });
-  }, []);
+  }, [role]);
   const visibleNotis = notifications.filter((n) => !dismissedNotiIds.has(n.id));
   const pendingCount = visibleNotis.length;
 
@@ -118,22 +136,28 @@ export default function AppShell({ role, children }) {
     }, 0);
     return () => { clearTimeout(id); document.removeEventListener('mousedown', handlePointerDown); document.removeEventListener('keydown', handleKeyDown); };
   }, [notiOpen]);
-  const currentSlug = location.pathname.replace('/app/', '').split('/')[0] || 'dashboard';
-  const slugAlias = {
-    lists: 'authorities',
-    library: 'catalogue',
-    members: 'chambers',
-    locations: 'chambers',
-    reports: 'insights',
-  };
+  const currentSlug = activeSection || location.pathname.replace('/app/', '').split('/')[0] || 'dashboard';
+  const slugAlias = role === 'clerk'
+    ? {
+        catalogue: 'library',
+        loans: 'library',
+        members: 'chambers',
+      }
+    : {
+        lists: 'authorities',
+        members: 'chambers',
+      };
   const normalizedSlug = slugAlias[currentSlug] || currentSlug;
   const isDashboardHero = normalizedSlug === 'dashboard';
   const hasHeroGradient = normalizedSlug === 'dashboard';
-  const hasHeroBg = hasHeroGradient;
 
   const navItems = navByRole[role];
-  const mainNav = navItems;
-  const settingsNav = navItems.find((item) => item.slug === 'settings');
+  const mainNav = role === 'clerk'
+    ? navItems.filter((item) => item.slug !== 'settings')
+    : navItems;
+  const settingsNav = role === 'clerk'
+    ? navItems.find((item) => item.slug === 'settings')
+    : null;
   const userName = onboarding.name || (role === 'clerk' ? 'Clerk' : 'Counsel');
   const initials = userName
     .split(' ')
@@ -153,10 +177,10 @@ export default function AppShell({ role, children }) {
     normalizedSlug === slug ? 'text-brand-soft' : '';
 
   const searchPlaceholder = role === 'clerk'
-    ? 'Search catalogue...'
+    ? 'Search library...'
     : 'Search my lists, authorities, books...';
   const quickAction = role === 'clerk'
-    ? { label: 'Add Book', to: '/app/catalogue', icon: 'solar:add-circle-linear' }
+    ? { label: 'Add Book', icon: 'solar:add-circle-linear', onClick: () => setShowAddBook(true) }
     : hasBarristerLists
       ? null
       : { label: 'New List', to: '/app/authorities', icon: 'solar:add-circle-bold' };
@@ -166,8 +190,8 @@ export default function AppShell({ role, children }) {
 
   useEffect(() => {
     if (!hasHeroGradient) {
-      setHeaderCondensed(false);
-      return undefined;
+      const frame = requestAnimationFrame(() => setHeaderCondensed(false));
+      return () => cancelAnimationFrame(frame);
     }
 
     const handleScroll = () => {
@@ -211,9 +235,6 @@ export default function AppShell({ role, children }) {
   const isAuthSearch = normalizedSlug === 'authorities' && !!qParam;
   const isListSubpage = isListDetail || isListCreation;
   const isAuthoritiesOverview = normalizedSlug === 'authorities' && !isListSubpage && !isAuthSearch;
-  const isHeaderMinimal = isListSubpage || isAuthSearch || isAuthoritiesOverview;
-  const activeList = isListDetail ? sidebarLists.find((l) => l.id === listIdParam) : null;
-  const listHeaderTitle = isListCreation ? 'New List' : activeList?.name || 'List';
   // Authorities page always uses full-width layout so overview↔editor transitions don't cause layout jumps
   const isAuthPage = normalizedSlug === 'authorities';
   const mainClassName = (isListSubpage || isAuthPage)
@@ -222,7 +243,6 @@ export default function AppShell({ role, children }) {
       ? 'mx-auto max-w-screen-2xl px-6 pb-8 pt-0 lg:px-14 xl:px-16 2xl:px-10'
       : 'mx-auto max-w-screen-2xl px-6 py-8 lg:px-14 xl:px-16 2xl:px-10';
 
-  const dashboardHeaderLabel = role === 'clerk' ? 'Library Operations' : 'Research Workspace';
   const shellHeaderHeight = 57;
   const headerClassName = hasHeroGradient
     ? headerCondensed
@@ -251,25 +271,7 @@ export default function AppShell({ role, children }) {
     resetSession(role);
     navigate(`/login?role=${role}`);
   };
-const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2xl px-2.5 py-1.5 text-left transition-colors ${
-    hasHeroGradient && !headerCondensed
-      ? profileMenuOpen ? 'bg-white/14' : 'hover:bg-white/10'
-      : profileMenuOpen ? 'bg-slate-100' : 'hover:bg-slate-100'
-  }`;
   const currentNavLabel = navItems.find((item) => item.slug === normalizedSlug)?.label || 'Workspace';
-
-  const leftHeaderLabel = isDashboardHero && !headerCondensed ? dashboardHeaderLabel : currentNavLabel;
-  const leftHeaderTextClassName = hasHeroGradient && !headerCondensed ? 'text-white/80' : 'text-text-muted';
-  const leftChambersToneClassName = hasHeroGradient && !headerCondensed
-    ? onboarding.chambersLogo
-      ? 'bg-white/18 ring-1 ring-white/22 backdrop-blur'
-      : 'bg-white/14 text-white/90 ring-1 ring-white/22 backdrop-blur'
-    : onboarding.chambersLogo
-      ? 'bg-slate-100 ring-1 ring-slate-200'
-      : 'bg-slate-100 text-text-secondary ring-1 ring-slate-200';
-  const leftChambersNameClassName = hasHeroGradient && !headerCondensed
-    ? 'truncate text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(124,45,18,0.16)]'
-    : 'truncate text-sm font-medium text-text';
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Mobile sidebar overlay */}
@@ -289,10 +291,10 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="btn-icon h-8 w-8 shrink-0 text-text-secondary hover:bg-slate-100 hover:text-text md:hidden"
+            className="shrink-0 rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text md:hidden"
             aria-label="Close sidebar"
           >
-            <Icon name="solar:close-circle-linear" size={20} />
+            <Icon name="solar:close-linear" size={20} />
           </button>
         </div>
 
@@ -398,6 +400,15 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
               </div>
             );
           })}
+
+          {settingsNav && (
+            <div className="mt-2 border-t border-border/60 pt-2">
+              <Link to={`/app/${settingsNav.slug}`} className={navLinkClass(settingsNav.slug)}>
+                <Icon name={settingsNav.icon} size={18} className={navIconClass(settingsNav.slug)} />
+                <span>{settingsNav.label}</span>
+              </Link>
+            </div>
+          )}
         </nav>
 
         {onboarding.mode === 'solo' && (
@@ -406,7 +417,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
               <Icon name="solar:buildings-2-linear" size={14} className="shrink-0 text-amber-700" />
               Solo mode
             </div>
-            <p className="mt-1 text-[11px] leading-relaxed text-amber-800">Join chambers for shared catalogue and loans.</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-amber-800">Join chambers for a shared library and loans.</p>
             <Button size="sm" variant="secondary" className="mt-2 w-full !border-amber-300 !bg-white !text-amber-900 !text-xs hover:!bg-amber-50" onClick={() => navigate('/onboarding/barrister/lookup')}>
               Join Chambers
             </Button>
@@ -437,13 +448,13 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
 
           {profileMenuOpen && (
             <div
-              className="absolute bottom-full left-2 right-2 z-20 mb-1 rounded-xl border border-border/80 bg-white p-1 shadow-[0_-12px_36px_rgba(15,23,42,0.12)]"
+              className="absolute bottom-full left-2 right-2 z-20 mb-1 rounded-xl border border-border/60 bg-white py-1 shadow-lg"
               role="menu"
             >
               <button
                 type="button"
                 onClick={() => { setProfileMenuOpen(false); navigate('/app/settings'); }}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm text-text transition-colors hover:bg-slate-50"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm text-text transition-colors hover:bg-slate-100"
                 role="menuitem"
               >
                 <Icon name="solar:user-circle-linear" size={16} className="text-text-secondary" />
@@ -452,7 +463,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-sm text-red-700 transition-colors hover:bg-red-50"
                 role="menuitem"
               >
                 <Icon name="solar:logout-2-linear" size={16} />
@@ -489,7 +500,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
             >
               <Icon name="solar:hamburger-menu-linear" size={24} />
             </button>
-            <div className="shrink-0">
+            <div className="hidden shrink-0 md:block">
               {isAuthoritiesOverview ? (
                 <Breadcrumb items={[
                   { label: 'Authority Lists' },
@@ -524,7 +535,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
             <HeaderSearchBar
               placeholder={searchPlaceholder}
               role={role}
-              className="absolute left-1/2 hidden w-full max-w-[500px] -translate-x-1/2 md:block"
+              className="min-w-0 flex-1 md:absolute md:left-1/2 md:w-full md:max-w-[500px] md:flex-initial md:-translate-x-1/2"
             />
 
             <div className="relative ml-auto flex shrink-0 items-center gap-3">
@@ -533,7 +544,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
                   size="sm"
                   variant={quickActionVariant}
                   className={quickActionClassName}
-                  onClick={() => navigate(quickAction.to)}
+                  onClick={quickAction.onClick || (() => navigate(quickAction.to))}
                 >
                   <Icon name={quickAction.icon} size={14} />
                   {quickAction.label}
@@ -556,8 +567,8 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
                   )}
                 </button>
                 {notiOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-80 animate-fade-in overflow-hidden rounded-2xl border border-border/60 bg-white shadow-xl ring-1 ring-black/5">
-                    <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+                  <div className="absolute right-0 top-full z-20 mt-2 w-80 animate-fade-in overflow-hidden rounded-xl border border-border/60 bg-white py-1 shadow-lg">
+                    <div className="flex items-center justify-between border-b border-border/60 px-3 py-2.5">
                       <h3 className="text-sm font-semibold text-text">Notifications</h3>
                       {visibleNotis.length > 0 && (
                         <button
@@ -571,7 +582,7 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
                     </div>
                     <div className="max-h-72 overflow-y-auto">
                       {visibleNotis.length > 0 ? visibleNotis.map((noti) => (
-                        <div key={noti.id} className="flex items-start gap-3 border-b border-border/40 px-4 py-3 last:border-b-0 transition-colors hover:bg-slate-50">
+                        <div key={noti.id} className="flex items-start gap-3 border-b border-border/40 px-3 py-2.5 last:border-b-0 transition-colors hover:bg-slate-100">
                           <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${noti.bg}`}>
                             <Icon name={noti.icon} size={16} className={noti.iconColor} />
                           </span>
@@ -588,9 +599,9 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
                             <button
                               type="button"
                               onClick={() => setDismissedNotiIds((prev) => new Set([...prev, noti.id]))}
-                              className="rounded-full p-1 text-text-muted transition-colors hover:bg-slate-100 hover:text-text"
+                              className="rounded-full p-1.5 text-text-muted transition-colors duration-150 hover:bg-slate-100 hover:text-text"
                             >
-                              <Icon name="solar:close-circle-linear" size={14} />
+                              <Icon name="solar:close-linear" size={14} />
                             </button>
                           </div>
                         </div>
@@ -616,6 +627,14 @@ const headerProfileButtonClassName = `flex min-w-0 items-center gap-3 rounded-2x
         </main>
       </div>
 
+      {showAddBook && (
+        <AddBookFlow
+          onClose={() => setShowAddBook(false)}
+          onAdded={() => {
+            window.dispatchEvent(new CustomEvent('books-changed'));
+          }}
+        />
+      )}
     </div>
   );
 }

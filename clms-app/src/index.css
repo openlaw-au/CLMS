@@ -76,41 +76,41 @@ select:disabled,
 }
 
 /* html5-qrcode library overrides — kill ALL library UI, we draw our own */
-#barcode-reader {
+[id$="barcode-reader"] {
   border: none !important;
   background: transparent !important;
 }
 
-#barcode-reader video {
+[id$="barcode-reader"] video {
   object-fit: cover !important;
   width: 100% !important;
   height: 100% !important;
 }
 
-#barcode-reader__scan_region {
+[id$="barcode-reader__scan_region"] {
   min-height: 100% !important;
   position: relative !important;
 }
 
 /* Hide library's built-in qrbox border / shaded region */
-#barcode-reader__scan_region > img,
-#barcode-reader__scan_region > div:not(:first-child) {
+[id$="barcode-reader__scan_region"] > img,
+[id$="barcode-reader__scan_region"] > div:not(:first-child) {
   display: none !important;
 }
 
 /* The qrbox shaded overlay divs use inline border — nuke them */
-#barcode-reader [style*="border-right"],
-#barcode-reader [style*="border-left"] {
+[id$="barcode-reader"] [style*="border-right"],
+[id$="barcode-reader"] [style*="border-left"] {
   border: none !important;
 }
 
-#barcode-reader__dashboard,
-#barcode-reader__dashboard_section,
-#barcode-reader__dashboard_section_swaplink {
+[id$="barcode-reader__dashboard"],
+[id$="barcode-reader__dashboard_section"],
+[id$="barcode-reader__dashboard_section_swaplink"] {
   display: none !important;
 }
 
-#barcode-reader__header_message {
+[id$="barcode-reader__header_message"] {
   display: none !important;
 }
 
@@ -144,6 +144,15 @@ select:disabled,
   animation: slide-in-left 300ms ease-out;
 }
 
+@keyframes slide-out-right {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 240ms ease-in forwards;
+}
+
 /* Page entrance animation — Gemini-inspired fade-in */
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(6px); }
@@ -152,6 +161,15 @@ select:disabled,
 
 .animate-page-in {
   animation: page-enter 400ms ease-out;
+}
+
+@keyframes page-exit {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(6px); opacity: 0; }
+}
+
+.animate-page-out {
+  animation: page-exit 200ms ease-in forwards;
 }
 
 /* Skeleton pulse — softer than Tailwind default */
@@ -172,6 +190,15 @@ select:disabled,
 
 .animate-fade-in {
   animation: content-in 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes motion-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.motion-fade-out {
+  animation: motion-fade-out 200ms ease-in forwards;
 }
 
 /* Pure opacity crossfade — used by ContentLoader (no translate) */
@@ -223,9 +250,6 @@ select:disabled,
 
 /* Wide viewport overrides (must come after md/lg utilities for specificity) */
 @media (min-width: 1550px) {
-  .book-grid-wide {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
   .toolbar-wide {
     flex-direction: row-reverse;
     align-items: center;

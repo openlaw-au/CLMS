@@ -4,15 +4,13 @@ import { useAppContext } from '../../context/AppContext';
 import WizardStep from '../organisms/WizardStep';
 import Icon from '../atoms/Icon';
 import Input from '../atoms/Input';
-import LocationRow from '../molecules/LocationRow';
 import CsvImportFlow from '../organisms/CsvImportFlow';
 import IsbnLookupFlow from '../organisms/IsbnLookupFlow';
 import WizardLink from '../molecules/WizardLink';
-import DropZone from '../molecules/DropZone';
 import InviteRow from '../molecules/InviteRow';
 import ImageCropModal from '../molecules/ImageCropModal';
 
-const totalSteps = 4;
+const totalSteps = 3;
 const newInvite = () => ({ email: '', role: 'barrister' });
 
 export default function WizardPage() {
@@ -26,7 +24,7 @@ export default function WizardPage() {
   const csvRef = useRef(null);
   const [activeTab, setActiveTab] = useState('csv');  // 'csv' | 'scan' | 'paste'
   const [isbnBooks, setIsbnBooks] = useState([]);
-  const [isbnPhase, setIsbnPhase] = useState('idle');
+  const [, setIsbnPhase] = useState('idle');
   const [inviteRows, setInviteRows] = useState([newInvite()]);
   const [sending, setSending] = useState(false);
   const [inviteSent, setInviteSent] = useState(false);
@@ -56,28 +54,6 @@ export default function WizardPage() {
   };
 
   const isStep1Valid = Boolean(onboarding.chambersName?.trim());
-  const validLocations = onboarding.locations.filter((item) => item.name.trim());
-  const isStep2Valid = validLocations.length > 0;
-
-  const addLocation = () => {
-    updateOnboarding({
-      locations: [...onboarding.locations, { name: '', floor: '' }],
-    });
-  };
-
-  const updateLocation = (index, nextValue) => {
-    updateOnboarding({
-      locations: onboarding.locations.map((location, locationIndex) =>
-        locationIndex === index ? nextValue : location,
-      ),
-    });
-  };
-
-  const removeLocation = (index) => {
-    updateOnboarding({
-      locations: onboarding.locations.filter((_, locationIndex) => locationIndex !== index),
-    });
-  };
 
   const onBack = () => {
     if (currentStep === 1) {
@@ -127,7 +103,7 @@ export default function WizardPage() {
       <div className="app-shell-bg motion-slide flex min-h-screen items-center justify-center px-5 py-12">
         <WizardStep
           step={1}
-          total={4}
+          total={3}
           title="Name your chambers"
           disableNext={!isStep1Valid}
           onBack={onBack}
@@ -186,65 +162,29 @@ export default function WizardPage() {
     );
   }
 
-  if (currentStep === 2) {
-    return (
-      <div className="app-shell-bg motion-slide flex min-h-screen items-center justify-center px-5 py-12">
-        <WizardStep
-          step={2}
-          total={4}
-          title="Add your library locations"
-          disableNext={!isStep2Valid}
-          onBack={onBack}
-          onNext={onNext}
-        >
-          <div className="space-y-2">
-            {onboarding.locations.map((location, index) => (
-              <LocationRow
-                key={`location-${index}`}
-                value={location}
-                onChange={(next) => updateLocation(index, next)}
-                canRemove={onboarding.locations.length > 1}
-                onRemove={() => removeLocation(index)}
-              />
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={addLocation}
-            className="mt-3 text-sm font-medium text-brand hover:text-brand-hover"
-          >
-            + Add location
-          </button>
-        </WizardStep>
-      </div>
-    );
-  }
-
-  // Step 3 button logic — varies by active tab
-  const step3Tabs = [
+  // Step 2 button logic — varies by active tab
+  const step2Tabs = [
     { id: 'csv', label: 'Import CSV', icon: 'solar:folder-open-linear' },
     { id: 'scan', label: 'Scan ISBN', icon: 'solar:scanner-linear' },
     { id: 'paste', label: 'Paste ISBNs', icon: 'solar:clipboard-text-linear' },
   ];
+  const csvImportCount = 247;
 
-  // CSV tab button logic
   const csvHideNext = csvPhase === 'uploading' || csvPhase === 'collapsing';
   const csvNextLabel =
     csvPhase === 'done' ? 'Continue' :
-    csvPhase === 'mapping' ? `Import ${csvRef.current?.importCount ?? 247} books` :
+    csvPhase === 'mapping' ? `Import ${csvImportCount} books` :
     'Skip for now';
   const csvOnNext = csvPhase === 'mapping'
     ? () => csvRef.current?.doImport()
     : onNext;
 
-  // ISBN tab button logic — always show the button so users can proceed anytime
   const isbnHideNext = false;
   const isbnNextLabel = isbnBooks.length > 0 ? 'Continue' : 'Skip for now';
 
-  // Resolved step 3 button props based on active tab
-  const s3HideNext = activeTab === 'csv' ? csvHideNext : isbnHideNext;
-  const s3NextLabel = activeTab === 'csv' ? csvNextLabel : isbnNextLabel;
-  const s3OnNext = activeTab === 'csv' ? csvOnNext : onNext;
+  const step2HideNext = activeTab === 'csv' ? csvHideNext : isbnHideNext;
+  const step2NextLabel = activeTab === 'csv' ? csvNextLabel : isbnNextLabel;
+  const step2OnNext = activeTab === 'csv' ? csvOnNext : onNext;
 
   const handleAddIsbnBooks = (newBooks, replace = false) => {
     if (replace) {
@@ -265,25 +205,24 @@ export default function WizardPage() {
     setIsbnBooks((prev) => prev.map((book, i) => (i === index ? { ...book, ...updated } : book)));
   };
 
-  if (currentStep === 3) {
+  if (currentStep === 2) {
     return (
       <div className="app-shell-bg motion-slide flex min-h-screen items-center justify-center px-5 py-12">
         <WizardStep
-          step={3}
-          total={4}
+          step={2}
+          total={3}
           title="Add your first books"
           onBack={onBack}
-          onNext={s3OnNext}
-          nextLabel={s3NextLabel}
-          hideNext={s3HideNext}
+          onNext={step2OnNext}
+          nextLabel={step2NextLabel}
+          hideNext={step2HideNext}
         >
           <p className="text-sm text-text-secondary">
-            Start with one shelf. You can always add more later.
+            Start with a few books. You can always add more later.
           </p>
 
-          {/* Tab bar */}
           <div className="mt-4 flex gap-2">
-            {step3Tabs.map((tab) => (
+            {step2Tabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -340,8 +279,8 @@ export default function WizardPage() {
   return (
     <div className="app-shell-bg motion-slide flex min-h-screen items-center justify-center px-5 py-12">
       <WizardStep
-        step={4}
-        total={4}
+        step={3}
+        total={3}
         title={inviteSent ? 'Invites sent!' : 'Invite a few colleagues'}
         onBack={inviteSent ? undefined : onBack}
         onNext={onNext}

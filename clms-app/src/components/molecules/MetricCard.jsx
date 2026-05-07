@@ -34,7 +34,7 @@ export default function MetricCard({
 
   return (
     <article
-      className={`min-h-40 rounded-metric-card border border-metric bg-metric p-6 text-left backdrop-blur-xl ${loading ? 'shadow-metric-loading' : 'shadow-metric'} ${interactive ? 'bg-metric-hover cursor-pointer transition-[background-image,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30' : ''}`}
+      className={`min-h-40 rounded-metric-card border border-metric bg-metric p-6 text-left backdrop-blur-xl ${loading ? 'shadow-metric-loading' : 'shadow-metric'} ${interactive ? 'bg-metric-hover cursor-pointer transition-[transform,box-shadow,border-color,background-image] duration-200 ease-out hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-metric-hover hover:ring-2 hover:ring-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30' : ''}`}
       onClick={interactive ? handleNavigate : undefined}
       onKeyDown={interactive ? handleKeyDown : undefined}
       role={interactive ? 'button' : undefined}
