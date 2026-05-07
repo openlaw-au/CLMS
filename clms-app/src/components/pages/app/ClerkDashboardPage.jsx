@@ -291,7 +291,7 @@ export default function ClerkDashboardPage() {
         >
           <div className="flex min-h-[36px] items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Icon name="solar:chart-2-linear" size={22} className="text-brand" />
+              <Icon name="solar:pulse-2-linear" size={22} className="text-brand" />
               <div>
                 <h2 className="font-serif text-section-title text-text">Library Health</h2>
                 <p className="mt-1 text-xs text-text-secondary">Better metadata improves search and authority lists.</p>
