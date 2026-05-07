@@ -7,6 +7,7 @@ const variantClasses = {
   // Soft-tinted - semantic
   approve: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
   recall: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+  warning: 'bg-warning/10 text-warning hover:bg-warning/20',
   danger: 'bg-red-50 text-red-700 hover:bg-red-100',
 
   // Soft-tinted - neutral
@@ -59,5 +60,5 @@ Button.propTypes = {
   loading: PropTypes.bool,
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
-  variant: PropTypes.oneOf(['primary', 'approve', 'recall', 'danger', 'secondary', 'ghost', 'danger-solid']),
+  variant: PropTypes.oneOf(['primary', 'approve', 'recall', 'warning', 'danger', 'secondary', 'ghost', 'danger-solid']),
 };

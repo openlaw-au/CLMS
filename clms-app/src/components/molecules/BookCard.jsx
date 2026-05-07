@@ -34,7 +34,7 @@ export default function BookCard({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingCancelReturn, setConfirmingCancelReturn] = useState(false);
-  const [confirmingRequestReturn, setConfirmingRequestReturn] = useState(false);
+  const [confirmingCancelLoan, setConfirmingCancelLoan] = useState(false);
   const overflowMenuRef = useRef(null);
   const category = book.enrichment?.subject || book.practiceArea;
   const hasApproveActions = typeof onApprove === 'function';
@@ -349,16 +349,17 @@ export default function BookCard({
                 <div className="flex-1 basis-0 min-w-0">
                   {onLoan ? (
                     returnRequested ? (
-                      <button
-                        type="button"
+                      <Button
+                        size="sm"
+                        variant="warning"
                         onClick={() => {
                           if (onCancelReturn) setConfirmingCancelReturn(true);
                         }}
-                        className="inline-flex items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning transition-colors hover:bg-warning/20"
+                        className="w-full text-xs"
                       >
-                        <Icon name="solar:hourglass-linear" size={12} />
+                        <Icon name="solar:hourglass-linear" size={14} />
                         Requested
-                      </button>
+                      </Button>
                     ) : alreadyBorrowed ? (
                       <div className="flex w-full items-center">
                         <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
@@ -370,7 +371,7 @@ export default function BookCard({
                       <Button
                         size="sm"
                         variant="recall"
-                        onClick={() => setConfirmingRequestReturn(true)}
+                        onClick={() => onRequestReturn(book.id)}
                         className="w-full text-xs"
                       >
                         Request
@@ -384,15 +385,17 @@ export default function BookCard({
                       </div>
                     )
                   ) : pendingLoan ? (
-                    <div className="flex animate-fade-in items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
-                        <Icon name="solar:hourglass-linear" size={12} />
-                        Loan Requested
-                      </span>
-                      {onCancel && (
-                        <button type="button" onClick={() => onCancel(book.id)} className="text-xs text-text-muted hover:text-text">Cancel</button>
-                      )}
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="warning"
+                      onClick={() => {
+                        if (onCancel) setConfirmingCancelLoan(true);
+                      }}
+                      className="w-full text-xs"
+                    >
+                      <Icon name="solar:hourglass-linear" size={14} />
+                      Requested
+                    </Button>
                   ) : alreadyBorrowed ? (
                     <div className="flex w-full items-center">
                       <span className="inline-flex items-center gap-1 rounded-md bg-info/10 px-2 py-0.5 text-xs font-medium text-info">
@@ -442,15 +445,15 @@ export default function BookCard({
           onClose={() => setConfirmingCancelReturn(false)}
         />
       )}
-      {confirmingRequestReturn && (
+      {confirmingCancelLoan && (
         <ConfirmModal
-          title="Request recall?"
-          body={`Ask the clerk to recall "${book.title}" from the current borrower.`}
-          confirmLabel="Request recall"
-          cancelLabel="Cancel"
-          confirmVariant="primary"
-          onConfirm={() => onRequestReturn?.(book.id)}
-          onClose={() => setConfirmingRequestReturn(false)}
+          title="Cancel loan request?"
+          body={`Withdraw your request to borrow "${book.title}".`}
+          confirmLabel="Cancel request"
+          cancelLabel="Keep"
+          confirmVariant="danger"
+          onConfirm={() => onCancel?.(book.id)}
+          onClose={() => setConfirmingCancelLoan(false)}
         />
       )}
     </div>

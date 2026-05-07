@@ -680,7 +680,7 @@ export default function BarristerListsPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [bulkBusy, setBulkBusy] = useState(null); // 'duplicate' | 'delete' | null
   const [cancelReturnTarget, setCancelReturnTarget] = useState(null);
-  const [requestReturnTarget, setRequestReturnTarget] = useState(null);
+  const [cancelLoanTarget, setCancelLoanTarget] = useState(null);
 
   // Card menu + multi-select
   const [cardMenuId, setCardMenuId] = useState(null);
@@ -1698,19 +1698,15 @@ export default function BarristerListsPage() {
                 const returnRequested = requestedReturnIds.has(book.id);
                 if (book.status === 'available') {
                   return loanRequested ? (
-                    <div className="flex shrink-0 animate-fade-in items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
-                        <Icon name="solar:hourglass-linear" size={12} />
-                        Loan Requested
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); handleCancelLoan(book); }}
-                        className="text-xs text-text-muted hover:text-text"
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="warning"
+                      onClick={(e) => { e.stopPropagation(); setCancelLoanTarget(book); }}
+                      className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
+                    >
+                      <Icon name="solar:hourglass-linear" size={14} />
+                      Requested
+                    </Button>
                   ) : (
                     <Button
                       size="sm"
@@ -1723,22 +1719,20 @@ export default function BarristerListsPage() {
                   );
                 }
                 return returnRequested ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCancelReturnTarget(book);
-                    }}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning transition-colors hover:bg-warning/20"
+                  <Button
+                    size="sm"
+                    variant="warning"
+                    onClick={(e) => { e.stopPropagation(); setCancelReturnTarget(book); }}
+                    className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
                   >
-                    <Icon name="solar:hourglass-linear" size={12} />
+                    <Icon name="solar:hourglass-linear" size={14} />
                     Requested
-                  </button>
+                  </Button>
                 ) : (
                   <Button
                     size="sm"
                     variant="recall"
-                    onClick={(e) => { e.stopPropagation(); setRequestReturnTarget(book); }}
+                    onClick={(e) => { e.stopPropagation(); handleRequestReturn(book); }}
                     className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs"
                   >
                     Request Return
@@ -2775,15 +2769,15 @@ export default function BarristerListsPage() {
         />
       )}
 
-      {requestReturnTarget && (
+      {cancelLoanTarget && (
         <ConfirmModal
-          title="Request recall?"
-          body={`Ask the clerk to recall "${requestReturnTarget.title}" from the current borrower.`}
-          confirmLabel="Request recall"
-          cancelLabel="Cancel"
-          confirmVariant="primary"
-          onConfirm={() => handleRequestReturn(requestReturnTarget)}
-          onClose={() => setRequestReturnTarget(null)}
+          title="Cancel loan request?"
+          body={`Withdraw your request to borrow "${cancelLoanTarget.title}".`}
+          confirmLabel="Cancel request"
+          cancelLabel="Keep"
+          confirmVariant="danger"
+          onConfirm={() => handleCancelLoan(cancelLoanTarget)}
+          onClose={() => setCancelLoanTarget(null)}
         />
       )}
     </div>
